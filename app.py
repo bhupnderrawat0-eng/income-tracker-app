@@ -1,124 +1,29 @@
-# =========================================================
-# SMART FINANCE TRACKER PRO
-# PROFESSIONAL FINAL VERSION
-# =========================================================
-
 import streamlit as st
-import sqlite3
 import pandas as pd
 from datetime import datetime
+import hashlib
 
-# =========================================================
+# =====================================================
 # PAGE CONFIG
-# =========================================================
+# =====================================================
 
 st.set_page_config(
     page_title="Smart Finance Tracker Pro",
-    page_icon="💰",
     layout="wide"
 )
 
-# =========================================================
-# DATABASE
-# =========================================================
+# =====================================================
+# SESSION STATE
+# =====================================================
 
-conn = sqlite3.connect(
-    "tracker.db",
-    check_same_thread=False
-)
-
-c = conn.cursor()
-
-# =========================================================
-# TABLES
-# =========================================================
-
-c.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT,
-    role TEXT,
-    active INTEGER
-)
-""")
-
-c.execute("""
-CREATE TABLE IF NOT EXISTS customers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    mobile TEXT,
-    collection_start_date TEXT,
-    monthly_collection REAL
-)
-""")
-
-c.execute("""
-CREATE TABLE IF NOT EXISTS loans (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_name TEXT,
-    loan_amount REAL,
-    interest_rate REAL,
-    loan_start_date TEXT
-)
-""")
-
-c.execute("""
-CREATE TABLE IF NOT EXISTS collections (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_name TEXT,
-    month TEXT,
-    amount REAL,
-    status TEXT,
-    payment_date TEXT
-)
-""")
-
-c.execute("""
-CREATE TABLE IF NOT EXISTS principal_payments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_name TEXT,
-    amount REAL,
-    payment_date TEXT
-)
-""")
-
-c.execute("""
-CREATE TABLE IF NOT EXISTS donations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    donor_name TEXT,
-    amount REAL,
-    donation_date TEXT,
-    note TEXT
-)
-""")
-
-c.execute("""
-CREATE TABLE IF NOT EXISTS expenses (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    expense_name TEXT,
-    amount REAL,
-    expense_date TEXT,
-    note TEXT
-)
-""")
-
-# =========================================================
-# DEFAULT ADMIN
-# =========================================================
-
-c.execute("""
-INSERT OR IGNORE INTO users
-(username, password, role, active)
-VALUES
-('admin', 'admin123', 'admin', 1)
-""")
-
-conn.commit()
-
-# =========================================================
-# SESSION
-# =========================================================
+if "users" not in st.session_state:
+    st.session_state.users = {
+        "admin": {
+            "password": "admin123",
+            "role": "admin",
+            "active": True
+        }
+    }
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -129,300 +34,199 @@ if "username" not in st.session_state:
 if "role" not in st.session_state:
     st.session_state.role = ""
 
-# =========================================================
+if "customers" not in st.session_state:
+    st.session_state.customers = []
+
+if "collections" not in st.session_state:
+    st.session_state.collections = []
+
+if "loans" not in st.session_state:
+    st.session_state.loans = []
+
+if "donations" not in st.session_state:
+    st.session_state.donations = []
+
+if "expenses" not in st.session_state:
+    st.session_state.expenses = []
+
+# =====================================================
 # LOGIN
-# =========================================================
+# =====================================================
+
+def login(username, password):
+
+    users = st.session_state.users
+
+    if username in users:
+
+        if (
+            users[username]["password"] == password
+            and users[username]["active"]
+        ):
+
+            st.session_state.logged_in = True
+            st.session_state.username = username
+            st.session_state.role = users[username]["role"]
+
+            return True
+
+    return False
+
+# =====================================================
+# LOGIN SCREEN
+# =====================================================
 
 if not st.session_state.logged_in:
 
     st.title("🔐 Login")
 
     username = st.text_input("Username")
-
-    password = st.text_input(
-        "Password",
-        type="password"
-    )
+    password = st.text_input("Password", type="password")
 
     if st.button("Login"):
 
-        user = c.execute(
-            """
-            SELECT * FROM users
-            WHERE username=?
-            AND password=?
-            AND active=1
-            """,
-            (
-                username,
-                password
-            )
-        ).fetchone()
+        success = login(username, password)
 
-        if user:
-
-            st.session_state.logged_in = True
-            st.session_state.username = user[1]
-            st.session_state.role = user[3]
-
+        if success:
+            st.success("Login Successful")
             st.rerun()
 
         else:
-
             st.error("Invalid Login")
 
     st.stop()
 
-# =========================================================
-# LOAD DATA
-# =========================================================
-
-customers = pd.read_sql(
-    "SELECT * FROM customers",
-    conn
-)
-
-loans = pd.read_sql(
-    "SELECT * FROM loans",
-    conn
-)
-
-collections = pd.read_sql(
-    "SELECT * FROM collections",
-    conn
-)
-
-principal_payments = pd.read_sql(
-    "SELECT * FROM principal_payments",
-    conn
-)
-
-donations = pd.read_sql(
-    "SELECT * FROM donations",
-    conn
-)
-
-expenses = pd.read_sql(
-    "SELECT * FROM expenses",
-    conn
-)
-
-users = pd.read_sql(
-    "SELECT * FROM users",
-    conn
-)
-
-# =========================================================
+# =====================================================
 # SIDEBAR
-# =========================================================
+# =====================================================
 
 st.sidebar.title("📌 Menu")
 
-menu_options = [
-    "Dashboard",
-    "Customers",
-    "Monthly Collections",
-    "Start Loan",
-    "Loan Management",
-    "Donations",
-    "Expenses",
-    "Pending Collections",
-    "Reports"
-]
-
-if st.session_state.role == "admin":
-    menu_options.append("User Management")
-
 menu = st.sidebar.radio(
     "Select Option",
-    menu_options
+    [
+        "Dashboard",
+        "Customers",
+        "Monthly Collections",
+        "Start Loan",
+        "Loan Management",
+        "Donations",
+        "Expenses",
+        "Pending Collections",
+        "Reports",
+        "User Management"
+    ]
 )
 
-st.sidebar.write(
-    f"👤 {st.session_state.username}"
-)
-
-st.sidebar.write(
-    f"🔐 {st.session_state.role}"
-)
+st.sidebar.write("👤", st.session_state.username)
+st.sidebar.write("🔐", st.session_state.role)
 
 if st.sidebar.button("Logout"):
 
     st.session_state.logged_in = False
     st.rerun()
 
-# =========================================================
-# PERMISSION
-# =========================================================
-
-can_edit = (
-    st.session_state.role
-    in
-    ["admin", "editor"]
-)
-
-# =========================================================
+# =====================================================
 # DASHBOARD
-# =========================================================
+# =====================================================
 
 if menu == "Dashboard":
 
     st.title("📊 Finance Dashboard")
 
-    total_collection = (
-        collections["amount"].sum()
-        if not collections.empty else 0
+    collections_total = sum(
+        x["amount"]
+        for x in st.session_state.collections
     )
 
-    total_loan = (
-        loans["loan_amount"].sum()
-        if not loans.empty else 0
+    donations_total = sum(
+        x["amount"]
+        for x in st.session_state.donations
     )
 
-    total_returned = (
-        principal_payments["amount"].sum()
-        if not principal_payments.empty else 0
+    expenses_total = sum(
+        x["amount"]
+        for x in st.session_state.expenses
     )
 
-    total_donation = (
-        donations["amount"].sum()
-        if not donations.empty else 0
+    total_loans = sum(
+        x["loan_amount"]
+        for x in st.session_state.loans
     )
 
-    total_expense = (
-        expenses["amount"].sum()
-        if not expenses.empty else 0
+    returned_loans = sum(
+        x["returned"]
+        for x in st.session_state.loans
     )
 
-    remaining_loan = (
-        total_loan
-        -
-        total_returned
+    remaining_loans = total_loans - returned_loans
+
+    balance = (
+        collections_total
+        + donations_total
+        - expenses_total
     )
 
-    final_balance = (
-        total_collection
-        +
-        total_donation
-        -
-        total_expense
-    )
+    c1, c2, c3 = st.columns(3)
 
-    col1, col2, col3 = st.columns(3)
+    c1.metric("💵 Collections", f"₹ {collections_total}")
+    c2.metric("🎁 Donations", f"₹ {donations_total}")
+    c3.metric("💸 Expenses", f"₹ {expenses_total}")
 
-    col1.metric(
-        "💵 Collections",
-        f"₹ {total_collection}"
-    )
+    c4, c5 = st.columns(2)
 
-    col2.metric(
-        "🏦 Loan Given",
-        f"₹ {total_loan}"
-    )
+    c4.metric("🏦 Remaining Loan", f"₹ {remaining_loans}")
+    c5.metric("🪙 Remaining Balance", f"₹ {balance}")
 
-    col3.metric(
-        "💳 Returned",
-        f"₹ {total_returned}"
-    )
-
-    st.divider()
-
-    col4, col5, col6 = st.columns(3)
-
-    col4.metric(
-        "🎁 Donations",
-        f"₹ {total_donation}"
-    )
-
-    col5.metric(
-        "💸 Expenses",
-        f"₹ {total_expense}"
-    )
-
-    col6.metric(
-        "💰 Balance",
-        f"₹ {final_balance}"
-    )
-
-    st.divider()
-
-    st.metric(
-        "📉 Remaining Loan",
-        f"₹ {remaining_loan}"
-    )
-
-# =========================================================
+# =====================================================
 # CUSTOMERS
-# =========================================================
+# =====================================================
 
 elif menu == "Customers":
 
     st.title("👥 Customers")
 
-    if can_edit:
+    name = st.text_input("Customer Name")
 
-        name = st.text_input("Customer Name")
+    if st.button("Add Customer"):
 
-        mobile = st.text_input("Mobile")
+        if name != "":
 
-        start_date = st.date_input(
-            "Collection Start Date"
-        )
-
-        monthly_collection = st.number_input(
-            "Monthly Collection",
-            min_value=0.0
-        )
-
-        if st.button("Save Customer"):
-
-            c.execute(
-                """
-                INSERT INTO customers
-                (
-                    name,
-                    mobile,
-                    collection_start_date,
-                    monthly_collection
-                )
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    name,
-                    mobile,
-                    str(start_date),
-                    monthly_collection
-                )
-            )
-
-            conn.commit()
+            st.session_state.customers.append(name)
 
             st.success("Customer Added")
 
-    st.divider()
+    if st.session_state.customers:
 
-    st.dataframe(
-        customers,
-        use_container_width=True
-    )
+        df = pd.DataFrame(
+            st.session_state.customers,
+            columns=["Customer Name"]
+        )
 
-# =========================================================
+        st.dataframe(df, use_container_width=True)
+
+# =====================================================
 # MONTHLY COLLECTIONS
-# =========================================================
+# =====================================================
 
 elif menu == "Monthly Collections":
 
     st.title("💵 Monthly Collections")
 
-    if not customers.empty:
+    if len(st.session_state.customers) == 0:
 
-        customer_name = st.selectbox(
+        st.warning("Please add customers first")
+
+    else:
+
+        customer = st.selectbox(
             "Customer",
-            customers["name"]
+            st.session_state.customers
         )
 
         month = st.text_input(
-            "Month"
+            "Month",
+            value=datetime.now().strftime("%B %Y")
         )
 
         amount = st.number_input(
@@ -432,66 +236,42 @@ elif menu == "Monthly Collections":
 
         status = st.selectbox(
             "Status",
-            [
-                "Paid",
-                "Pending",
-                "Partial"
-            ]
+            ["Paid", "Pending"]
         )
 
         payment_date = st.date_input(
             "Payment Date"
         )
 
-        if can_edit:
+        if st.button("Save Collection"):
 
-            if st.button("Save Collection"):
+            st.session_state.collections.append({
+                "customer": customer,
+                "month": month,
+                "amount": amount,
+                "status": status,
+                "date": str(payment_date)
+            })
 
-                c.execute(
-                    """
-                    INSERT INTO collections
-                    (
-                        customer_name,
-                        month,
-                        amount,
-                        status,
-                        payment_date
-                    )
-                    VALUES (?, ?, ?, ?, ?)
-                    """,
-                    (
-                        customer_name,
-                        month,
-                        amount,
-                        status,
-                        str(payment_date)
-                    )
-                )
+            st.success("Collection Saved")
 
-                conn.commit()
-
-                st.success("Collection Saved")
-
-    st.divider()
-
-    st.dataframe(
-        collections,
-        use_container_width=True
-    )
-
-# =========================================================
+# =====================================================
 # START LOAN
-# =========================================================
+# =====================================================
 
 elif menu == "Start Loan":
 
     st.title("🏦 Start Loan")
 
-    if not customers.empty:
+    if len(st.session_state.customers) == 0:
 
-        customer_name = st.selectbox(
-            "Customer",
-            customers["name"]
+        st.warning("Please add customers first")
+
+    else:
+
+        customer = st.selectbox(
+            "Select Customer",
+            st.session_state.customers
         )
 
         loan_amount = st.number_input(
@@ -500,558 +280,384 @@ elif menu == "Start Loan":
         )
 
         interest_rate = st.number_input(
-            "Monthly Interest %",
+            "Interest %",
             min_value=0.0
         )
 
-        loan_date = st.date_input(
-            "Loan Date"
-        )
+        if st.button("Start Loan"):
 
-        if can_edit:
+            st.session_state.loans.append({
+                "customer": customer,
+                "loan_amount": loan_amount,
+                "returned": 0.0,
+                "interest_rate": interest_rate
+            })
 
-            if st.button("Start Loan"):
+            st.success("Loan Started")
 
-                c.execute(
-                    """
-                    INSERT INTO loans
-                    (
-                        customer_name,
-                        loan_amount,
-                        interest_rate,
-                        loan_start_date
-                    )
-                    VALUES (?, ?, ?, ?)
-                    """,
-                    (
-                        customer_name,
-                        loan_amount,
-                        interest_rate,
-                        str(loan_date)
-                    )
-                )
-
-                conn.commit()
-
-                st.success("Loan Started")
-
-# =========================================================
+# =====================================================
 # LOAN MANAGEMENT
-# =========================================================
+# =====================================================
 
 elif menu == "Loan Management":
 
-    st.title("🏦 Loan Management")
+    st.title("🏢 Loan Management")
 
-    if not loans.empty:
+    if len(st.session_state.loans) == 0:
 
-        customer_name = st.selectbox(
-            "Select Customer",
-            loans["customer_name"].unique()
-        )
+        st.info("No loans available")
 
-        loan_data = loans[
-            loans["customer_name"]
-            ==
-            customer_name
-        ].iloc[0]
+    else:
 
-        original_loan = float(
-            loan_data["loan_amount"]
-        )
-
-        interest_rate = float(
-            loan_data["interest_rate"]
-        )
-
-        payments = principal_payments[
-            principal_payments["customer_name"]
-            ==
-            customer_name
+        customer_names = [
+            x["customer"]
+            for x in st.session_state.loans
         ]
 
-        returned = (
-            payments["amount"].sum()
-            if not payments.empty else 0
+        selected_customer = st.selectbox(
+            "Select Customer",
+            customer_names
         )
 
-        remaining = (
-            original_loan
-            -
-            returned
+        loan = next(
+            x for x in st.session_state.loans
+            if x["customer"] == selected_customer
         )
 
-        monthly_interest = (
+        original_loan = loan["loan_amount"]
+        returned = loan["returned"]
+
+        remaining = original_loan - returned
+
+        interest = (
             remaining
-            *
-            interest_rate
+            * loan["interest_rate"]
             / 100
         )
 
-        col1, col2, col3, col4 = st.columns(4)
+        c1, c2, c3, c4 = st.columns(4)
 
-        col1.metric(
-            "🏦 Original Loan",
-            f"₹ {original_loan}"
-        )
-
-        col2.metric(
-            "💳 Returned",
-            f"₹ {returned}"
-        )
-
-        col3.metric(
-            "📉 Remaining",
-            f"₹ {remaining}"
-        )
-
-        col4.metric(
-            "📈 Monthly Interest",
-            f"₹ {monthly_interest}"
-        )
+        c1.metric("🏦 Original Loan", f"₹ {original_loan}")
+        c2.metric("💰 Returned", f"₹ {returned}")
+        c3.metric("📄 Remaining", f"₹ {remaining}")
+        c4.metric("📈 Interest", f"₹ {interest}")
 
         st.divider()
 
-        if can_edit:
+        st.subheader("💵 Add Principal Return")
 
-            return_amount = st.number_input(
-                "Return Amount",
-                min_value=0.0
-            )
-
-            return_date = st.date_input(
-                "Return Date"
-            )
-
-            if st.button("Save Return"):
-
-                c.execute(
-                    """
-                    INSERT INTO principal_payments
-                    (
-                        customer_name,
-                        amount,
-                        payment_date
-                    )
-                    VALUES (?, ?, ?)
-                    """,
-                    (
-                        customer_name,
-                        return_amount,
-                        str(return_date)
-                    )
-                )
-
-                conn.commit()
-
-                st.success("Return Saved")
-
-        st.divider()
-
-        st.subheader("📋 Return History")
-
-        st.dataframe(
-            payments,
-            use_container_width=True
+        return_amount = st.number_input(
+            "Return Amount",
+            min_value=0.0
         )
 
-# =========================================================
+        return_date = st.date_input(
+            "Return Date"
+        )
+
+        if st.button("Save Return"):
+
+            loan["returned"] += return_amount
+
+            st.success("Return Saved")
+
+# =====================================================
 # DONATIONS
-# =========================================================
+# =====================================================
 
 elif menu == "Donations":
 
     st.title("🎁 Donations")
 
-    donor_name = st.text_input(
-        "Donor Name"
-    )
+    donor_name = st.text_input("Donor Name")
 
     donation_amount = st.number_input(
         "Donation Amount",
         min_value=0.0
     )
 
-    donation_date = st.date_input(
-        "Donation Date"
-    )
+    note = st.text_area("Comment / Note")
 
-    donation_note = st.text_area(
-        "Comment / Note"
-    )
+    donation_date = st.date_input("Donation Date")
 
-    if can_edit:
+    if st.button("Save Donation"):
 
-        if st.button("Save Donation"):
+        st.session_state.donations.append({
+            "name": donor_name,
+            "amount": donation_amount,
+            "note": note,
+            "date": str(donation_date)
+        })
 
-            c.execute(
-                """
-                INSERT INTO donations
-                (
-                    donor_name,
-                    amount,
-                    donation_date,
-                    note
-                )
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    donor_name,
-                    donation_amount,
-                    str(donation_date),
-                    donation_note
-                )
-            )
+        st.success("Donation Saved")
 
-            conn.commit()
+    if st.session_state.donations:
 
-            st.success("Donation Saved")
+        df = pd.DataFrame(st.session_state.donations)
 
-    st.divider()
+        st.dataframe(df, use_container_width=True)
 
-    st.dataframe(
-        donations,
-        use_container_width=True
-    )
-
-# =========================================================
+# =====================================================
 # EXPENSES
-# =========================================================
+# =====================================================
 
 elif menu == "Expenses":
 
     st.title("💸 Expenses")
 
-    expense_name = st.text_input(
-        "Expense Name"
-    )
+    expense_title = st.text_input("Expense Title")
 
     expense_amount = st.number_input(
         "Expense Amount",
         min_value=0.0
     )
 
-    expense_date = st.date_input(
-        "Expense Date"
-    )
+    expense_note = st.text_area("Expense Note")
 
-    expense_note = st.text_area(
-        "Comment / Note"
-    )
+    expense_date = st.date_input("Expense Date")
 
-    if can_edit:
+    if st.button("Save Expense"):
 
-        if st.button("Save Expense"):
+        st.session_state.expenses.append({
+            "title": expense_title,
+            "amount": expense_amount,
+            "note": expense_note,
+            "date": str(expense_date)
+        })
 
-            c.execute(
-                """
-                INSERT INTO expenses
-                (
-                    expense_name,
-                    amount,
-                    expense_date,
-                    note
-                )
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    expense_name,
-                    expense_amount,
-                    str(expense_date),
-                    expense_note
-                )
-            )
+        st.success("Expense Saved")
 
-            conn.commit()
+    if st.session_state.expenses:
 
-            st.success("Expense Saved")
+        df = pd.DataFrame(st.session_state.expenses)
 
-    st.divider()
+        st.dataframe(df, use_container_width=True)
 
-    st.dataframe(
-        expenses,
-        use_container_width=True
-    )
-
-# =========================================================
+# =====================================================
 # PENDING COLLECTIONS
-# =========================================================
+# =====================================================
 
 elif menu == "Pending Collections":
 
-    st.title("❌ Pending Collections")
+    st.title("⏳ Pending Collections")
 
-    pending = collections[
-        collections["status"]
-        !=
-        "Paid"
+    pending = [
+        x for x in st.session_state.collections
+        if x["status"] == "Pending"
     ]
 
-    st.dataframe(
-        pending,
-        use_container_width=True
-    )
+    if pending:
 
-# =========================================================
-# USER MANAGEMENT
-# =========================================================
+        df = pd.DataFrame(pending)
 
-elif menu == "User Management":
+        st.dataframe(df, use_container_width=True)
 
-    st.title("👤 User Management")
+    else:
 
-    username = st.text_input(
-        "New Username"
-    )
+        st.success("No Pending Collections")
 
-    password = st.text_input(
-        "New Password"
-    )
-
-    role = st.selectbox(
-        "Role",
-        [
-            "editor",
-            "viewer"
-        ]
-    )
-
-    if st.button("Create User"):
-
-        try:
-
-            c.execute(
-                """
-                INSERT INTO users
-                (
-                    username,
-                    password,
-                    role,
-                    active
-                )
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    username,
-                    password,
-                    role,
-                    1
-                )
-            )
-
-            conn.commit()
-
-            st.success("User Created")
-
-        except:
-
-            st.error("User Already Exists")
-
-    st.divider()
-
-    st.subheader("📋 Users")
-
-    st.dataframe(
-        users,
-        use_container_width=True
-    )
-
-# =========================================================
+# =====================================================
 # REPORTS
-# =========================================================
+# =====================================================
 
 elif menu == "Reports":
 
-    st.title("📑 Professional Reports")
+    st.header("📊 Reports Dashboard")
 
-    total_collection = (
-        collections["amount"].sum()
-        if not collections.empty else 0
+    collections_df = pd.DataFrame(st.session_state.collections)
+    loans_df = pd.DataFrame(st.session_state.loans)
+    expenses_df = pd.DataFrame(st.session_state.expenses)
+    donations_df = pd.DataFrame(st.session_state.donations)
+
+    total_collections = (
+        collections_df["amount"].sum()
+        if not collections_df.empty else 0
     )
 
-    total_loan = (
-        loans["loan_amount"].sum()
-        if not loans.empty else 0
+    total_loans = (
+        loans_df["loan_amount"].sum()
+        if not loans_df.empty else 0
     )
 
-    total_returned = (
-        principal_payments["amount"].sum()
-        if not principal_payments.empty else 0
+    returned_loans = (
+        loans_df["returned"].sum()
+        if not loans_df.empty else 0
     )
 
-    total_donation = (
-        donations["amount"].sum()
-        if not donations.empty else 0
+    pending_loans = total_loans - returned_loans
+
+    total_expenses = (
+        expenses_df["amount"].sum()
+        if not expenses_df.empty else 0
     )
 
-    total_expense = (
-        expenses["amount"].sum()
-        if not expenses.empty else 0
+    total_donations = (
+        donations_df["amount"].sum()
+        if not donations_df.empty else 0
     )
 
-    remaining_loan = (
-        total_loan
-        -
-        total_returned
+    net_balance = (
+        total_collections
+        + total_donations
+        - total_expenses
     )
 
-    final_balance = (
-        total_collection
-        +
-        total_donation
-        -
-        total_expense
-    )
+    c1, c2, c3 = st.columns(3)
 
-    col1, col2, col3, col4 = st.columns(4)
+    c1.metric("💰 Collections", f"₹ {total_collections}")
+    c2.metric("🎁 Donations", f"₹ {total_donations}")
+    c3.metric("💸 Expenses", f"₹ {total_expenses}")
 
-    col1.metric(
-        "💵 Collections",
-        f"₹ {total_collection}"
-    )
+    c4, c5, c6 = st.columns(3)
 
-    col2.metric(
-        "🏦 Loan",
-        f"₹ {total_loan}"
-    )
+    c4.metric("🏦 Total Loan", f"₹ {total_loans}")
+    c5.metric("✅ Returned", f"₹ {returned_loans}")
+    c6.metric("📌 Pending", f"₹ {pending_loans}")
 
-    col3.metric(
-        "💳 Returned",
-        f"₹ {total_returned}"
-    )
-
-    col4.metric(
-        "📉 Remaining",
-        f"₹ {remaining_loan}"
-    )
+    st.metric("💼 Net Balance", f"₹ {net_balance}")
 
     st.divider()
 
-    col5, col6, col7 = st.columns(3)
+    st.subheader("👥 Customer Collection Report")
 
-    col5.metric(
-        "🎁 Donations",
-        f"₹ {total_donation}"
-    )
+    if not collections_df.empty:
 
-    col6.metric(
-        "💸 Expenses",
-        f"₹ {total_expense}"
-    )
-
-    col7.metric(
-        "💰 Balance",
-        f"₹ {final_balance}"
-    )
-
-    st.divider()
-
-    st.subheader("👥 Customer Report")
-
-    customer_report = []
-
-    for _, row in loans.iterrows():
-
-        customer = row["customer_name"]
-
-        loan_amount = row["loan_amount"]
-
-        rate = row["interest_rate"]
-
-        paid = principal_payments[
-            principal_payments["customer_name"]
-            ==
-            customer
-        ]["amount"].sum()
-
-        remaining = loan_amount - paid
-
-        interest = (
-            remaining
-            *
-            rate
-            / 100
+        customer_report = (
+            collections_df.groupby("customer")["amount"]
+            .sum()
+            .reset_index()
         )
 
-        customer_report.append(
-            {
-                "Customer": customer,
-                "Loan": loan_amount,
-                "Returned": paid,
-                "Remaining": remaining,
-                "Interest": interest
-            }
+        st.dataframe(
+            customer_report,
+            use_container_width=True
         )
 
-    customer_df = pd.DataFrame(
-        customer_report
-    )
+        st.bar_chart(
+            customer_report.set_index("customer")
+        )
 
-    st.dataframe(
-        customer_df,
-        use_container_width=True
-    )
+    st.subheader("🏦 Loan Report")
 
-    st.divider()
+    if not loans_df.empty:
+
+        loans_df["pending"] = (
+            loans_df["loan_amount"]
+            - loans_df["returned"]
+        )
+
+        st.dataframe(
+            loans_df,
+            use_container_width=True
+        )
 
     st.subheader("🎁 Donation Report")
 
-    st.dataframe(
-        donations,
-        use_container_width=True
-    )
+    if not donations_df.empty:
 
-    st.divider()
+        st.dataframe(
+            donations_df,
+            use_container_width=True
+        )
 
     st.subheader("💸 Expense Report")
 
-    st.dataframe(
-        expenses,
-        use_container_width=True
-    )
+    if not expenses_df.empty:
 
-    st.divider()
-
-    st.subheader("💵 Collection Report")
-
-    st.dataframe(
-        collections,
-        use_container_width=True
-    )
-
-    st.divider()
-
-    st.subheader("🏦 Loan Ledger")
-
-    ledger = []
-
-    for _, row in loans.iterrows():
-
-        ledger.append(
-            {
-                "Date": row["loan_start_date"],
-                "Action": "Loan Given",
-                "Customer": row["customer_name"],
-                "Amount": row["loan_amount"]
-            }
+        st.dataframe(
+            expenses_df,
+            use_container_width=True
         )
 
-    for _, row in principal_payments.iterrows():
+# =====================================================
+# USER MANAGEMENT
+# =====================================================
 
-        ledger.append(
-            {
-                "Date": row["payment_date"],
-                "Action": "Returned",
-                "Customer": row["customer_name"],
-                "Amount": row["amount"]
-            }
+elif menu == "User Management":
+
+    if st.session_state.role != "admin":
+
+        st.error("Only admin allowed")
+
+    else:
+
+        st.title("👨‍💻 User Management")
+
+        st.subheader("➕ Create User")
+
+        new_username = st.text_input("New Username")
+
+        new_password = st.text_input(
+            "New Password"
         )
 
-    ledger_df = pd.DataFrame(
-        ledger
-    )
+        new_role = st.selectbox(
+            "Role",
+            ["viewer", "editor", "admin"]
+        )
 
-    st.dataframe(
-        ledger_df,
-        use_container_width=True
-    )
+        if st.button("Create User"):
+
+            if new_username not in st.session_state.users:
+
+                st.session_state.users[new_username] = {
+                    "password": new_password,
+                    "role": new_role,
+                    "active": True
+                }
+
+                st.success("User Created")
+
+            else:
+
+                st.error("Username already exists")
+
+        st.divider()
+
+        st.subheader("👥 Existing Users")
+
+        for user, data in st.session_state.users.items():
+
+            st.write("---")
+
+            c1, c2, c3 = st.columns(3)
+
+            c1.write(f"👤 {user}")
+
+            new_user_role = c2.selectbox(
+                f"Role {user}",
+                ["viewer", "editor", "admin"],
+                index=["viewer", "editor", "admin"].index(
+                    data["role"]
+                ),
+                key=f"role_{user}"
+            )
+
+            if c2.button(
+                f"Update Role {user}"
+            ):
+
+                st.session_state.users[user]["role"] = new_user_role
+
+                st.success("Role Updated")
+
+            active_status = c3.checkbox(
+                f"Active {user}",
+                value=data["active"],
+                key=f"active_{user}"
+            )
+
+            st.session_state.users[user]["active"] = active_status
+
+            new_pass = st.text_input(
+                f"New Password for {user}",
+                key=f"pass_{user}"
+            )
+
+            if st.button(
+                f"Change Password {user}"
+            ):
+
+                st.session_state.users[user]["password"] = new_pass
+
+                st.success("Password Updated")
