@@ -4,17 +4,17 @@ import pandas as pd
 from datetime import datetime
 
 # -----------------------------------
-# PAGE SETTINGS
+# PAGE CONFIG
 # -----------------------------------
 
 st.set_page_config(
-    page_title="Loan Tracker Pro",
+    page_title="Finance Loan Tracker Pro",
     page_icon="💰",
     layout="wide"
 )
 
 # -----------------------------------
-# DATABASE CONNECTION
+# DATABASE
 # -----------------------------------
 
 conn = sqlite3.connect(
@@ -25,10 +25,10 @@ conn = sqlite3.connect(
 c = conn.cursor()
 
 # -----------------------------------
-# CREATE TABLES
+# TABLES
 # -----------------------------------
 
-# Customers Table
+# Customers
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS customers (
@@ -38,23 +38,46 @@ CREATE TABLE IF NOT EXISTS customers (
     start_date TEXT,
     loan_amount REAL,
     interest_rate REAL,
-    monthly_amount REAL
+    emi_amount REAL
 )
 """)
 
-# Receipts Table
+# EMI Payments
 
 c.execute("""
-CREATE TABLE IF NOT EXISTS receipts (
+CREATE TABLE IF NOT EXISTS emi_payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_name TEXT,
     month TEXT,
-    amount REAL,
-    status TEXT
+    emi_paid REAL,
+    payment_date TEXT
 )
 """)
 
-# Expenses Table
+# Interest Payments
+
+c.execute("""
+CREATE TABLE IF NOT EXISTS interest_payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_name TEXT,
+    month TEXT,
+    interest_paid REAL,
+    payment_date TEXT
+)
+""")
+
+# Principal Payments
+
+c.execute("""
+CREATE TABLE IF NOT EXISTS principal_payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_name TEXT,
+    principal_paid REAL,
+    payment_date TEXT
+)
+""")
+
+# Expenses
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS expenses (
@@ -68,26 +91,7 @@ CREATE TABLE IF NOT EXISTS expenses (
 conn.commit()
 
 # -----------------------------------
-# MONTH OPTIONS
-# -----------------------------------
-
-month_options = [
-    "January 2026",
-    "February 2026",
-    "March 2026",
-    "April 2026",
-    "May 2026",
-    "June 2026",
-    "July 2026",
-    "August 2026",
-    "September 2026",
-    "October 2026",
-    "November 2026",
-    "December 2026"
-]
-
-# -----------------------------------
-# LOGIN SYSTEM
+# LOGIN
 # -----------------------------------
 
 ADMIN_USER = "admin"
@@ -148,6 +152,25 @@ if not st.session_state.logged_in:
     st.stop()
 
 # -----------------------------------
+# MONTHS
+# -----------------------------------
+
+month_options = [
+    "January 2026",
+    "February 2026",
+    "March 2026",
+    "April 2026",
+    "May 2026",
+    "June 2026",
+    "July 2026",
+    "August 2026",
+    "September 2026",
+    "October 2026",
+    "November 2026",
+    "December 2026"
+]
+
+# -----------------------------------
 # SIDEBAR
 # -----------------------------------
 
@@ -158,7 +181,9 @@ menu = st.sidebar.radio(
     [
         "Dashboard",
         "Add Customer",
-        "Monthly Received",
+        "EMI Payments",
+        "Interest Payments",
+        "Principal Payments",
         "Customer History",
         "Expenses",
         "Reports"
@@ -185,8 +210,18 @@ customers = pd.read_sql(
     conn
 )
 
-receipts = pd.read_sql(
-    "SELECT * FROM receipts",
+emi_df = pd.read_sql(
+    "SELECT * FROM emi_payments",
+    conn
+)
+
+interest_df = pd.read_sql(
+    "SELECT * FROM interest_payments",
+    conn
+)
+
+principal_df = pd.read_sql(
+    "SELECT * FROM principal_payments",
     conn
 )
 
@@ -201,11 +236,26 @@ expenses = pd.read_sql(
 
 if menu == "Dashboard":
 
-    st.title("📊 Dashboard")
+    st.title("📊 Finance Dashboard")
 
-    total_received = (
-        receipts["amount"].sum()
-        if not receipts.empty else 0
+    total_loan = (
+        customers["loan_amount"].sum()
+        if not customers.empty else 0
+    )
+
+    total_emi = (
+        emi_df["emi_paid"].sum()
+        if not emi_df.empty else 0
+    )
+
+    total_interest = (
+        interest_df["interest_paid"].sum()
+        if not interest_df.empty else 0
+    )
+
+    total_principal = (
+        principal_df["principal_paid"].sum()
+        if not principal_df.empty else 0
     )
 
     total_expense = (
@@ -213,60 +263,56 @@ if menu == "Dashboard":
         if not expenses.empty else 0
     )
 
-    total_loan = (
-        customers["loan_amount"].sum()
-        if not customers.empty else 0
-    )
-
-    balance = (
-        total_received
-        -
-        total_expense
-    )
-
     remaining_loan = (
         total_loan
         -
-        total_received
+        total_principal
     )
 
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
-        "👥 Total Customers",
-        len(customers)
-    )
-
-    col2.metric(
-        "💰 Total Received",
-        f"₹ {total_received}"
-    )
-
-    col3.metric(
         "🏦 Total Loan",
         f"₹ {total_loan}"
     )
 
-    col4.metric(
-        "💳 Remaining Loan",
+    col2.metric(
+        "💳 Principal Returned",
+        f"₹ {total_principal}"
+    )
+
+    col3.metric(
+        "📉 Remaining Loan",
         f"₹ {remaining_loan}"
     )
 
+    col4.metric(
+        "👥 Customers",
+        len(customers)
+    )
+
     st.divider()
 
-    st.metric(
-        "💸 Total Expenses",
+    col5, col6, col7 = st.columns(3)
+
+    col5.metric(
+        "💵 EMI Received",
+        f"₹ {total_emi}"
+    )
+
+    col6.metric(
+        "📈 Interest Received",
+        f"₹ {total_interest}"
+    )
+
+    col7.metric(
+        "💸 Expenses",
         f"₹ {total_expense}"
     )
 
-    st.metric(
-        "🏦 Remaining Balance",
-        f"₹ {balance}"
-    )
-
     st.divider()
 
-    st.subheader("👥 Customer List")
+    st.subheader("👥 Customers")
 
     if customers.empty:
 
@@ -308,8 +354,8 @@ elif menu == "Add Customer":
         min_value=0.0
     )
 
-    monthly_amount = st.number_input(
-        "Monthly EMI / Payment",
+    emi_amount = st.number_input(
+        "Monthly EMI Amount",
         min_value=0.0
     )
 
@@ -326,55 +372,42 @@ elif menu == "Add Customer":
 
     if st.button("Save Customer"):
 
-        if name == "":
-
-            st.error(
-                "Please Enter Customer Name"
+        c.execute(
+            """
+            INSERT INTO customers
+            (
+                name,
+                mobile,
+                start_date,
+                loan_amount,
+                interest_rate,
+                emi_amount
             )
-
-        else:
-
-            c.execute(
-                """
-                INSERT INTO customers
-                (
-                    name,
-                    mobile,
-                    start_date,
-                    loan_amount,
-                    interest_rate,
-                    monthly_amount
-                )
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    name,
-                    mobile,
-                    str(start_date),
-                    loan_amount,
-                    interest_rate,
-                    monthly_amount
-                )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                name,
+                mobile,
+                str(start_date),
+                loan_amount,
+                interest_rate,
+                emi_amount
             )
+        )
 
-            conn.commit()
+        conn.commit()
 
-            st.success(
-                "Customer Added Successfully"
-            )
+        st.success(
+            "Customer Added Successfully"
+        )
 
 # -----------------------------------
-# MONTHLY RECEIVED
+# EMI PAYMENTS
 # -----------------------------------
 
-elif menu == "Monthly Received":
+elif menu == "EMI Payments":
 
-    st.title("💵 Monthly Received")
-
-    if customers.empty:
-
-        st.warning("No Customers Found")
-        st.stop()
+    st.title("💵 EMI Payments")
 
     customer_name = st.selectbox(
         "Select Customer",
@@ -383,66 +416,152 @@ elif menu == "Monthly Received":
 
     month = st.selectbox(
         "Select Month",
-        month_options,
-        index=4
+        month_options
     )
 
-    amount = st.number_input(
-        "Amount Received",
+    emi_paid = st.number_input(
+        "EMI Paid",
         min_value=0.0
     )
 
-    status = st.selectbox(
-        "Status",
-        [
-            "Received",
-            "Pending",
-            "Partial"
-        ]
-    )
+    if st.button("Save EMI Payment"):
 
-    if role == "admin":
-
-        if st.button("Save Record"):
-
-            c.execute(
-                """
-                INSERT INTO receipts
-                (customer_name, month, amount, status)
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    customer_name,
-                    month,
-                    amount,
-                    status
-                )
+        c.execute(
+            """
+            INSERT INTO emi_payments
+            (
+                customer_name,
+                month,
+                emi_paid,
+                payment_date
             )
-
-            conn.commit()
-
-            st.success(
-                "Record Saved Successfully"
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                customer_name,
+                month,
+                emi_paid,
+                str(datetime.now().date())
             )
+        )
 
-    else:
+        conn.commit()
 
-        st.warning("View Only Access")
+        st.success("EMI Payment Saved")
 
     st.divider()
 
-    st.subheader("📋 All Payment Records")
+    st.dataframe(
+        emi_df.reset_index(drop=True),
+        use_container_width=True
+    )
 
-    if receipts.empty:
+# -----------------------------------
+# INTEREST PAYMENTS
+# -----------------------------------
 
-        st.warning("No Records Found")
+elif menu == "Interest Payments":
 
-    else:
+    st.title("📈 Interest Payments")
 
-        st.dataframe(
-            receipts.reset_index(drop=True),
-            use_container_width=True
+    customer_name = st.selectbox(
+        "Select Customer",
+        customers["name"]
+    )
+
+    month = st.selectbox(
+        "Select Month",
+        month_options
+    )
+
+    interest_paid = st.number_input(
+        "Interest Paid",
+        min_value=0.0
+    )
+
+    if st.button("Save Interest Payment"):
+
+        c.execute(
+            """
+            INSERT INTO interest_payments
+            (
+                customer_name,
+                month,
+                interest_paid,
+                payment_date
+            )
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                customer_name,
+                month,
+                interest_paid,
+                str(datetime.now().date())
+            )
         )
+
+        conn.commit()
+
+        st.success(
+            "Interest Payment Saved"
+        )
+
+    st.divider()
+
+    st.dataframe(
+        interest_df.reset_index(drop=True),
+        use_container_width=True
+    )
+
+# -----------------------------------
+# PRINCIPAL PAYMENTS
+# -----------------------------------
+
+elif menu == "Principal Payments":
+
+    st.title("🏦 Principal Payments")
+
+    customer_name = st.selectbox(
+        "Select Customer",
+        customers["name"]
+    )
+
+    principal_paid = st.number_input(
+        "Principal Amount Paid",
+        min_value=0.0
+    )
+
+    if st.button("Save Principal Payment"):
+
+        c.execute(
+            """
+            INSERT INTO principal_payments
+            (
+                customer_name,
+                principal_paid,
+                payment_date
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                customer_name,
+                principal_paid,
+                str(datetime.now().date())
+            )
+        )
+
+        conn.commit()
+
+        st.success(
+            "Principal Payment Saved"
+        )
+
+    st.divider()
+
+    st.dataframe(
+        principal_df.reset_index(drop=True),
+        use_container_width=True
+    )
 
 # -----------------------------------
 # CUSTOMER HISTORY
@@ -452,12 +571,7 @@ elif menu == "Customer History":
 
     st.title("📜 Customer History")
 
-    if customers.empty:
-
-        st.warning("No Customers Found")
-        st.stop()
-
-    selected_customer = st.selectbox(
+    customer_name = st.selectbox(
         "Select Customer",
         customers["name"]
     )
@@ -465,23 +579,61 @@ elif menu == "Customer History":
     customer_data = customers[
         customers["name"]
         ==
-        selected_customer
+        customer_name
     ].iloc[0]
-
-    customer_history = receipts[
-        receipts["customer_name"]
-        ==
-        selected_customer
-    ]
-
-    total_received = (
-        customer_history["amount"].sum()
-        if not customer_history.empty else 0
-    )
 
     loan_amount = customer_data["loan_amount"]
 
-    interest_rate = customer_data["interest_rate"]
+    interest_rate = customer_data[
+        "interest_rate"
+    ]
+
+    emi_amount = customer_data[
+        "emi_amount"
+    ]
+
+    emi_history = emi_df[
+        emi_df["customer_name"]
+        ==
+        customer_name
+    ]
+
+    interest_history = interest_df[
+        interest_df["customer_name"]
+        ==
+        customer_name
+    ]
+
+    principal_history = principal_df[
+        principal_df["customer_name"]
+        ==
+        customer_name
+    ]
+
+    total_emi = (
+        emi_history["emi_paid"].sum()
+        if not emi_history.empty else 0
+    )
+
+    total_interest = (
+        interest_history[
+            "interest_paid"
+        ].sum()
+        if not interest_history.empty else 0
+    )
+
+    total_principal = (
+        principal_history[
+            "principal_paid"
+        ].sum()
+        if not principal_history.empty else 0
+    )
+
+    remaining_loan = (
+        loan_amount
+        -
+        total_principal
+    )
 
     monthly_interest = (
         loan_amount
@@ -490,32 +642,26 @@ elif menu == "Customer History":
         / 100
     )
 
-    remaining_amount = (
-        loan_amount
-        -
-        total_received
-    )
-
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
-        "🏦 Loan Amount",
+        "🏦 Total Loan",
         f"₹ {loan_amount}"
     )
 
     col2.metric(
+        "💳 Remaining Loan",
+        f"₹ {remaining_loan}"
+    )
+
+    col3.metric(
         "📈 Monthly Interest",
         f"₹ {monthly_interest}"
     )
 
-    col3.metric(
-        "💳 Remaining Amount",
-        f"₹ {remaining_amount}"
-    )
-
-    st.metric(
-        "💰 Total Received",
-        f"₹ {total_received}"
+    col4.metric(
+        "💵 EMI Amount",
+        f"₹ {emi_amount}"
     )
 
     st.divider()
@@ -523,11 +669,7 @@ elif menu == "Customer History":
     st.subheader("👤 Customer Details")
 
     st.write(
-        f"📱 Mobile Number: {customer_data['mobile']}"
-    )
-
-    st.write(
-        f"💵 EMI Amount: ₹ {customer_data['monthly_amount']}"
+        f"📱 Mobile: {customer_data['mobile']}"
     )
 
     st.write(
@@ -536,18 +678,26 @@ elif menu == "Customer History":
 
     st.divider()
 
-    st.subheader("📋 Payment History")
+    st.subheader("💵 EMI History")
 
-    if customer_history.empty:
+    st.dataframe(
+        emi_history.reset_index(drop=True),
+        use_container_width=True
+    )
 
-        st.warning("No Records Found")
+    st.subheader("📈 Interest History")
 
-    else:
+    st.dataframe(
+        interest_history.reset_index(drop=True),
+        use_container_width=True
+    )
 
-        st.dataframe(
-            customer_history.reset_index(drop=True),
-            use_container_width=True
-        )
+    st.subheader("🏦 Principal Payment History")
+
+    st.dataframe(
+        principal_history.reset_index(drop=True),
+        use_container_width=True
+    )
 
 # -----------------------------------
 # EXPENSES
@@ -557,66 +707,46 @@ elif menu == "Expenses":
 
     st.title("💸 Expenses")
 
-    if role == "admin":
+    expense_name = st.text_input(
+        "Expense Name"
+    )
 
-        expense_name = st.text_input(
-            "Expense Name"
+    amount = st.number_input(
+        "Expense Amount",
+        min_value=0.0
+    )
+
+    if st.button("Add Expense"):
+
+        c.execute(
+            """
+            INSERT INTO expenses
+            (
+                expense_name,
+                amount,
+                expense_date
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                expense_name,
+                amount,
+                str(datetime.now().date())
+            )
         )
 
-        amount = st.number_input(
-            "Expense Amount",
-            min_value=0.0
+        conn.commit()
+
+        st.success(
+            "Expense Added"
         )
-
-        if st.button("Add Expense"):
-
-            if expense_name == "":
-
-                st.error(
-                    "Please Enter Expense Name"
-                )
-
-            else:
-
-                c.execute(
-                    """
-                    INSERT INTO expenses
-                    (expense_name, amount, expense_date)
-                    VALUES (?, ?, ?)
-                    """,
-                    (
-                        expense_name,
-                        amount,
-                        str(datetime.now().date())
-                    )
-                )
-
-                conn.commit()
-
-                st.success(
-                    "Expense Added Successfully"
-                )
-
-    else:
-
-        st.warning("View Only Access")
 
     st.divider()
 
-    st.subheader("📋 Expense Records")
-
-    if expenses.empty:
-
-        st.warning(
-            "No Expense Records Found"
-        )
-
-    else:
-
-        st.dataframe(
-            expenses.reset_index(drop=True),
-            use_container_width=True
-        )
+    st.dataframe(
+        expenses.reset_index(drop=True),
+        use_container_width=True
+    )
 
 # -----------------------------------
 # REPORTS
@@ -626,92 +756,37 @@ elif menu == "Reports":
 
     st.title("📑 Reports")
 
-    total_received = (
-        receipts["amount"].sum()
-        if not receipts.empty else 0
+    st.subheader("👥 Customer Report")
+
+    st.dataframe(
+        customers.reset_index(drop=True),
+        use_container_width=True
     )
 
-    total_expense = (
-        expenses["amount"].sum()
-        if not expenses.empty else 0
+    st.subheader("💵 EMI Report")
+
+    st.dataframe(
+        emi_df.reset_index(drop=True),
+        use_container_width=True
     )
 
-    total_loan = (
-        customers["loan_amount"].sum()
-        if not customers.empty else 0
+    st.subheader("📈 Interest Report")
+
+    st.dataframe(
+        interest_df.reset_index(drop=True),
+        use_container_width=True
     )
 
-    remaining_loan = (
-        total_loan
-        -
-        total_received
+    st.subheader("🏦 Principal Report")
+
+    st.dataframe(
+        principal_df.reset_index(drop=True),
+        use_container_width=True
     )
 
-    col1, col2, col3, col4 = st.columns(4)
+    st.subheader("💸 Expense Report")
 
-    col1.metric(
-        "💰 Total Received",
-        f"₹ {total_received}"
+    st.dataframe(
+        expenses.reset_index(drop=True),
+        use_container_width=True
     )
-
-    col2.metric(
-        "💸 Total Expense",
-        f"₹ {total_expense}"
-    )
-
-    col3.metric(
-        "🏦 Total Loan",
-        f"₹ {total_loan}"
-    )
-
-    col4.metric(
-        "💳 Remaining Loan",
-        f"₹ {remaining_loan}"
-    )
-
-    st.divider()
-
-    st.subheader("👥 Customer Records")
-
-    if customers.empty:
-
-        st.warning("No Customers Found")
-
-    else:
-
-        st.dataframe(
-            customers.reset_index(drop=True),
-            use_container_width=True
-        )
-
-    st.divider()
-
-    st.subheader("💵 Payment Records")
-
-    if receipts.empty:
-
-        st.warning("No Payment Records Found")
-
-    else:
-
-        st.dataframe(
-            receipts.reset_index(drop=True),
-            use_container_width=True
-        )
-
-    st.divider()
-
-    st.subheader("💸 Expense Records")
-
-    if expenses.empty:
-
-        st.warning(
-            "No Expense Records Found"
-        )
-
-    else:
-
-        st.dataframe(
-            expenses.reset_index(drop=True),
-            use_container_width=True
-        )
