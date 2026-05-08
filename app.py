@@ -6,8 +6,9 @@ from datetime import datetime
 # -----------------------------------
 # PAGE SETTINGS
 # -----------------------------------
+
 st.set_page_config(
-    page_title="Income Tracker Pro",
+    page_title="Loan Tracker Pro",
     page_icon="💰",
     layout="wide"
 )
@@ -15,6 +16,7 @@ st.set_page_config(
 # -----------------------------------
 # DATABASE CONNECTION
 # -----------------------------------
+
 conn = sqlite3.connect(
     "tracker.db",
     check_same_thread=False
@@ -27,16 +29,21 @@ c = conn.cursor()
 # -----------------------------------
 
 # Customers Table
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS customers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
+    mobile TEXT,
     start_date TEXT,
+    loan_amount REAL,
+    interest_rate REAL,
     monthly_amount REAL
 )
 """)
 
 # Receipts Table
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS receipts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,6 +55,7 @@ CREATE TABLE IF NOT EXISTS receipts (
 """)
 
 # Expenses Table
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS expenses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -151,7 +159,6 @@ menu = st.sidebar.radio(
         "Dashboard",
         "Add Customer",
         "Monthly Received",
-        "Pending Customers",
         "Customer History",
         "Expenses",
         "Reports"
@@ -196,223 +203,66 @@ if menu == "Dashboard":
 
     st.title("📊 Dashboard")
 
-    dashboard_view = st.radio(
-        "Select View",
-        ["Overall", "Month Wise"],
-        horizontal=True
+    total_received = (
+        receipts["amount"].sum()
+        if not receipts.empty else 0
     )
 
-    # -----------------------------------
-    # OVERALL VIEW
-    # -----------------------------------
+    total_expense = (
+        expenses["amount"].sum()
+        if not expenses.empty else 0
+    )
 
-    if dashboard_view == "Overall":
+    total_loan = (
+        customers["loan_amount"].sum()
+        if not customers.empty else 0
+    )
 
-        total_received = (
-            receipts["amount"].sum()
-            if not receipts.empty else 0
-        )
+    balance = (
+        total_received
+        -
+        total_expense
+    )
 
-        total_expense = (
-            expenses["amount"].sum()
-            if not expenses.empty else 0
-        )
+    remaining_loan = (
+        total_loan
+        -
+        total_received
+    )
 
-        balance = (
-            total_received
-            -
-            total_expense
-        )
+    col1, col2, col3, col4 = st.columns(4)
 
-        total_customers = len(customers)
+    col1.metric(
+        "👥 Total Customers",
+        len(customers)
+    )
 
-        received_customers = []
+    col2.metric(
+        "💰 Total Received",
+        f"₹ {total_received}"
+    )
 
-        if not receipts.empty:
+    col3.metric(
+        "🏦 Total Loan",
+        f"₹ {total_loan}"
+    )
 
-            received_customers = receipts[
-                receipts["status"] == "Received"
-            ]["customer_name"].unique().tolist()
+    col4.metric(
+        "💳 Remaining Loan",
+        f"₹ {remaining_loan}"
+    )
 
-        pending_customers = (
-            total_customers
-            -
-            len(received_customers)
-        )
+    st.divider()
 
-        col1, col2, col3, col4 = st.columns(4)
+    st.metric(
+        "💸 Total Expenses",
+        f"₹ {total_expense}"
+    )
 
-        col1.metric(
-            "👥 Total Customers",
-            total_customers
-        )
-
-        col2.metric(
-            "💰 Total Received",
-            f"₹ {total_received}"
-        )
-
-        col3.metric(
-            "💸 Total Expense",
-            f"₹ {total_expense}"
-        )
-
-        col4.metric(
-            "❌ Pending Customers",
-            pending_customers
-        )
-
-        st.divider()
-
-        st.metric(
-            "🏦 Remaining Balance",
-            f"₹ {balance}"
-        )
-
-    # -----------------------------------
-    # MONTH WISE VIEW
-    # -----------------------------------
-
-    else:
-
-        selected_month = st.selectbox(
-            "📅 Select Month",
-            month_options,
-            index=4
-        )
-
-        month_receipts = pd.DataFrame()
-
-        if not receipts.empty:
-
-            month_receipts = receipts[
-                receipts["month"] == selected_month
-            ]
-
-        total_received = (
-            month_receipts["amount"].sum()
-            if not month_receipts.empty else 0
-        )
-
-        total_expense = (
-            expenses["amount"].sum()
-            if not expenses.empty else 0
-        )
-
-        balance = (
-            total_received
-            -
-            total_expense
-        )
-
-        received_customers = []
-
-        if not month_receipts.empty:
-
-            received_customers = month_receipts[
-                month_receipts["status"] == "Received"
-            ]["customer_name"].tolist()
-
-        pending_customers = []
-
-        for customer in customers["name"]:
-
-            if customer not in received_customers:
-
-                pending_customers.append(customer)
-
-        col1, col2, col3, col4 = st.columns(4)
-
-        col1.metric(
-            "👥 Total Customers",
-            len(customers)
-        )
-
-        col2.metric(
-            "💰 Month Received",
-            f"₹ {total_received}"
-        )
-
-        col3.metric(
-            "💸 Total Expense",
-            f"₹ {total_expense}"
-        )
-
-        col4.metric(
-            "❌ Pending Customers",
-            len(pending_customers)
-        )
-
-        st.divider()
-
-        st.metric(
-            "🏦 Remaining Balance",
-            f"₹ {balance}"
-        )
-
-        # Paid Customers
-
-        st.subheader("✅ Customers Who Paid")
-
-        paid_df = pd.DataFrame()
-
-        if not month_receipts.empty:
-
-            paid_df = month_receipts[
-                month_receipts["status"]
-                ==
-                "Received"
-            ]
-
-        if paid_df.empty:
-
-            st.warning("No Received Payments")
-
-        else:
-
-            st.dataframe(
-                paid_df.reset_index(drop=True),
-                use_container_width=True
-            )
-
-        # Pending Customers
-
-        st.subheader("❌ Pending Customers")
-
-        pending_list = []
-
-        for _, row in customers.iterrows():
-
-            customer_name = row["name"]
-
-            if customer_name not in received_customers:
-
-                pending_list.append({
-
-                    "Customer Name":
-                    customer_name,
-
-                    "Monthly Amount":
-                    row["monthly_amount"],
-
-                    "Status":
-                    "Pending"
-                })
-
-        pending_df = pd.DataFrame(
-            pending_list
-        )
-
-        if pending_df.empty:
-
-            st.success("All Customers Paid")
-
-        else:
-
-            st.dataframe(
-                pending_df.reset_index(drop=True),
-                use_container_width=True
-            )
+    st.metric(
+        "🏦 Remaining Balance",
+        f"₹ {balance}"
+    )
 
     st.divider()
 
@@ -444,11 +294,34 @@ elif menu == "Add Customer":
 
     name = st.text_input("Customer Name")
 
+    mobile = st.text_input("Mobile Number")
+
     start_date = st.date_input("Start Date")
 
-    monthly_amount = st.number_input(
-        "Monthly Amount",
+    loan_amount = st.number_input(
+        "Loan Amount",
         min_value=0.0
+    )
+
+    interest_rate = st.number_input(
+        "Monthly Interest Rate (%)",
+        min_value=0.0
+    )
+
+    monthly_amount = st.number_input(
+        "Monthly EMI / Payment",
+        min_value=0.0
+    )
+
+    monthly_interest = (
+        loan_amount
+        *
+        interest_rate
+        / 100
+    )
+
+    st.info(
+        f"📈 Monthly Interest: ₹ {monthly_interest}"
     )
 
     if st.button("Save Customer"):
@@ -464,12 +337,22 @@ elif menu == "Add Customer":
             c.execute(
                 """
                 INSERT INTO customers
-                (name, start_date, monthly_amount)
-                VALUES (?, ?, ?)
+                (
+                    name,
+                    mobile,
+                    start_date,
+                    loan_amount,
+                    interest_rate,
+                    monthly_amount
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
                     name,
+                    mobile,
                     str(start_date),
+                    loan_amount,
+                    interest_rate,
                     monthly_amount
                 )
             )
@@ -548,7 +431,7 @@ elif menu == "Monthly Received":
 
     st.divider()
 
-    st.subheader("📋 All Records")
+    st.subheader("📋 All Payment Records")
 
     if receipts.empty:
 
@@ -558,69 +441,6 @@ elif menu == "Monthly Received":
 
         st.dataframe(
             receipts.reset_index(drop=True),
-            use_container_width=True
-        )
-
-# -----------------------------------
-# PENDING CUSTOMERS
-# -----------------------------------
-
-elif menu == "Pending Customers":
-
-    st.title("❌ Pending Customers")
-
-    selected_month = st.selectbox(
-        "📅 Select Month",
-        month_options,
-        index=4
-    )
-
-    received_customers = []
-
-    if not receipts.empty:
-
-        month_data = receipts[
-            (receipts["month"] == selected_month)
-            &
-            (receipts["status"] == "Received")
-        ]
-
-        received_customers = month_data[
-            "customer_name"
-        ].tolist()
-
-    pending_list = []
-
-    for _, row in customers.iterrows():
-
-        customer_name = row["name"]
-
-        if customer_name not in received_customers:
-
-            pending_list.append({
-
-                "Customer Name":
-                customer_name,
-
-                "Monthly Amount":
-                row["monthly_amount"],
-
-                "Status":
-                "Pending"
-            })
-
-    pending_df = pd.DataFrame(
-        pending_list
-    )
-
-    if pending_df.empty:
-
-        st.success("All Customers Paid")
-
-    else:
-
-        st.dataframe(
-            pending_df.reset_index(drop=True),
             use_container_width=True
         )
 
@@ -642,26 +462,87 @@ elif menu == "Customer History":
         customers["name"]
     )
 
+    customer_data = customers[
+        customers["name"]
+        ==
+        selected_customer
+    ].iloc[0]
+
     customer_history = receipts[
         receipts["customer_name"]
         ==
         selected_customer
     ]
 
+    total_received = (
+        customer_history["amount"].sum()
+        if not customer_history.empty else 0
+    )
+
+    loan_amount = customer_data["loan_amount"]
+
+    interest_rate = customer_data["interest_rate"]
+
+    monthly_interest = (
+        loan_amount
+        *
+        interest_rate
+        / 100
+    )
+
+    remaining_amount = (
+        loan_amount
+        -
+        total_received
+    )
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric(
+        "🏦 Loan Amount",
+        f"₹ {loan_amount}"
+    )
+
+    col2.metric(
+        "📈 Monthly Interest",
+        f"₹ {monthly_interest}"
+    )
+
+    col3.metric(
+        "💳 Remaining Amount",
+        f"₹ {remaining_amount}"
+    )
+
+    st.metric(
+        "💰 Total Received",
+        f"₹ {total_received}"
+    )
+
+    st.divider()
+
+    st.subheader("👤 Customer Details")
+
+    st.write(
+        f"📱 Mobile Number: {customer_data['mobile']}"
+    )
+
+    st.write(
+        f"💵 EMI Amount: ₹ {customer_data['monthly_amount']}"
+    )
+
+    st.write(
+        f"📅 Start Date: {customer_data['start_date']}"
+    )
+
+    st.divider()
+
+    st.subheader("📋 Payment History")
+
     if customer_history.empty:
 
         st.warning("No Records Found")
 
     else:
-
-        total_received = customer_history[
-            "amount"
-        ].sum()
-
-        st.metric(
-            "💰 Total Received",
-            f"₹ {total_received}"
-        )
 
         st.dataframe(
             customer_history.reset_index(drop=True),
@@ -745,12 +626,6 @@ elif menu == "Reports":
 
     st.title("📑 Reports")
 
-    selected_month = st.selectbox(
-        "📅 Select Report Month",
-        month_options,
-        index=4
-    )
-
     total_received = (
         receipts["amount"].sum()
         if not receipts.empty else 0
@@ -761,13 +636,18 @@ elif menu == "Reports":
         if not expenses.empty else 0
     )
 
-    balance = (
-        total_received
-        -
-        total_expense
+    total_loan = (
+        customers["loan_amount"].sum()
+        if not customers.empty else 0
     )
 
-    col1, col2, col3 = st.columns(3)
+    remaining_loan = (
+        total_loan
+        -
+        total_received
+    )
+
+    col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
         "💰 Total Received",
@@ -780,93 +660,46 @@ elif menu == "Reports":
     )
 
     col3.metric(
-        "🏦 Remaining Balance",
-        f"₹ {balance}"
+        "🏦 Total Loan",
+        f"₹ {total_loan}"
+    )
+
+    col4.metric(
+        "💳 Remaining Loan",
+        f"₹ {remaining_loan}"
     )
 
     st.divider()
 
-    # Paid Customers
+    st.subheader("👥 Customer Records")
 
-    st.subheader("✅ Customers Who Paid")
+    if customers.empty:
 
-    paid_df = pd.DataFrame()
-
-    if not receipts.empty:
-
-        paid_df = receipts[
-            (receipts["month"] == selected_month)
-            &
-            (receipts["status"] == "Received")
-        ]
-
-    if paid_df.empty:
-
-        st.warning("No Received Payments")
+        st.warning("No Customers Found")
 
     else:
 
         st.dataframe(
-            paid_df.reset_index(drop=True),
-            use_container_width=True
-        )
-
-    # Pending Customers
-
-    st.subheader("❌ Customers Pending")
-
-    received_customers = []
-
-    if not receipts.empty:
-
-        month_data = receipts[
-            (receipts["month"] == selected_month)
-            &
-            (receipts["status"] == "Received")
-        ]
-
-        received_customers = month_data[
-            "customer_name"
-        ].tolist()
-
-    pending_list = []
-
-    for _, row in customers.iterrows():
-
-        customer_name = row["name"]
-
-        if customer_name not in received_customers:
-
-            pending_list.append({
-
-                "Customer Name":
-                customer_name,
-
-                "Monthly Amount":
-                row["monthly_amount"],
-
-                "Status":
-                "Pending"
-            })
-
-    pending_df = pd.DataFrame(
-        pending_list
-    )
-
-    if pending_df.empty:
-
-        st.success("No Pending Customers")
-
-    else:
-
-        st.dataframe(
-            pending_df.reset_index(drop=True),
+            customers.reset_index(drop=True),
             use_container_width=True
         )
 
     st.divider()
 
-    # Expense Records
+    st.subheader("💵 Payment Records")
+
+    if receipts.empty:
+
+        st.warning("No Payment Records Found")
+
+    else:
+
+        st.dataframe(
+            receipts.reset_index(drop=True),
+            use_container_width=True
+        )
+
+    st.divider()
 
     st.subheader("💸 Expense Records")
 
