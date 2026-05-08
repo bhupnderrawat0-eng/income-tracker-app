@@ -1,11 +1,16 @@
+# =========================================
+# SMART FINANCE TRACKER PRO
+# FINAL PROFESSIONAL VERSION
+# =========================================
+
 import streamlit as st
 import sqlite3
 import pandas as pd
 from datetime import datetime, date
 
-# -----------------------------------
+# =========================================
 # PAGE CONFIG
-# -----------------------------------
+# =========================================
 
 st.set_page_config(
     page_title="Smart Finance Tracker Pro",
@@ -13,9 +18,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# -----------------------------------
+# =========================================
 # DATABASE
-# -----------------------------------
+# =========================================
 
 conn = sqlite3.connect(
     "tracker.db",
@@ -24,9 +29,9 @@ conn = sqlite3.connect(
 
 c = conn.cursor()
 
-# -----------------------------------
+# =========================================
 # CREATE TABLES
-# -----------------------------------
+# =========================================
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS customers (
@@ -53,21 +58,10 @@ CREATE TABLE IF NOT EXISTS monthly_collections (
 """)
 
 c.execute("""
-CREATE TABLE IF NOT EXISTS emi_payments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_name TEXT,
-    month TEXT,
-    emi_paid REAL,
-    payment_date TEXT
-)
-""")
-
-c.execute("""
 CREATE TABLE IF NOT EXISTS interest_payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_name TEXT,
-    month TEXT,
-    interest_paid REAL,
+    amount REAL,
     payment_date TEXT
 )
 """)
@@ -76,7 +70,7 @@ c.execute("""
 CREATE TABLE IF NOT EXISTS principal_payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     customer_name TEXT,
-    principal_paid REAL,
+    amount REAL,
     payment_date TEXT
 )
 """)
@@ -92,9 +86,9 @@ CREATE TABLE IF NOT EXISTS expenses (
 
 conn.commit()
 
-# -----------------------------------
+# =========================================
 # LOGIN SYSTEM
-# -----------------------------------
+# =========================================
 
 ADMIN_USER = "admin"
 ADMIN_PASS = "1234"
@@ -108,9 +102,9 @@ if "logged_in" not in st.session_state:
 if "role" not in st.session_state:
     st.session_state.role = ""
 
-# -----------------------------------
+# =========================================
 # LOGIN PAGE
-# -----------------------------------
+# =========================================
 
 if not st.session_state.logged_in:
 
@@ -153,28 +147,28 @@ if not st.session_state.logged_in:
 
     st.stop()
 
-# -----------------------------------
-# MONTH OPTIONS
-# -----------------------------------
+# =========================================
+# MONTHS
+# =========================================
 
 month_options = [
-    "January 2026",
-    "February 2026",
-    "March 2026",
-    "April 2026",
-    "May 2026",
-    "June 2026",
-    "July 2026",
-    "August 2026",
-    "September 2026",
-    "October 2026",
-    "November 2026",
-    "December 2026"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
 ]
 
-# -----------------------------------
+# =========================================
 # SIDEBAR
-# -----------------------------------
+# =========================================
 
 st.sidebar.title("📌 Menu")
 
@@ -182,16 +176,19 @@ menu = st.sidebar.radio(
     "Select Option",
     [
         "Dashboard",
-        "Add Customer",
-        "Monthly Collection",
-        "EMI Payments",
-        "Interest Payments",
-        "Principal Payments",
+        "Customers",
+        "Monthly Collections",
+        "Loan Management",
+        "Interest Management",
         "Pending Collections",
-        "Customer History",
+        "Customer Profile",
         "Expenses",
         "Reports"
     ]
+)
+
+st.sidebar.write(
+    f"👤 Logged in as: {st.session_state.role}"
 )
 
 if st.sidebar.button("Logout"):
@@ -199,31 +196,26 @@ if st.sidebar.button("Logout"):
     st.session_state.logged_in = False
     st.rerun()
 
-# -----------------------------------
+# =========================================
 # LOAD DATA
-# -----------------------------------
+# =========================================
 
 customers = pd.read_sql(
     "SELECT * FROM customers",
     conn
 )
 
-collection_df = pd.read_sql(
+collections = pd.read_sql(
     "SELECT * FROM monthly_collections",
     conn
 )
 
-emi_df = pd.read_sql(
-    "SELECT * FROM emi_payments",
-    conn
-)
-
-interest_df = pd.read_sql(
+interest_payments = pd.read_sql(
     "SELECT * FROM interest_payments",
     conn
 )
 
-principal_df = pd.read_sql(
+principal_payments = pd.read_sql(
     "SELECT * FROM principal_payments",
     conn
 )
@@ -233,17 +225,17 @@ expenses = pd.read_sql(
     conn
 )
 
-# -----------------------------------
+# =========================================
 # DASHBOARD
-# -----------------------------------
+# =========================================
 
 if menu == "Dashboard":
 
-    st.title("📊 Smart Finance Dashboard")
+    st.title("📊 Finance Dashboard")
 
     total_collection = (
-        collection_df["amount"].sum()
-        if not collection_df.empty else 0
+        collections["amount"].sum()
+        if not collections.empty else 0
     )
 
     total_loan = (
@@ -252,13 +244,13 @@ if menu == "Dashboard":
     )
 
     total_interest_received = (
-        interest_df["interest_paid"].sum()
-        if not interest_df.empty else 0
+        interest_payments["amount"].sum()
+        if not interest_payments.empty else 0
     )
 
     total_principal_received = (
-        principal_df["principal_paid"].sum()
-        if not principal_df.empty else 0
+        principal_payments["amount"].sum()
+        if not principal_payments.empty else 0
     )
 
     remaining_loan = (
@@ -272,50 +264,59 @@ if menu == "Dashboard":
         if not expenses.empty else 0
     )
 
-    # Pending Collection Calculation
-
     total_pending_collection = 0
 
     for _, customer in customers.iterrows():
 
         customer_name = customer["name"]
 
-        monthly_amount = customer[
+        customer_collection = customer[
             "monthly_collection"
         ]
 
-        customer_paid_months = []
+        start_date = datetime.strptime(
+            customer["loan_date"],
+            "%Y-%m-%d"
+        )
 
-        customer_data = collection_df[
+        start_month = start_date.month
+
+        paid_months = []
+
+        customer_paid_data = collections[
             (
-                collection_df["customer_name"]
+                collections["customer_name"]
                 ==
                 customer_name
             )
             &
             (
-                collection_df["status"]
+                collections["status"]
                 ==
                 "Paid"
             )
         ]
 
-        if not customer_data.empty:
+        if not customer_paid_data.empty:
 
-            customer_paid_months = customer_data[
+            paid_months = customer_paid_data[
                 "month"
             ].tolist()
 
-        pending_count = (
-            len(month_options)
-            -
-            len(customer_paid_months)
-        )
+        pending_count = 0
+
+        for i in range(start_month - 1, 12):
+
+            month_name = month_options[i]
+
+            if month_name not in paid_months:
+
+                pending_count += 1
 
         total_pending_collection += (
             pending_count
             *
-            monthly_amount
+            customer_collection
         )
 
     col1, col2, col3, col4 = st.columns(4)
@@ -342,7 +343,7 @@ if menu == "Dashboard":
 
     st.divider()
 
-    col5, col6, col7, col8 = st.columns(4)
+    col5, col6, col7 = st.columns(3)
 
     col5.metric(
         "📈 Interest Received",
@@ -350,34 +351,29 @@ if menu == "Dashboard":
     )
 
     col6.metric(
-        "💳 Principal Returned",
-        f"₹ {total_principal_received}"
-    )
-
-    col7.metric(
         "💸 Expenses",
         f"₹ {total_expense}"
     )
 
-    col8.metric(
+    col7.metric(
         "👥 Customers",
         len(customers)
     )
 
-# -----------------------------------
-# ADD CUSTOMER
-# -----------------------------------
+# =========================================
+# CUSTOMERS
+# =========================================
 
-elif menu == "Add Customer":
+elif menu == "Customers":
 
-    st.title("➕ Add Customer")
+    st.title("👥 Customers")
 
     name = st.text_input("Customer Name")
 
     mobile = st.text_input("Mobile Number")
 
     loan_date = st.date_input(
-        "Loan Date"
+        "Loan Start Date"
     )
 
     monthly_collection = st.number_input(
@@ -444,13 +440,22 @@ elif menu == "Add Customer":
             "Customer Added Successfully"
         )
 
-# -----------------------------------
-# MONTHLY COLLECTION
-# -----------------------------------
+    st.divider()
 
-elif menu == "Monthly Collection":
+    st.subheader("📋 Customer Records")
 
-    st.title("💵 Monthly Collection")
+    st.dataframe(
+        customers.reset_index(drop=True),
+        use_container_width=True
+    )
+
+# =========================================
+# MONTHLY COLLECTIONS
+# =========================================
+
+elif menu == "Monthly Collections":
+
+    st.title("💵 Monthly Collections")
 
     customer_name = st.selectbox(
         "Select Customer",
@@ -508,157 +513,80 @@ elif menu == "Monthly Collection":
     st.divider()
 
     st.dataframe(
-        collection_df.reset_index(drop=True),
+        collections.reset_index(drop=True),
         use_container_width=True
     )
 
-# -----------------------------------
-# EMI PAYMENTS
-# -----------------------------------
+# =========================================
+# LOAN MANAGEMENT
+# =========================================
 
-elif menu == "EMI Payments":
+elif menu == "Loan Management":
 
-    st.title("💳 EMI Payments")
+    st.title("🏦 Loan Management")
 
     customer_name = st.selectbox(
         "Select Customer",
         customers["name"]
     )
 
-    month = st.selectbox(
-        "Select Month",
-        month_options
+    customer = customers[
+        customers["name"]
+        ==
+        customer_name
+    ].iloc[0]
+
+    loan_amount = customer["loan_amount"]
+
+    principal_paid = principal_payments[
+        principal_payments["customer_name"]
+        ==
+        customer_name
+    ]["amount"].sum()
+
+    remaining_balance = (
+        loan_amount
+        -
+        principal_paid
     )
 
-    emi_paid = st.number_input(
-        "EMI Paid",
-        min_value=0.0
+    st.metric(
+        "🏦 Total Loan",
+        f"₹ {loan_amount}"
     )
 
-    if st.button("Save EMI"):
+    st.metric(
+        "💳 Principal Paid",
+        f"₹ {principal_paid}"
+    )
 
-        c.execute(
-            """
-            INSERT INTO emi_payments
-            (
-                customer_name,
-                month,
-                emi_paid,
-                payment_date
-            )
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                customer_name,
-                month,
-                emi_paid,
-                str(date.today())
-            )
-        )
-
-        conn.commit()
-
-        st.success(
-            "EMI Saved"
-        )
+    st.metric(
+        "📉 Remaining Balance",
+        f"₹ {remaining_balance}"
+    )
 
     st.divider()
 
-    st.dataframe(
-        emi_df.reset_index(drop=True),
-        use_container_width=True
-    )
-
-# -----------------------------------
-# INTEREST PAYMENTS
-# -----------------------------------
-
-elif menu == "Interest Payments":
-
-    st.title("📈 Interest Payments")
-
-    customer_name = st.selectbox(
-        "Select Customer",
-        customers["name"]
-    )
-
-    month = st.selectbox(
-        "Select Month",
-        month_options
-    )
-
-    interest_paid = st.number_input(
-        "Interest Paid",
+    principal_amount = st.number_input(
+        "Principal Amount Received",
         min_value=0.0
     )
 
-    if st.button("Save Interest"):
-
-        c.execute(
-            """
-            INSERT INTO interest_payments
-            (
-                customer_name,
-                month,
-                interest_paid,
-                payment_date
-            )
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                customer_name,
-                month,
-                interest_paid,
-                str(date.today())
-            )
-        )
-
-        conn.commit()
-
-        st.success(
-            "Interest Saved"
-        )
-
-    st.divider()
-
-    st.dataframe(
-        interest_df.reset_index(drop=True),
-        use_container_width=True
-    )
-
-# -----------------------------------
-# PRINCIPAL PAYMENTS
-# -----------------------------------
-
-elif menu == "Principal Payments":
-
-    st.title("🏦 Principal Payments")
-
-    customer_name = st.selectbox(
-        "Select Customer",
-        customers["name"]
-    )
-
-    principal_paid = st.number_input(
-        "Principal Amount Paid",
-        min_value=0.0
-    )
-
-    if st.button("Save Principal"):
+    if st.button("Save Principal Payment"):
 
         c.execute(
             """
             INSERT INTO principal_payments
             (
                 customer_name,
-                principal_paid,
+                amount,
                 payment_date
             )
             VALUES (?, ?, ?)
             """,
             (
                 customer_name,
-                principal_paid,
+                principal_amount,
                 str(date.today())
             )
         )
@@ -666,110 +594,23 @@ elif menu == "Principal Payments":
         conn.commit()
 
         st.success(
-            "Principal Saved"
+            "Principal Payment Saved"
         )
 
     st.divider()
 
     st.dataframe(
-        principal_df.reset_index(drop=True),
+        principal_payments.reset_index(drop=True),
         use_container_width=True
     )
 
-# -----------------------------------
-# PENDING COLLECTIONS
-# -----------------------------------
+# =========================================
+# INTEREST MANAGEMENT
+# =========================================
 
-elif menu == "Pending Collections":
+elif menu == "Interest Management":
 
-    st.title("❌ Pending Collections")
-
-    selected_month = st.selectbox(
-        "Select Month",
-        month_options
-    )
-
-    paid_customers = []
-
-    if not collection_df.empty:
-
-        paid_data = collection_df[
-            (
-                collection_df["month"]
-                ==
-                selected_month
-            )
-            &
-            (
-                collection_df["status"]
-                ==
-                "Paid"
-            )
-        ]
-
-        paid_customers = paid_data[
-            "customer_name"
-        ].tolist()
-
-    pending_list = []
-
-    for _, customer in customers.iterrows():
-
-        customer_name = customer["name"]
-
-        if customer_name not in paid_customers:
-
-            pending_list.append({
-
-                "Customer":
-                customer_name,
-
-                "Mobile":
-                customer["mobile"],
-
-                "Pending Month":
-                selected_month,
-
-                "Pending Amount":
-                customer["monthly_collection"]
-            })
-
-    pending_df = pd.DataFrame(
-        pending_list
-    )
-
-    total_pending = (
-        pending_df[
-            "Pending Amount"
-        ].sum()
-        if not pending_df.empty else 0
-    )
-
-    st.metric(
-        "💵 Total Pending",
-        f"₹ {total_pending}"
-    )
-
-    if pending_df.empty:
-
-        st.success(
-            "No Pending Customers"
-        )
-
-    else:
-
-        st.dataframe(
-            pending_df.reset_index(drop=True),
-            use_container_width=True
-        )
-
-# -----------------------------------
-# CUSTOMER HISTORY
-# -----------------------------------
-
-elif menu == "Customer History":
-
-    st.title("📜 Customer History")
+    st.title("📈 Interest Management")
 
     customer_name = st.selectbox(
         "Select Customer",
@@ -813,18 +654,11 @@ elif menu == "Customer History":
         months_passed
     )
 
-    customer_interest = interest_df[
-        interest_df["customer_name"]
+    interest_paid = interest_payments[
+        interest_payments["customer_name"]
         ==
         customer_name
-    ]
-
-    interest_paid = (
-        customer_interest[
-            "interest_paid"
-        ].sum()
-        if not customer_interest.empty else 0
-    )
+    ]["amount"].sum()
 
     pending_interest = (
         total_interest
@@ -832,27 +666,233 @@ elif menu == "Customer History":
         interest_paid
     )
 
-    customer_principal = principal_df[
-        principal_df["customer_name"]
-        ==
-        customer_name
-    ]
+    col1, col2, col3, col4 = st.columns(4)
 
-    principal_paid = (
-        customer_principal[
-            "principal_paid"
-        ].sum()
-        if not customer_principal.empty else 0
+    col1.metric(
+        "📈 Monthly Interest",
+        f"₹ {monthly_interest}"
     )
 
-    remaining_principal = (
+    col2.metric(
+        "📅 Months Passed",
+        months_passed
+    )
+
+    col3.metric(
+        "💰 Total Interest",
+        f"₹ {total_interest}"
+    )
+
+    col4.metric(
+        "❌ Pending Interest",
+        f"₹ {pending_interest}"
+    )
+
+    st.divider()
+
+    interest_amount = st.number_input(
+        "Interest Amount Received",
+        min_value=0.0
+    )
+
+    if st.button("Save Interest Payment"):
+
+        c.execute(
+            """
+            INSERT INTO interest_payments
+            (
+                customer_name,
+                amount,
+                payment_date
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                customer_name,
+                interest_amount,
+                str(date.today())
+            )
+        )
+
+        conn.commit()
+
+        st.success(
+            "Interest Payment Saved"
+        )
+
+    st.divider()
+
+    st.dataframe(
+        interest_payments.reset_index(drop=True),
+        use_container_width=True
+    )
+
+# =========================================
+# PENDING COLLECTIONS
+# =========================================
+
+elif menu == "Pending Collections":
+
+    st.title("❌ Pending Collections")
+
+    selected_month = st.selectbox(
+        "Select Month",
+        month_options
+    )
+
+    paid_customers = []
+
+    if not collections.empty:
+
+        paid_data = collections[
+            (
+                collections["month"]
+                ==
+                selected_month
+            )
+            &
+            (
+                collections["status"]
+                ==
+                "Paid"
+            )
+        ]
+
+        paid_customers = paid_data[
+            "customer_name"
+        ].tolist()
+
+    pending_list = []
+
+    for _, customer in customers.iterrows():
+
+        start_date = datetime.strptime(
+            customer["loan_date"],
+            "%Y-%m-%d"
+        )
+
+        start_month = start_date.month
+
+        selected_index = (
+            month_options.index(
+                selected_month
+            )
+            + 1
+        )
+
+        if selected_index >= start_month:
+
+            if customer["name"] not in paid_customers:
+
+                pending_list.append({
+
+                    "Customer":
+                    customer["name"],
+
+                    "Mobile":
+                    customer["mobile"],
+
+                    "Pending Amount":
+                    customer["monthly_collection"]
+                })
+
+    pending_df = pd.DataFrame(
+        pending_list
+    )
+
+    total_pending = (
+        pending_df[
+            "Pending Amount"
+        ].sum()
+        if not pending_df.empty else 0
+    )
+
+    st.metric(
+        "💵 Total Pending",
+        f"₹ {total_pending}"
+    )
+
+    st.dataframe(
+        pending_df.reset_index(drop=True),
+        use_container_width=True
+    )
+
+# =========================================
+# CUSTOMER PROFILE
+# =========================================
+
+elif menu == "Customer Profile":
+
+    st.title("📜 Customer Profile")
+
+    customer_name = st.selectbox(
+        "Select Customer",
+        customers["name"]
+    )
+
+    customer = customers[
+        customers["name"]
+        ==
+        customer_name
+    ].iloc[0]
+
+    loan_amount = customer["loan_amount"]
+
+    interest_rate = customer["interest_rate"]
+
+    loan_date = datetime.strptime(
+        customer["loan_date"],
+        "%Y-%m-%d"
+    ).date()
+
+    today = date.today()
+
+    months_passed = (
+        (today.year - loan_date.year)
+        * 12
+        +
+        (today.month - loan_date.month)
+    )
+
+    monthly_interest = (
+        loan_amount
+        *
+        interest_rate
+        / 100
+    )
+
+    total_interest = (
+        monthly_interest
+        *
+        months_passed
+    )
+
+    interest_paid = interest_payments[
+        interest_payments["customer_name"]
+        ==
+        customer_name
+    ]["amount"].sum()
+
+    pending_interest = (
+        total_interest
+        -
+        interest_paid
+    )
+
+    principal_paid = principal_payments[
+        principal_payments["customer_name"]
+        ==
+        customer_name
+    ]["amount"].sum()
+
+    remaining_balance = (
         loan_amount
         -
         principal_paid
     )
 
     total_due = (
-        remaining_principal
+        remaining_balance
         +
         pending_interest
     )
@@ -872,13 +912,13 @@ elif menu == "Customer History":
     )
 
     col3.metric(
-        "📅 Months Passed",
-        months_passed
+        "💳 Remaining Balance",
+        f"₹ {remaining_balance}"
     )
 
     col4.metric(
-        "💳 Remaining Principal",
-        f"₹ {remaining_principal}"
+        "🔥 Total Due",
+        f"₹ {total_due}"
     )
 
     st.divider()
@@ -886,13 +926,13 @@ elif menu == "Customer History":
     col5, col6, col7 = st.columns(3)
 
     col5.metric(
-        "📈 Total Interest",
-        f"₹ {total_interest}"
+        "📅 Months Passed",
+        months_passed
     )
 
     col6.metric(
-        "✅ Interest Paid",
-        f"₹ {interest_paid}"
+        "💰 Total Interest",
+        f"₹ {total_interest}"
     )
 
     col7.metric(
@@ -902,17 +942,10 @@ elif menu == "Customer History":
 
     st.divider()
 
-    st.metric(
-        "🔥 TOTAL DUE AMOUNT",
-        f"₹ {total_due}"
-    )
-
-    st.divider()
-
     st.subheader("💵 Monthly Collection History")
 
-    customer_collection = collection_df[
-        collection_df["customer_name"]
+    customer_collection = collections[
+        collections["customer_name"]
         ==
         customer_name
     ]
@@ -922,100 +955,35 @@ elif menu == "Customer History":
         use_container_width=True
     )
 
-    st.divider()
+    st.subheader("📈 Interest Payment History")
 
-    st.subheader("❌ Pending Monthly Collections")
-
-    customer_monthly_amount = customer[
-        "monthly_collection"
-    ]
-
-    paid_months = []
-
-    if not customer_collection.empty:
-
-        paid_months = customer_collection[
-            customer_collection["status"]
-            ==
-            "Paid"
-        ]["month"].tolist()
-
-    pending_months = []
-
-    for month in month_options:
-
-        if month not in paid_months:
-
-            pending_months.append({
-
-                "Pending Month":
-                month,
-
-                "Pending Amount":
-                customer_monthly_amount
-            })
-
-    pending_df = pd.DataFrame(
-        pending_months
-    )
-
-    total_pending_collection = (
-        pending_df[
-            "Pending Amount"
-        ].sum()
-        if not pending_df.empty else 0
-    )
-
-    st.metric(
-        "💵 Total Pending Collection",
-        f"₹ {total_pending_collection}"
-    )
-
-    if pending_df.empty:
-
-        st.success(
-            "No Pending Collections"
-        )
-
-    else:
-
-        st.dataframe(
-            pending_df,
-            use_container_width=True
-        )
-
-    st.divider()
-
-    st.subheader("💳 EMI History")
-
-    customer_emi = emi_df[
-        emi_df["customer_name"]
+    customer_interest = interest_payments[
+        interest_payments["customer_name"]
         ==
         customer_name
     ]
-
-    st.dataframe(
-        customer_emi.reset_index(drop=True),
-        use_container_width=True
-    )
-
-    st.subheader("📈 Interest History")
 
     st.dataframe(
         customer_interest.reset_index(drop=True),
         use_container_width=True
     )
 
-    st.subheader("🏦 Principal History")
+    st.subheader("🏦 Principal Payment History")
+
+    customer_principal = principal_payments[
+        principal_payments["customer_name"]
+        ==
+        customer_name
+    ]
 
     st.dataframe(
         customer_principal.reset_index(drop=True),
         use_container_width=True
     )
 
-# -----------------------------------
+# =========================================
 # EXPENSES
-# -----------------------------------
+# =========================================
 
 elif menu == "Expenses":
 
@@ -1062,9 +1030,9 @@ elif menu == "Expenses":
         use_container_width=True
     )
 
-# -----------------------------------
+# =========================================
 # REPORTS
-# -----------------------------------
+# =========================================
 
 elif menu == "Reports":
 
@@ -1077,35 +1045,28 @@ elif menu == "Reports":
         use_container_width=True
     )
 
-    st.subheader("💵 Collection Report")
+    st.subheader("💵 Collections")
 
     st.dataframe(
-        collection_df.reset_index(drop=True),
+        collections.reset_index(drop=True),
         use_container_width=True
     )
 
-    st.subheader("💳 EMI Report")
+    st.subheader("📈 Interest Payments")
 
     st.dataframe(
-        emi_df.reset_index(drop=True),
+        interest_payments.reset_index(drop=True),
         use_container_width=True
     )
 
-    st.subheader("📈 Interest Report")
+    st.subheader("🏦 Principal Payments")
 
     st.dataframe(
-        interest_df.reset_index(drop=True),
+        principal_payments.reset_index(drop=True),
         use_container_width=True
     )
 
-    st.subheader("🏦 Principal Report")
-
-    st.dataframe(
-        principal_df.reset_index(drop=True),
-        use_container_width=True
-    )
-
-    st.subheader("💸 Expense Report")
+    st.subheader("💸 Expenses")
 
     st.dataframe(
         expenses.reset_index(drop=True),
