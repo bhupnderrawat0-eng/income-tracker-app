@@ -1,6 +1,6 @@
 # =========================================================
 # SMART FINANCE TRACKER PRO
-# FINAL PROFESSIONAL VERSION
+# MULTI USER + ROLE BASED SYSTEM
 # =========================================================
 
 import streamlit as st
@@ -19,7 +19,7 @@ st.set_page_config(
 )
 
 # =========================================================
-# DATABASE CONNECTION
+# DATABASE
 # =========================================================
 
 conn = sqlite3.connect(
@@ -33,6 +33,29 @@ c = conn.cursor()
 # CREATE TABLES
 # =========================================================
 
+# USERS TABLE
+
+c.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT,
+    role TEXT,
+    active INTEGER
+)
+""")
+
+# DEFAULT ADMIN
+
+c.execute("""
+INSERT OR IGNORE INTO users
+(username, password, role, active)
+VALUES
+('admin', 'admin123', 'admin', 1)
+""")
+
+# CUSTOMERS
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS customers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,6 +66,8 @@ CREATE TABLE IF NOT EXISTS customers (
 )
 """)
 
+# LOANS
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS loans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,6 +77,8 @@ CREATE TABLE IF NOT EXISTS loans (
     loan_start_date TEXT
 )
 """)
+
+# COLLECTIONS
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS collections (
@@ -64,6 +91,8 @@ CREATE TABLE IF NOT EXISTS collections (
 )
 """)
 
+# PRINCIPAL PAYMENTS
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS principal_payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,6 +101,8 @@ CREATE TABLE IF NOT EXISTS principal_payments (
     payment_date TEXT
 )
 """)
+
+# INTEREST PAYMENTS
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS interest_payments (
@@ -88,17 +119,26 @@ conn.commit()
 # LOGIN SYSTEM
 # =========================================================
 
-ADMIN_USER = "admin"
-ADMIN_PASS = "1234"
-
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+
+if "username" not in st.session_state:
+    st.session_state.username = ""
+
+if "role" not in st.session_state:
+    st.session_state.role = ""
+
+# =========================================================
+# LOGIN PAGE
+# =========================================================
 
 if not st.session_state.logged_in:
 
     st.title("🔐 Login")
 
-    username = st.text_input("Username")
+    username = st.text_input(
+        "Username"
+    )
 
     password = st.text_input(
         "Password",
@@ -107,18 +147,34 @@ if not st.session_state.logged_in:
 
     if st.button("Login"):
 
-        if (
-            username == ADMIN_USER
-            and
-            password == ADMIN_PASS
-        ):
+        user = c.execute(
+            """
+            SELECT * FROM users
+            WHERE username=?
+            AND password=?
+            AND active=1
+            """,
+            (
+                username,
+                password
+            )
+        ).fetchone()
+
+        if user:
 
             st.session_state.logged_in = True
+
+            st.session_state.username = user[1]
+
+            st.session_state.role = user[3]
+
             st.rerun()
 
         else:
 
-            st.error("Invalid Login")
+            st.error(
+                "Invalid Credentials"
+            )
 
     st.stop()
 
@@ -151,8 +207,13 @@ interest_payments = pd.read_sql(
     conn
 )
 
+users = pd.read_sql(
+    "SELECT * FROM users",
+    conn
+)
+
 # =========================================================
-# MONTH OPTIONS
+# MONTHS
 # =========================================================
 
 month_options = [
@@ -176,23 +237,52 @@ month_options = [
 
 st.sidebar.title("📌 Menu")
 
+menu_options = [
+    "Dashboard",
+    "Customers",
+    "Monthly Collections",
+    "Start Loan",
+    "Loan Management",
+    "Pending Collections",
+    "Reports"
+]
+
+# ONLY ADMIN CAN SEE USER MANAGEMENT
+
+if st.session_state.role == "admin":
+
+    menu_options.append(
+        "User Management"
+    )
+
 menu = st.sidebar.radio(
     "Select Option",
-    [
-        "Dashboard",
-        "Customers",
-        "Monthly Collections",
-        "Start Loan",
-        "Loan Management",
-        "Pending Collections",
-        "Reports"
-    ]
+    menu_options
+)
+
+st.sidebar.write(
+    f"👤 User: {st.session_state.username}"
+)
+
+st.sidebar.write(
+    f"🔐 Role: {st.session_state.role}"
 )
 
 if st.sidebar.button("Logout"):
 
     st.session_state.logged_in = False
+
     st.rerun()
+
+# =========================================================
+# ROLE PERMISSION
+# =========================================================
+
+can_edit = (
+    st.session_state.role
+    in
+    ["admin", "editor"]
+)
 
 # =========================================================
 # DASHBOARD
@@ -200,9 +290,9 @@ if st.sidebar.button("Logout"):
 
 if menu == "Dashboard":
 
-    st.title("📊 Finance Dashboard")
+    st.title("📊 Dashboard")
 
-    total_collections = (
+    total_collection = (
         collections["amount"].sum()
         if not collections.empty else 0
     )
@@ -223,7 +313,7 @@ if menu == "Dashboard":
         total_returned
     )
 
-    total_interest_received = (
+    total_interest = (
         interest_payments["amount"].sum()
         if not interest_payments.empty else 0
     )
@@ -232,7 +322,7 @@ if menu == "Dashboard":
 
     col1.metric(
         "💵 Collections",
-        f"₹ {total_collections}"
+        f"₹ {total_collection}"
     )
 
     col2.metric(
@@ -246,7 +336,7 @@ if menu == "Dashboard":
     )
 
     col4.metric(
-        "📉 Remaining Loan",
+        "📉 Remaining",
         f"₹ {remaining_loan}"
     )
 
@@ -254,7 +344,7 @@ if menu == "Dashboard":
 
     st.metric(
         "📈 Interest Received",
-        f"₹ {total_interest_received}"
+        f"₹ {total_interest}"
     )
 
 # =========================================================
@@ -265,47 +355,57 @@ elif menu == "Customers":
 
     st.title("👥 Customers")
 
-    name = st.text_input(
-        "Customer Name"
-    )
+    if can_edit:
 
-    mobile = st.text_input(
-        "Mobile Number"
-    )
-
-    collection_start_date = st.date_input(
-        "Collection Start Date"
-    )
-
-    monthly_collection = st.number_input(
-        "Monthly Collection Amount",
-        min_value=0.0
-    )
-
-    if st.button("Save Customer"):
-
-        c.execute(
-            """
-            INSERT INTO customers
-            (
-                name,
-                mobile,
-                collection_start_date,
-                monthly_collection
-            )
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                name,
-                mobile,
-                str(collection_start_date),
-                monthly_collection
-            )
+        name = st.text_input(
+            "Customer Name"
         )
 
-        conn.commit()
+        mobile = st.text_input(
+            "Mobile Number"
+        )
 
-        st.success("Customer Added Successfully")
+        collection_start_date = st.date_input(
+            "Collection Start Date"
+        )
+
+        monthly_collection = st.number_input(
+            "Monthly Collection Amount",
+            min_value=0.0
+        )
+
+        if st.button("Save Customer"):
+
+            c.execute(
+                """
+                INSERT INTO customers
+                (
+                    name,
+                    mobile,
+                    collection_start_date,
+                    monthly_collection
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    name,
+                    mobile,
+                    str(collection_start_date),
+                    monthly_collection
+                )
+            )
+
+            conn.commit()
+
+            st.success(
+                "Customer Added"
+            )
+
+    else:
+
+        st.warning(
+            "View Only Access"
+        )
 
     st.divider()
 
@@ -324,7 +424,7 @@ elif menu == "Monthly Collections":
 
     if customers.empty:
 
-        st.warning("No Customers Found")
+        st.warning("No Customers")
 
     else:
 
@@ -356,32 +456,42 @@ elif menu == "Monthly Collections":
             "Payment Date"
         )
 
-        if st.button("Save Collection"):
+        if can_edit:
 
-            c.execute(
-                """
-                INSERT INTO collections
-                (
-                    customer_name,
-                    month,
-                    amount,
-                    status,
-                    payment_date
+            if st.button("Save Collection"):
+
+                c.execute(
+                    """
+                    INSERT INTO collections
+                    (
+                        customer_name,
+                        month,
+                        amount,
+                        status,
+                        payment_date
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        customer_name,
+                        month,
+                        amount,
+                        status,
+                        str(payment_date)
+                    )
                 )
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (
-                    customer_name,
-                    month,
-                    amount,
-                    status,
-                    str(payment_date)
+
+                conn.commit()
+
+                st.success(
+                    "Collection Saved"
                 )
+
+        else:
+
+            st.warning(
+                "View Only Access"
             )
-
-            conn.commit()
-
-            st.success("Collection Saved")
 
         st.divider()
 
@@ -398,11 +508,7 @@ elif menu == "Start Loan":
 
     st.title("🏦 Start Loan")
 
-    if customers.empty:
-
-        st.warning("No Customers Found")
-
-    else:
+    if can_edit:
 
         customer_name = st.selectbox(
             "Select Customer",
@@ -457,7 +563,15 @@ elif menu == "Start Loan":
 
             conn.commit()
 
-            st.success("Loan Started Successfully")
+            st.success(
+                "Loan Started"
+            )
+
+    else:
+
+        st.warning(
+            "View Only Access"
+        )
 
 # =========================================================
 # LOAN MANAGEMENT
@@ -469,7 +583,9 @@ elif menu == "Loan Management":
 
     if loans.empty:
 
-        st.warning("No Active Loans")
+        st.warning(
+            "No Loans Found"
+        )
 
     else:
 
@@ -492,43 +608,29 @@ elif menu == "Loan Management":
             loan_data["interest_rate"]
         )
 
-        loan_start_date = datetime.strptime(
-            loan_data["loan_start_date"],
-            "%Y-%m-%d"
-        ).date()
-
         payment_history = principal_payments[
             principal_payments["customer_name"]
             ==
             customer_name
-        ].copy()
-
-        if not payment_history.empty:
-
-            payment_history["payment_date"] = pd.to_datetime(
-                payment_history["payment_date"]
-            )
-
-            payment_history = payment_history.sort_values(
-                by="payment_date"
-            )
+        ]
 
         total_returned = (
             payment_history["amount"].sum()
-            if not payment_history.empty
-            else 0
+            if not payment_history.empty else 0
         )
 
-        remaining_principal = (
+        remaining = (
             original_loan
             -
             total_returned
         )
 
-        if remaining_principal < 0:
-            remaining_principal = 0
-
-        st.subheader("📊 Current Loan Status")
+        current_interest = (
+            remaining
+            *
+            interest_rate
+            / 100
+        )
 
         col1, col2, col3, col4 = st.columns(4)
 
@@ -544,241 +646,64 @@ elif menu == "Loan Management":
 
         col3.metric(
             "📉 Remaining",
-            f"₹ {remaining_principal}"
+            f"₹ {remaining}"
         )
 
         col4.metric(
-            "📈 Interest Rate",
-            f"{interest_rate}%"
+            "📈 Current Interest",
+            f"₹ {current_interest}"
         )
 
         st.divider()
 
-        # =====================================
-        # ADD PRINCIPAL RETURN
-        # =====================================
+        if can_edit:
 
-        st.subheader("💵 Add Principal Return")
-
-        return_amount = st.number_input(
-            "Return Amount",
-            min_value=0.0
-        )
-
-        return_date = st.date_input(
-            "Return Date"
-        )
-
-        if st.button("Save Principal Return"):
-
-            c.execute(
-                """
-                INSERT INTO principal_payments
-                (
-                    customer_name,
-                    amount,
-                    payment_date
-                )
-                VALUES (?, ?, ?)
-                """,
-                (
-                    customer_name,
-                    return_amount,
-                    str(return_date)
-                )
+            return_amount = st.number_input(
+                "Principal Return Amount",
+                min_value=0.0
             )
 
-            conn.commit()
-
-            st.success(
-                "Principal Return Saved"
+            return_date = st.date_input(
+                "Return Date"
             )
+
+            if st.button(
+                "Save Principal Return"
+            ):
+
+                c.execute(
+                    """
+                    INSERT INTO principal_payments
+                    (
+                        customer_name,
+                        amount,
+                        payment_date
+                    )
+                    VALUES (?, ?, ?)
+                    """,
+                    (
+                        customer_name,
+                        return_amount,
+                        str(return_date)
+                    )
+                )
+
+                conn.commit()
+
+                st.success(
+                    "Return Saved"
+                )
 
         st.divider()
 
-        # =====================================
-        # TIMELINE
-        # =====================================
-
-        st.subheader("📅 Loan Timeline")
-
-        timeline = []
-
-        today = date.today()
-
-        current_principal = original_loan
-
-        current_date = loan_start_date
-
-        payment_list = []
-
-        if not payment_history.empty:
-
-            for _, row in payment_history.iterrows():
-
-                payment_list.append({
-                    "date": row["payment_date"].date(),
-                    "amount": float(row["amount"])
-                })
-
-        while current_date <= today:
-
-            for payment in payment_list:
-
-                if (
-                    payment["date"].month
-                    ==
-                    current_date.month
-                    and
-                    payment["date"].year
-                    ==
-                    current_date.year
-                ):
-
-                    current_principal -= payment["amount"]
-
-                    if current_principal < 0:
-                        current_principal = 0
-
-            monthly_interest = (
-                current_principal
-                *
-                interest_rate
-                / 100
-            )
-
-            timeline.append({
-
-                "Month":
-                current_date.strftime("%B %Y"),
-
-                "Principal":
-                round(current_principal, 2),
-
-                "Monthly Interest":
-                round(monthly_interest, 2)
-            })
-
-            if current_date.month == 12:
-
-                current_date = date(
-                    current_date.year + 1,
-                    1,
-                    1
-                )
-
-            else:
-
-                current_date = date(
-                    current_date.year,
-                    current_date.month + 1,
-                    1
-                )
-
-        timeline_df = pd.DataFrame(
-            timeline
+        st.subheader(
+            "📋 Return History"
         )
 
         st.dataframe(
-            timeline_df,
+            payment_history.reset_index(drop=True),
             use_container_width=True
         )
-
-        st.divider()
-
-        # =====================================
-        # INTEREST SUMMARY
-        # =====================================
-
-        total_interest_due = (
-            timeline_df["Monthly Interest"].sum()
-        )
-
-        interest_paid = interest_payments[
-            interest_payments["customer_name"]
-            ==
-            customer_name
-        ]["amount"].sum()
-
-        remaining_interest = (
-            total_interest_due
-            -
-            interest_paid
-        )
-
-        st.subheader("📈 Interest Summary")
-
-        col5, col6, col7 = st.columns(3)
-
-        col5.metric(
-            "💰 Interest Due",
-            f"₹ {round(total_interest_due, 2)}"
-        )
-
-        col6.metric(
-            "✅ Interest Paid",
-            f"₹ {round(interest_paid, 2)}"
-        )
-
-        col7.metric(
-            "❌ Remaining Interest",
-            f"₹ {round(remaining_interest, 2)}"
-        )
-
-        st.divider()
-
-        # =====================================
-        # SAVE INTEREST PAYMENT
-        # =====================================
-
-        st.subheader("💸 Save Interest Payment")
-
-        interest_amount = st.number_input(
-            "Interest Amount",
-            min_value=0.0
-        )
-
-        interest_date = st.date_input(
-            "Interest Payment Date"
-        )
-
-        if st.button("Save Interest Payment"):
-
-            c.execute(
-                """
-                INSERT INTO interest_payments
-                (
-                    customer_name,
-                    amount,
-                    payment_date
-                )
-                VALUES (?, ?, ?)
-                """,
-                (
-                    customer_name,
-                    interest_amount,
-                    str(interest_date)
-                )
-            )
-
-            conn.commit()
-
-            st.success("Interest Payment Saved")
-
-        st.divider()
-
-        st.subheader("📋 Principal Return History")
-
-        if payment_history.empty:
-
-            st.warning("No Principal Payments Yet")
-
-        else:
-
-            st.dataframe(
-                payment_history.reset_index(drop=True),
-                use_container_width=True
-            )
 
 # =========================================================
 # PENDING COLLECTIONS
@@ -851,6 +776,102 @@ elif menu == "Pending Collections":
     )
 
 # =========================================================
+# USER MANAGEMENT
+# =========================================================
+
+elif menu == "User Management":
+
+    st.title("👤 User Management")
+
+    st.subheader("➕ Create User")
+
+    new_username = st.text_input(
+        "New Username"
+    )
+
+    new_password = st.text_input(
+        "New Password"
+    )
+
+    new_role = st.selectbox(
+        "Select Role",
+        [
+            "editor",
+            "viewer"
+        ]
+    )
+
+    if st.button("Create User"):
+
+        try:
+
+            c.execute(
+                """
+                INSERT INTO users
+                (
+                    username,
+                    password,
+                    role,
+                    active
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    new_username,
+                    new_password,
+                    new_role,
+                    1
+                )
+            )
+
+            conn.commit()
+
+            st.success(
+                "User Created"
+            )
+
+        except:
+
+            st.error(
+                "Username Already Exists"
+            )
+
+    st.divider()
+
+    st.subheader("📋 All Users")
+
+    st.dataframe(
+        users.reset_index(drop=True),
+        use_container_width=True
+    )
+
+    st.divider()
+
+    st.subheader("🚫 Disable User")
+
+    disable_user = st.selectbox(
+        "Select User",
+        users["username"]
+    )
+
+    if st.button("Disable User"):
+
+        c.execute(
+            """
+            UPDATE users
+            SET active=0
+            WHERE username=?
+            """,
+            (disable_user,)
+        )
+
+        conn.commit()
+
+        st.success(
+            "User Disabled"
+        )
+
+# =========================================================
 # REPORTS
 # =========================================================
 
@@ -865,17 +886,17 @@ elif menu == "Reports":
         use_container_width=True
     )
 
-    st.subheader("💵 Collections")
-
-    st.dataframe(
-        collections.reset_index(drop=True),
-        use_container_width=True
-    )
-
     st.subheader("🏦 Loans")
 
     st.dataframe(
         loans.reset_index(drop=True),
+        use_container_width=True
+    )
+
+    st.subheader("💵 Collections")
+
+    st.dataframe(
+        collections.reset_index(drop=True),
         use_container_width=True
     )
 
