@@ -1,6 +1,6 @@
 # =========================================================
 # SMART FINANCE TRACKER PRO
-# FULL FINAL VERSION
+# PROFESSIONAL FINAL VERSION
 # =========================================================
 
 import streamlit as st
@@ -33,8 +33,6 @@ c = conn.cursor()
 # TABLES
 # =========================================================
 
-# USERS
-
 c.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,8 +42,6 @@ CREATE TABLE IF NOT EXISTS users (
     active INTEGER
 )
 """)
-
-# CUSTOMERS
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS customers (
@@ -57,8 +53,6 @@ CREATE TABLE IF NOT EXISTS customers (
 )
 """)
 
-# LOANS
-
 c.execute("""
 CREATE TABLE IF NOT EXISTS loans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,8 +62,6 @@ CREATE TABLE IF NOT EXISTS loans (
     loan_start_date TEXT
 )
 """)
-
-# COLLECTIONS
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS collections (
@@ -82,8 +74,6 @@ CREATE TABLE IF NOT EXISTS collections (
 )
 """)
 
-# PRINCIPAL PAYMENTS
-
 c.execute("""
 CREATE TABLE IF NOT EXISTS principal_payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -92,8 +82,6 @@ CREATE TABLE IF NOT EXISTS principal_payments (
     payment_date TEXT
 )
 """)
-
-# DONATIONS
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS donations (
@@ -105,8 +93,6 @@ CREATE TABLE IF NOT EXISTS donations (
 )
 """)
 
-# EXPENSES
-
 c.execute("""
 CREATE TABLE IF NOT EXISTS expenses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -117,7 +103,9 @@ CREATE TABLE IF NOT EXISTS expenses (
 )
 """)
 
+# =========================================================
 # DEFAULT ADMIN
+# =========================================================
 
 c.execute("""
 INSERT OR IGNORE INTO users
@@ -225,25 +213,6 @@ users = pd.read_sql(
 )
 
 # =========================================================
-# MONTHS
-# =========================================================
-
-month_options = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-]
-
-# =========================================================
 # SIDEBAR
 # =========================================================
 
@@ -262,10 +231,7 @@ menu_options = [
 ]
 
 if st.session_state.role == "admin":
-
-    menu_options.append(
-        "User Management"
-    )
+    menu_options.append("User Management")
 
 menu = st.sidebar.radio(
     "Select Option",
@@ -286,7 +252,7 @@ if st.sidebar.button("Logout"):
     st.rerun()
 
 # =========================================================
-# PERMISSIONS
+# PERMISSION
 # =========================================================
 
 can_edit = (
@@ -308,16 +274,6 @@ if menu == "Dashboard":
         if not collections.empty else 0
     )
 
-    total_donation = (
-        donations["amount"].sum()
-        if not donations.empty else 0
-    )
-
-    total_expense = (
-        expenses["amount"].sum()
-        if not expenses.empty else 0
-    )
-
     total_loan = (
         loans["loan_amount"].sum()
         if not loans.empty else 0
@@ -328,13 +284,23 @@ if menu == "Dashboard":
         if not principal_payments.empty else 0
     )
 
+    total_donation = (
+        donations["amount"].sum()
+        if not donations.empty else 0
+    )
+
+    total_expense = (
+        expenses["amount"].sum()
+        if not expenses.empty else 0
+    )
+
     remaining_loan = (
         total_loan
         -
         total_returned
     )
 
-    remaining_balance = (
+    final_balance = (
         total_collection
         +
         total_donation
@@ -350,27 +316,39 @@ if menu == "Dashboard":
     )
 
     col2.metric(
-        "🎁 Donations",
-        f"₹ {total_donation}"
+        "🏦 Loan Given",
+        f"₹ {total_loan}"
     )
 
     col3.metric(
-        "💸 Expenses",
-        f"₹ {total_expense}"
+        "💳 Returned",
+        f"₹ {total_returned}"
     )
 
     st.divider()
 
-    col4, col5 = st.columns(2)
+    col4, col5, col6 = st.columns(3)
 
     col4.metric(
-        "🏦 Remaining Loan",
-        f"₹ {remaining_loan}"
+        "🎁 Donations",
+        f"₹ {total_donation}"
     )
 
     col5.metric(
-        "💰 Remaining Balance",
-        f"₹ {remaining_balance}"
+        "💸 Expenses",
+        f"₹ {total_expense}"
+    )
+
+    col6.metric(
+        "💰 Balance",
+        f"₹ {final_balance}"
+    )
+
+    st.divider()
+
+    st.metric(
+        "📉 Remaining Loan",
+        f"₹ {remaining_loan}"
     )
 
 # =========================================================
@@ -383,20 +361,16 @@ elif menu == "Customers":
 
     if can_edit:
 
-        name = st.text_input(
-            "Customer Name"
-        )
+        name = st.text_input("Customer Name")
 
-        mobile = st.text_input(
-            "Mobile Number"
-        )
+        mobile = st.text_input("Mobile")
 
-        collection_start_date = st.date_input(
+        start_date = st.date_input(
             "Collection Start Date"
         )
 
         monthly_collection = st.number_input(
-            "Monthly Collection Amount",
+            "Monthly Collection",
             min_value=0.0
         )
 
@@ -416,7 +390,7 @@ elif menu == "Customers":
                 (
                     name,
                     mobile,
-                    str(collection_start_date),
+                    str(start_date),
                     monthly_collection
                 )
             )
@@ -424,10 +398,6 @@ elif menu == "Customers":
             conn.commit()
 
             st.success("Customer Added")
-
-    else:
-
-        st.warning("Viewer Access Only")
 
     st.divider()
 
@@ -447,17 +417,16 @@ elif menu == "Monthly Collections":
     if not customers.empty:
 
         customer_name = st.selectbox(
-            "Select Customer",
+            "Customer",
             customers["name"]
         )
 
-        month = st.selectbox(
-            "Select Month",
-            month_options
+        month = st.text_input(
+            "Month"
         )
 
         amount = st.number_input(
-            "Collection Amount",
+            "Amount",
             min_value=0.0
         )
 
@@ -518,10 +487,10 @@ elif menu == "Start Loan":
 
     st.title("🏦 Start Loan")
 
-    if can_edit:
+    if not customers.empty:
 
         customer_name = st.selectbox(
-            "Select Customer",
+            "Customer",
             customers["name"]
         )
 
@@ -535,34 +504,36 @@ elif menu == "Start Loan":
             min_value=0.0
         )
 
-        loan_start_date = st.date_input(
-            "Loan Start Date"
+        loan_date = st.date_input(
+            "Loan Date"
         )
 
-        if st.button("Start Loan"):
+        if can_edit:
 
-            c.execute(
-                """
-                INSERT INTO loans
-                (
-                    customer_name,
-                    loan_amount,
-                    interest_rate,
-                    loan_start_date
+            if st.button("Start Loan"):
+
+                c.execute(
+                    """
+                    INSERT INTO loans
+                    (
+                        customer_name,
+                        loan_amount,
+                        interest_rate,
+                        loan_start_date
+                    )
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        customer_name,
+                        loan_amount,
+                        interest_rate,
+                        str(loan_date)
+                    )
                 )
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    customer_name,
-                    loan_amount,
-                    interest_rate,
-                    str(loan_start_date)
-                )
-            )
 
-            conn.commit()
+                conn.commit()
 
-            st.success("Loan Started")
+                st.success("Loan Started")
 
 # =========================================================
 # LOAN MANAGEMENT
@@ -610,7 +581,7 @@ elif menu == "Loan Management":
             returned
         )
 
-        current_interest = (
+        monthly_interest = (
             remaining
             *
             interest_rate
@@ -635,8 +606,8 @@ elif menu == "Loan Management":
         )
 
         col4.metric(
-            "📈 Interest",
-            f"₹ {current_interest}"
+            "📈 Monthly Interest",
+            f"₹ {monthly_interest}"
         )
 
         st.divider()
@@ -829,18 +800,16 @@ elif menu == "User Management":
 
     st.title("👤 User Management")
 
-    st.subheader("➕ Create User")
-
-    new_username = st.text_input(
+    username = st.text_input(
         "New Username"
     )
 
-    new_password = st.text_input(
+    password = st.text_input(
         "New Password"
     )
 
-    new_role = st.selectbox(
-        "Select Role",
+    role = st.selectbox(
+        "Role",
         [
             "editor",
             "viewer"
@@ -863,51 +832,27 @@ elif menu == "User Management":
                 VALUES (?, ?, ?, ?)
                 """,
                 (
-                    new_username,
-                    new_password,
-                    new_role,
+                    username,
+                    password,
+                    role,
                     1
                 )
             )
 
             conn.commit()
 
-            st.success(
-                "User Created"
-            )
+            st.success("User Created")
 
         except:
 
-            st.error(
-                "Username Already Exists"
-            )
+            st.error("User Already Exists")
 
     st.divider()
 
-    st.subheader("📋 All Users")
-
-    users_display = pd.read_sql(
-        """
-        SELECT
-        username,
-        role,
-        active
-        FROM users
-        """,
-        conn
-    )
-
-    users_display["active"] = users_display[
-        "active"
-    ].replace(
-        {
-            1: "Active",
-            0: "Disabled"
-        }
-    )
+    st.subheader("📋 Users")
 
     st.dataframe(
-        users_display,
+        users,
         use_container_width=True
     )
 
@@ -917,22 +862,196 @@ elif menu == "User Management":
 
 elif menu == "Reports":
 
-    st.title("📑 Reports")
+    st.title("📑 Professional Reports")
 
-    st.subheader("👥 Customers")
-    st.dataframe(customers)
+    total_collection = (
+        collections["amount"].sum()
+        if not collections.empty else 0
+    )
 
-    st.subheader("🏦 Loans")
-    st.dataframe(loans)
+    total_loan = (
+        loans["loan_amount"].sum()
+        if not loans.empty else 0
+    )
 
-    st.subheader("💵 Collections")
-    st.dataframe(collections)
+    total_returned = (
+        principal_payments["amount"].sum()
+        if not principal_payments.empty else 0
+    )
 
-    st.subheader("💳 Returns")
-    st.dataframe(principal_payments)
+    total_donation = (
+        donations["amount"].sum()
+        if not donations.empty else 0
+    )
 
-    st.subheader("🎁 Donations")
-    st.dataframe(donations)
+    total_expense = (
+        expenses["amount"].sum()
+        if not expenses.empty else 0
+    )
 
-    st.subheader("💸 Expenses")
-    st.dataframe(expenses)
+    remaining_loan = (
+        total_loan
+        -
+        total_returned
+    )
+
+    final_balance = (
+        total_collection
+        +
+        total_donation
+        -
+        total_expense
+    )
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "💵 Collections",
+        f"₹ {total_collection}"
+    )
+
+    col2.metric(
+        "🏦 Loan",
+        f"₹ {total_loan}"
+    )
+
+    col3.metric(
+        "💳 Returned",
+        f"₹ {total_returned}"
+    )
+
+    col4.metric(
+        "📉 Remaining",
+        f"₹ {remaining_loan}"
+    )
+
+    st.divider()
+
+    col5, col6, col7 = st.columns(3)
+
+    col5.metric(
+        "🎁 Donations",
+        f"₹ {total_donation}"
+    )
+
+    col6.metric(
+        "💸 Expenses",
+        f"₹ {total_expense}"
+    )
+
+    col7.metric(
+        "💰 Balance",
+        f"₹ {final_balance}"
+    )
+
+    st.divider()
+
+    st.subheader("👥 Customer Report")
+
+    customer_report = []
+
+    for _, row in loans.iterrows():
+
+        customer = row["customer_name"]
+
+        loan_amount = row["loan_amount"]
+
+        rate = row["interest_rate"]
+
+        paid = principal_payments[
+            principal_payments["customer_name"]
+            ==
+            customer
+        ]["amount"].sum()
+
+        remaining = loan_amount - paid
+
+        interest = (
+            remaining
+            *
+            rate
+            / 100
+        )
+
+        customer_report.append(
+            {
+                "Customer": customer,
+                "Loan": loan_amount,
+                "Returned": paid,
+                "Remaining": remaining,
+                "Interest": interest
+            }
+        )
+
+    customer_df = pd.DataFrame(
+        customer_report
+    )
+
+    st.dataframe(
+        customer_df,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    st.subheader("🎁 Donation Report")
+
+    st.dataframe(
+        donations,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    st.subheader("💸 Expense Report")
+
+    st.dataframe(
+        expenses,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    st.subheader("💵 Collection Report")
+
+    st.dataframe(
+        collections,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    st.subheader("🏦 Loan Ledger")
+
+    ledger = []
+
+    for _, row in loans.iterrows():
+
+        ledger.append(
+            {
+                "Date": row["loan_start_date"],
+                "Action": "Loan Given",
+                "Customer": row["customer_name"],
+                "Amount": row["loan_amount"]
+            }
+        )
+
+    for _, row in principal_payments.iterrows():
+
+        ledger.append(
+            {
+                "Date": row["payment_date"],
+                "Action": "Returned",
+                "Customer": row["customer_name"],
+                "Amount": row["amount"]
+            }
+        )
+
+    ledger_df = pd.DataFrame(
+        ledger
+    )
+
+    st.dataframe(
+        ledger_df,
+        use_container_width=True
+    )
