@@ -1,16 +1,16 @@
-# =========================================
+# =========================================================
 # SMART FINANCE TRACKER PRO
-# ULTIMATE FINANCE VERSION
-# =========================================
+# FINAL PROFESSIONAL VERSION
+# =========================================================
 
 import streamlit as st
 import sqlite3
 import pandas as pd
 from datetime import datetime, date
 
-# =========================================
+# =========================================================
 # PAGE CONFIG
-# =========================================
+# =========================================================
 
 st.set_page_config(
     page_title="Smart Finance Tracker Pro",
@@ -18,9 +18,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# =========================================
-# DATABASE
-# =========================================
+# =========================================================
+# DATABASE CONNECTION
+# =========================================================
 
 conn = sqlite3.connect(
     "tracker.db",
@@ -29,9 +29,9 @@ conn = sqlite3.connect(
 
 c = conn.cursor()
 
-# =========================================
-# TABLES
-# =========================================
+# =========================================================
+# CREATE TABLES
+# =========================================================
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS customers (
@@ -84,9 +84,9 @@ CREATE TABLE IF NOT EXISTS interest_payments (
 
 conn.commit()
 
-# =========================================
-# LOGIN
-# =========================================
+# =========================================================
+# LOGIN SYSTEM
+# =========================================================
 
 ADMIN_USER = "admin"
 ADMIN_PASS = "1234"
@@ -122,9 +122,9 @@ if not st.session_state.logged_in:
 
     st.stop()
 
-# =========================================
+# =========================================================
 # LOAD DATA
-# =========================================
+# =========================================================
 
 customers = pd.read_sql(
     "SELECT * FROM customers",
@@ -151,9 +151,9 @@ interest_payments = pd.read_sql(
     conn
 )
 
-# =========================================
-# MONTHS
-# =========================================
+# =========================================================
+# MONTH OPTIONS
+# =========================================================
 
 month_options = [
     "January",
@@ -170,9 +170,9 @@ month_options = [
     "December"
 ]
 
-# =========================================
+# =========================================================
 # SIDEBAR
-# =========================================
+# =========================================================
 
 st.sidebar.title("📌 Menu")
 
@@ -184,7 +184,6 @@ menu = st.sidebar.radio(
         "Monthly Collections",
         "Start Loan",
         "Loan Management",
-        "Interest Management",
         "Pending Collections",
         "Reports"
     ]
@@ -195,15 +194,15 @@ if st.sidebar.button("Logout"):
     st.session_state.logged_in = False
     st.rerun()
 
-# =========================================
+# =========================================================
 # DASHBOARD
-# =========================================
+# =========================================================
 
 if menu == "Dashboard":
 
     st.title("📊 Finance Dashboard")
 
-    total_collection = (
+    total_collections = (
         collections["amount"].sum()
         if not collections.empty else 0
     )
@@ -213,15 +212,15 @@ if menu == "Dashboard":
         if not loans.empty else 0
     )
 
-    total_principal_returned = (
+    total_returned = (
         principal_payments["amount"].sum()
         if not principal_payments.empty else 0
     )
 
-    remaining_principal = (
+    remaining_loan = (
         total_loan
         -
-        total_principal_returned
+        total_returned
     )
 
     total_interest_received = (
@@ -233,7 +232,7 @@ if menu == "Dashboard":
 
     col1.metric(
         "💵 Collections",
-        f"₹ {total_collection}"
+        f"₹ {total_collections}"
     )
 
     col2.metric(
@@ -242,13 +241,13 @@ if menu == "Dashboard":
     )
 
     col3.metric(
-        "💳 Principal Returned",
-        f"₹ {total_principal_returned}"
+        "💳 Returned",
+        f"₹ {total_returned}"
     )
 
     col4.metric(
-        "📉 Remaining Principal",
-        f"₹ {remaining_principal}"
+        "📉 Remaining Loan",
+        f"₹ {remaining_loan}"
     )
 
     st.divider()
@@ -258,9 +257,9 @@ if menu == "Dashboard":
         f"₹ {total_interest_received}"
     )
 
-# =========================================
+# =========================================================
 # CUSTOMERS
-# =========================================
+# =========================================================
 
 elif menu == "Customers":
 
@@ -306,9 +305,7 @@ elif menu == "Customers":
 
         conn.commit()
 
-        st.success(
-            "Customer Added"
-        )
+        st.success("Customer Added Successfully")
 
     st.divider()
 
@@ -317,142 +314,154 @@ elif menu == "Customers":
         use_container_width=True
     )
 
-# =========================================
+# =========================================================
 # MONTHLY COLLECTIONS
-# =========================================
+# =========================================================
 
 elif menu == "Monthly Collections":
 
     st.title("💵 Monthly Collections")
 
-    customer_name = st.selectbox(
-        "Select Customer",
-        customers["name"]
-    )
+    if customers.empty:
 
-    month = st.selectbox(
-        "Select Month",
-        month_options
-    )
+        st.warning("No Customers Found")
 
-    amount = st.number_input(
-        "Collection Amount",
-        min_value=0.0
-    )
+    else:
 
-    status = st.selectbox(
-        "Status",
-        [
-            "Paid",
-            "Pending",
-            "Partial"
-        ]
-    )
-
-    if st.button("Save Collection"):
-
-        c.execute(
-            """
-            INSERT INTO collections
-            (
-                customer_name,
-                month,
-                amount,
-                status,
-                payment_date
-            )
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                customer_name,
-                month,
-                amount,
-                status,
-                str(date.today())
-            )
+        customer_name = st.selectbox(
+            "Select Customer",
+            customers["name"]
         )
 
-        conn.commit()
-
-        st.success(
-            "Collection Saved"
+        month = st.selectbox(
+            "Select Month",
+            month_options
         )
 
-    st.divider()
+        amount = st.number_input(
+            "Collection Amount",
+            min_value=0.0
+        )
 
-    st.dataframe(
-        collections.reset_index(drop=True),
-        use_container_width=True
-    )
+        status = st.selectbox(
+            "Status",
+            [
+                "Paid",
+                "Pending",
+                "Partial"
+            ]
+        )
 
-# =========================================
+        payment_date = st.date_input(
+            "Payment Date"
+        )
+
+        if st.button("Save Collection"):
+
+            c.execute(
+                """
+                INSERT INTO collections
+                (
+                    customer_name,
+                    month,
+                    amount,
+                    status,
+                    payment_date
+                )
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    customer_name,
+                    month,
+                    amount,
+                    status,
+                    str(payment_date)
+                )
+            )
+
+            conn.commit()
+
+            st.success("Collection Saved")
+
+        st.divider()
+
+        st.dataframe(
+            collections.reset_index(drop=True),
+            use_container_width=True
+        )
+
+# =========================================================
 # START LOAN
-# =========================================
+# =========================================================
 
 elif menu == "Start Loan":
 
     st.title("🏦 Start Loan")
 
-    customer_name = st.selectbox(
-        "Select Customer",
-        customers["name"]
-    )
+    if customers.empty:
 
-    loan_amount = st.number_input(
-        "Loan Amount",
-        min_value=0.0
-    )
+        st.warning("No Customers Found")
 
-    interest_rate = st.number_input(
-        "Monthly Interest Rate (%)",
-        min_value=0.0
-    )
+    else:
 
-    loan_start_date = st.date_input(
-        "Loan Start Date"
-    )
-
-    monthly_interest = (
-        loan_amount
-        *
-        interest_rate
-        / 100
-    )
-
-    st.info(
-        f"📈 Monthly Interest = ₹ {monthly_interest}"
-    )
-
-    if st.button("Start Loan"):
-
-        c.execute(
-            """
-            INSERT INTO loans
-            (
-                customer_name,
-                loan_amount,
-                interest_rate,
-                loan_start_date
-            )
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                customer_name,
-                loan_amount,
-                interest_rate,
-                str(loan_start_date)
-            )
+        customer_name = st.selectbox(
+            "Select Customer",
+            customers["name"]
         )
 
-        conn.commit()
-
-        st.success(
-            "Loan Started Successfully"
+        loan_amount = st.number_input(
+            "Loan Amount",
+            min_value=0.0
         )
 
-# =========================================
+        interest_rate = st.number_input(
+            "Monthly Interest Rate (%)",
+            min_value=0.0
+        )
+
+        loan_start_date = st.date_input(
+            "Loan Start Date"
+        )
+
+        monthly_interest = (
+            loan_amount
+            *
+            interest_rate
+            / 100
+        )
+
+        st.info(
+            f"Monthly Interest = ₹ {monthly_interest}"
+        )
+
+        if st.button("Start Loan"):
+
+            c.execute(
+                """
+                INSERT INTO loans
+                (
+                    customer_name,
+                    loan_amount,
+                    interest_rate,
+                    loan_start_date
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    customer_name,
+                    loan_amount,
+                    interest_rate,
+                    str(loan_start_date)
+                )
+            )
+
+            conn.commit()
+
+            st.success("Loan Started Successfully")
+
+# =========================================================
 # LOAN MANAGEMENT
-# =========================================
+# =========================================================
 
 elif menu == "Loan Management":
 
@@ -466,7 +475,7 @@ elif menu == "Loan Management":
 
         customer_name = st.selectbox(
             "Select Customer",
-            loans["customer_name"]
+            loans["customer_name"].unique()
         )
 
         loan_data = loans[
@@ -475,23 +484,40 @@ elif menu == "Loan Management":
             customer_name
         ].iloc[0]
 
-        original_loan = loan_data[
-            "loan_amount"
-        ]
+        original_loan = float(
+            loan_data["loan_amount"]
+        )
 
-        interest_rate = loan_data[
-            "interest_rate"
-        ]
+        interest_rate = float(
+            loan_data["interest_rate"]
+        )
 
-        loan_start_date = loan_data[
-            "loan_start_date"
-        ]
+        loan_start_date = datetime.strptime(
+            loan_data["loan_start_date"],
+            "%Y-%m-%d"
+        ).date()
 
-        total_returned = principal_payments[
+        payment_history = principal_payments[
             principal_payments["customer_name"]
             ==
             customer_name
-        ]["amount"].sum()
+        ].copy()
+
+        if not payment_history.empty:
+
+            payment_history["payment_date"] = pd.to_datetime(
+                payment_history["payment_date"]
+            )
+
+            payment_history = payment_history.sort_values(
+                by="payment_date"
+            )
+
+        total_returned = (
+            payment_history["amount"].sum()
+            if not payment_history.empty
+            else 0
+        )
 
         remaining_principal = (
             original_loan
@@ -499,16 +525,12 @@ elif menu == "Loan Management":
             total_returned
         )
 
-        monthly_interest = (
-            remaining_principal
-            *
-            interest_rate
-            / 100
-        )
+        if remaining_principal < 0:
+            remaining_principal = 0
 
-        st.subheader("📊 Loan Details")
+        st.subheader("📊 Current Loan Status")
 
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
 
         col1.metric(
             "🏦 Original Loan",
@@ -516,37 +538,38 @@ elif menu == "Loan Management":
         )
 
         col2.metric(
-            "💳 Principal Returned",
+            "💳 Returned",
             f"₹ {total_returned}"
         )
 
         col3.metric(
-            "📉 Remaining Principal",
+            "📉 Remaining",
             f"₹ {remaining_principal}"
         )
 
-        st.divider()
-
-        col4, col5 = st.columns(2)
-
         col4.metric(
-            "📅 Loan Start Date",
-            loan_start_date
-        )
-
-        col5.metric(
-            "📈 Current Monthly Interest",
-            f"₹ {monthly_interest}"
+            "📈 Interest Rate",
+            f"{interest_rate}%"
         )
 
         st.divider()
 
-        principal_amount = st.number_input(
-            "Principal Amount Returned",
+        # =====================================
+        # ADD PRINCIPAL RETURN
+        # =====================================
+
+        st.subheader("💵 Add Principal Return")
+
+        return_amount = st.number_input(
+            "Return Amount",
             min_value=0.0
         )
 
-        if st.button("Save Principal Payment"):
+        return_date = st.date_input(
+            "Return Date"
+        )
+
+        if st.button("Save Principal Return"):
 
             c.execute(
                 """
@@ -560,102 +583,115 @@ elif menu == "Loan Management":
                 """,
                 (
                     customer_name,
-                    principal_amount,
-                    str(date.today())
+                    return_amount,
+                    str(return_date)
                 )
             )
 
             conn.commit()
 
             st.success(
-                "Principal Payment Saved"
+                "Principal Return Saved"
             )
 
         st.divider()
 
-        st.subheader("📋 Principal Payment History")
+        # =====================================
+        # TIMELINE
+        # =====================================
 
-        payment_history = principal_payments[
-            principal_payments["customer_name"]
-            ==
-            customer_name
-        ]
+        st.subheader("📅 Loan Timeline")
 
-        st.dataframe(
-            payment_history.reset_index(drop=True),
-            use_container_width=True
-        )
-
-# =========================================
-# INTEREST MANAGEMENT
-# =========================================
-
-elif menu == "Interest Management":
-
-    st.title("📈 Interest Management")
-
-    if loans.empty:
-
-        st.warning("No Active Loans")
-
-    else:
-
-        customer_name = st.selectbox(
-            "Select Customer",
-            loans["customer_name"]
-        )
-
-        loan_data = loans[
-            loans["customer_name"]
-            ==
-            customer_name
-        ].iloc[0]
-
-        original_loan = loan_data[
-            "loan_amount"
-        ]
-
-        interest_rate = loan_data[
-            "interest_rate"
-        ]
-
-        loan_start = datetime.strptime(
-            loan_data["loan_start_date"],
-            "%Y-%m-%d"
-        ).date()
-
-        total_returned = principal_payments[
-            principal_payments["customer_name"]
-            ==
-            customer_name
-        ]["amount"].sum()
-
-        remaining_principal = (
-            original_loan
-            -
-            total_returned
-        )
+        timeline = []
 
         today = date.today()
 
-        months_passed = (
-            (today.year - loan_start.year)
-            * 12
-            +
-            (today.month - loan_start.month)
+        current_principal = original_loan
+
+        current_date = loan_start_date
+
+        payment_list = []
+
+        if not payment_history.empty:
+
+            for _, row in payment_history.iterrows():
+
+                payment_list.append({
+                    "date": row["payment_date"].date(),
+                    "amount": float(row["amount"])
+                })
+
+        while current_date <= today:
+
+            for payment in payment_list:
+
+                if (
+                    payment["date"].month
+                    ==
+                    current_date.month
+                    and
+                    payment["date"].year
+                    ==
+                    current_date.year
+                ):
+
+                    current_principal -= payment["amount"]
+
+                    if current_principal < 0:
+                        current_principal = 0
+
+            monthly_interest = (
+                current_principal
+                *
+                interest_rate
+                / 100
+            )
+
+            timeline.append({
+
+                "Month":
+                current_date.strftime("%B %Y"),
+
+                "Principal":
+                round(current_principal, 2),
+
+                "Monthly Interest":
+                round(monthly_interest, 2)
+            })
+
+            if current_date.month == 12:
+
+                current_date = date(
+                    current_date.year + 1,
+                    1,
+                    1
+                )
+
+            else:
+
+                current_date = date(
+                    current_date.year,
+                    current_date.month + 1,
+                    1
+                )
+
+        timeline_df = pd.DataFrame(
+            timeline
         )
 
-        current_monthly_interest = (
-            remaining_principal
-            *
-            interest_rate
-            / 100
+        st.dataframe(
+            timeline_df,
+            use_container_width=True
         )
+
+        st.divider()
+
+        # =====================================
+        # INTEREST SUMMARY
+        # =====================================
 
         total_interest_due = (
-            current_monthly_interest
-            *
-            months_passed
+            timeline_df["Monthly Interest"].sum()
         )
 
         interest_paid = interest_payments[
@@ -670,35 +706,40 @@ elif menu == "Interest Management":
             interest_paid
         )
 
-        st.subheader("📊 Interest Details")
+        st.subheader("📈 Interest Summary")
 
-        col1, col2, col3, col4 = st.columns(4)
+        col5, col6, col7 = st.columns(3)
 
-        col1.metric(
-            "📅 Months Passed",
-            months_passed
+        col5.metric(
+            "💰 Interest Due",
+            f"₹ {round(total_interest_due, 2)}"
         )
 
-        col2.metric(
-            "📈 Monthly Interest",
-            f"₹ {current_monthly_interest}"
+        col6.metric(
+            "✅ Interest Paid",
+            f"₹ {round(interest_paid, 2)}"
         )
 
-        col3.metric(
-            "💰 Interest Received",
-            f"₹ {interest_paid}"
-        )
-
-        col4.metric(
-            "❌ Interest Due",
-            f"₹ {remaining_interest}"
+        col7.metric(
+            "❌ Remaining Interest",
+            f"₹ {round(remaining_interest, 2)}"
         )
 
         st.divider()
 
-        amount = st.number_input(
-            "Interest Payment Received",
+        # =====================================
+        # SAVE INTEREST PAYMENT
+        # =====================================
+
+        st.subheader("💸 Save Interest Payment")
+
+        interest_amount = st.number_input(
+            "Interest Amount",
             min_value=0.0
+        )
+
+        interest_date = st.date_input(
+            "Interest Payment Date"
         )
 
         if st.button("Save Interest Payment"):
@@ -715,20 +756,33 @@ elif menu == "Interest Management":
                 """,
                 (
                     customer_name,
-                    amount,
-                    str(date.today())
+                    interest_amount,
+                    str(interest_date)
                 )
             )
 
             conn.commit()
 
-            st.success(
-                "Interest Payment Saved"
+            st.success("Interest Payment Saved")
+
+        st.divider()
+
+        st.subheader("📋 Principal Return History")
+
+        if payment_history.empty:
+
+            st.warning("No Principal Payments Yet")
+
+        else:
+
+            st.dataframe(
+                payment_history.reset_index(drop=True),
+                use_container_width=True
             )
 
-# =========================================
+# =========================================================
 # PENDING COLLECTIONS
-# =========================================
+# =========================================================
 
 elif menu == "Pending Collections":
 
@@ -784,9 +838,7 @@ elif menu == "Pending Collections":
                     customer["mobile"],
 
                     "Pending Amount":
-                    customer[
-                        "monthly_collection"
-                    ]
+                    customer["monthly_collection"]
                 })
 
     pending_df = pd.DataFrame(
@@ -798,9 +850,9 @@ elif menu == "Pending Collections":
         use_container_width=True
     )
 
-# =========================================
+# =========================================================
 # REPORTS
-# =========================================
+# =========================================================
 
 elif menu == "Reports":
 
@@ -813,13 +865,6 @@ elif menu == "Reports":
         use_container_width=True
     )
 
-    st.subheader("🏦 Loans")
-
-    st.dataframe(
-        loans.reset_index(drop=True),
-        use_container_width=True
-    )
-
     st.subheader("💵 Collections")
 
     st.dataframe(
@@ -827,7 +872,14 @@ elif menu == "Reports":
         use_container_width=True
     )
 
-    st.subheader("💳 Principal Payments")
+    st.subheader("🏦 Loans")
+
+    st.dataframe(
+        loans.reset_index(drop=True),
+        use_container_width=True
+    )
+
+    st.subheader("💳 Principal Returns")
 
     st.dataframe(
         principal_payments.reset_index(drop=True),
