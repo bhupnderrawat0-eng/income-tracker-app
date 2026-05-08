@@ -1,6 +1,6 @@
 # =========================================================
 # SMART FINANCE TRACKER PRO
-# FULL FINAL MULTI USER VERSION
+# FULL FINAL VERSION
 # =========================================================
 
 import streamlit as st
@@ -33,6 +33,8 @@ c = conn.cursor()
 # TABLES
 # =========================================================
 
+# USERS
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,6 +44,8 @@ CREATE TABLE IF NOT EXISTS users (
     active INTEGER
 )
 """)
+
+# CUSTOMERS
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS customers (
@@ -53,6 +57,8 @@ CREATE TABLE IF NOT EXISTS customers (
 )
 """)
 
+# LOANS
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS loans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,6 +68,8 @@ CREATE TABLE IF NOT EXISTS loans (
     loan_start_date TEXT
 )
 """)
+
+# COLLECTIONS
 
 c.execute("""
 CREATE TABLE IF NOT EXISTS collections (
@@ -74,6 +82,8 @@ CREATE TABLE IF NOT EXISTS collections (
 )
 """)
 
+# PRINCIPAL PAYMENTS
+
 c.execute("""
 CREATE TABLE IF NOT EXISTS principal_payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,9 +93,31 @@ CREATE TABLE IF NOT EXISTS principal_payments (
 )
 """)
 
-# =========================================================
+# DONATIONS
+
+c.execute("""
+CREATE TABLE IF NOT EXISTS donations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    donor_name TEXT,
+    amount REAL,
+    donation_date TEXT,
+    note TEXT
+)
+""")
+
+# EXPENSES
+
+c.execute("""
+CREATE TABLE IF NOT EXISTS expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    expense_name TEXT,
+    amount REAL,
+    expense_date TEXT,
+    note TEXT
+)
+""")
+
 # DEFAULT ADMIN
-# =========================================================
 
 c.execute("""
 INSERT OR IGNORE INTO users
@@ -117,9 +149,7 @@ if not st.session_state.logged_in:
 
     st.title("🔐 Login")
 
-    username = st.text_input(
-        "Username"
-    )
+    username = st.text_input("Username")
 
     password = st.text_input(
         "Password",
@@ -151,9 +181,7 @@ if not st.session_state.logged_in:
 
         else:
 
-            st.error(
-                "Invalid Login"
-            )
+            st.error("Invalid Login")
 
     st.stop()
 
@@ -178,6 +206,16 @@ collections = pd.read_sql(
 
 principal_payments = pd.read_sql(
     "SELECT * FROM principal_payments",
+    conn
+)
+
+donations = pd.read_sql(
+    "SELECT * FROM donations",
+    conn
+)
+
+expenses = pd.read_sql(
+    "SELECT * FROM expenses",
     conn
 )
 
@@ -217,6 +255,8 @@ menu_options = [
     "Monthly Collections",
     "Start Loan",
     "Loan Management",
+    "Donations",
+    "Expenses",
     "Pending Collections",
     "Reports"
 ]
@@ -246,7 +286,7 @@ if st.sidebar.button("Logout"):
     st.rerun()
 
 # =========================================================
-# PERMISSION
+# PERMISSIONS
 # =========================================================
 
 can_edit = (
@@ -268,6 +308,16 @@ if menu == "Dashboard":
         if not collections.empty else 0
     )
 
+    total_donation = (
+        donations["amount"].sum()
+        if not donations.empty else 0
+    )
+
+    total_expense = (
+        expenses["amount"].sum()
+        if not expenses.empty else 0
+    )
+
     total_loan = (
         loans["loan_amount"].sum()
         if not loans.empty else 0
@@ -278,13 +328,21 @@ if menu == "Dashboard":
         if not principal_payments.empty else 0
     )
 
-    remaining = (
+    remaining_loan = (
         total_loan
         -
         total_returned
     )
 
-    col1, col2, col3, col4 = st.columns(4)
+    remaining_balance = (
+        total_collection
+        +
+        total_donation
+        -
+        total_expense
+    )
+
+    col1, col2, col3 = st.columns(3)
 
     col1.metric(
         "💵 Collections",
@@ -292,18 +350,27 @@ if menu == "Dashboard":
     )
 
     col2.metric(
-        "🏦 Total Loan",
-        f"₹ {total_loan}"
+        "🎁 Donations",
+        f"₹ {total_donation}"
     )
 
     col3.metric(
-        "💳 Returned",
-        f"₹ {total_returned}"
+        "💸 Expenses",
+        f"₹ {total_expense}"
     )
 
+    st.divider()
+
+    col4, col5 = st.columns(2)
+
     col4.metric(
-        "📉 Remaining",
-        f"₹ {remaining}"
+        "🏦 Remaining Loan",
+        f"₹ {remaining_loan}"
+    )
+
+    col5.metric(
+        "💰 Remaining Balance",
+        f"₹ {remaining_balance}"
     )
 
 # =========================================================
@@ -356,15 +423,11 @@ elif menu == "Customers":
 
             conn.commit()
 
-            st.success(
-                "Customer Added"
-            )
+            st.success("Customer Added")
 
     else:
 
-        st.warning(
-            "Viewer Access Only"
-        )
+        st.warning("Viewer Access Only")
 
     st.divider()
 
@@ -438,15 +501,7 @@ elif menu == "Monthly Collections":
 
                 conn.commit()
 
-                st.success(
-                    "Collection Saved"
-                )
-
-        else:
-
-            st.warning(
-                "Viewer Access Only"
-            )
+                st.success("Collection Saved")
 
     st.divider()
 
@@ -476,7 +531,7 @@ elif menu == "Start Loan":
         )
 
         interest_rate = st.number_input(
-            "Monthly Interest Rate %",
+            "Monthly Interest %",
             min_value=0.0
         )
 
@@ -507,15 +562,7 @@ elif menu == "Start Loan":
 
             conn.commit()
 
-            st.success(
-                "Loan Started"
-            )
-
-    else:
-
-        st.warning(
-            "Viewer Access Only"
-        )
+            st.success("Loan Started")
 
 # =========================================================
 # LOAN MANAGEMENT
@@ -626,9 +673,7 @@ elif menu == "Loan Management":
 
                 conn.commit()
 
-                st.success(
-                    "Return Saved"
-                )
+                st.success("Return Saved")
 
         st.divider()
 
@@ -638,6 +683,124 @@ elif menu == "Loan Management":
             payments,
             use_container_width=True
         )
+
+# =========================================================
+# DONATIONS
+# =========================================================
+
+elif menu == "Donations":
+
+    st.title("🎁 Donations")
+
+    donor_name = st.text_input(
+        "Donor Name"
+    )
+
+    donation_amount = st.number_input(
+        "Donation Amount",
+        min_value=0.0
+    )
+
+    donation_date = st.date_input(
+        "Donation Date"
+    )
+
+    donation_note = st.text_area(
+        "Comment / Note"
+    )
+
+    if can_edit:
+
+        if st.button("Save Donation"):
+
+            c.execute(
+                """
+                INSERT INTO donations
+                (
+                    donor_name,
+                    amount,
+                    donation_date,
+                    note
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    donor_name,
+                    donation_amount,
+                    str(donation_date),
+                    donation_note
+                )
+            )
+
+            conn.commit()
+
+            st.success("Donation Saved")
+
+    st.divider()
+
+    st.dataframe(
+        donations,
+        use_container_width=True
+    )
+
+# =========================================================
+# EXPENSES
+# =========================================================
+
+elif menu == "Expenses":
+
+    st.title("💸 Expenses")
+
+    expense_name = st.text_input(
+        "Expense Name"
+    )
+
+    expense_amount = st.number_input(
+        "Expense Amount",
+        min_value=0.0
+    )
+
+    expense_date = st.date_input(
+        "Expense Date"
+    )
+
+    expense_note = st.text_area(
+        "Comment / Note"
+    )
+
+    if can_edit:
+
+        if st.button("Save Expense"):
+
+            c.execute(
+                """
+                INSERT INTO expenses
+                (
+                    expense_name,
+                    amount,
+                    expense_date,
+                    note
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    expense_name,
+                    expense_amount,
+                    str(expense_date),
+                    expense_note
+                )
+            )
+
+            conn.commit()
+
+            st.success("Expense Saved")
+
+    st.divider()
+
+    st.dataframe(
+        expenses,
+        use_container_width=True
+    )
 
 # =========================================================
 # PENDING COLLECTIONS
@@ -666,11 +829,7 @@ elif menu == "User Management":
 
     st.title("👤 User Management")
 
-    # =====================================================
-    # CREATE USER
-    # =====================================================
-
-    st.subheader("➕ Create New User")
+    st.subheader("➕ Create User")
 
     new_username = st.text_input(
         "New Username"
@@ -714,7 +873,7 @@ elif menu == "User Management":
             conn.commit()
 
             st.success(
-                "User Created Successfully"
+                "User Created"
             )
 
         except:
@@ -724,10 +883,6 @@ elif menu == "User Management":
             )
 
     st.divider()
-
-    # =====================================================
-    # SHOW USERS
-    # =====================================================
 
     st.subheader("📋 All Users")
 
@@ -756,152 +911,6 @@ elif menu == "User Management":
         use_container_width=True
     )
 
-    st.divider()
-
-    # =====================================================
-    # UPDATE USER
-    # =====================================================
-
-    st.subheader("⚙️ Edit Existing User")
-
-    all_users = pd.read_sql(
-        "SELECT * FROM users",
-        conn
-    )
-
-    selected_user = st.selectbox(
-        "Select User",
-        all_users["username"]
-    )
-
-    selected_user_data = all_users[
-        all_users["username"]
-        ==
-        selected_user
-    ].iloc[0]
-
-    role_options = [
-        "admin",
-        "editor",
-        "viewer"
-    ]
-
-    current_role_index = role_options.index(
-        selected_user_data["role"]
-    )
-
-    updated_role = st.selectbox(
-        "Change Role",
-        role_options,
-        index=current_role_index
-    )
-
-    updated_password = st.text_input(
-        "New Password (Optional)"
-    )
-
-    current_status = (
-        "Active"
-        if selected_user_data["active"] == 1
-        else "Disabled"
-    )
-
-    updated_status = st.selectbox(
-        "User Status",
-        [
-            "Active",
-            "Disabled"
-        ],
-        index=0 if current_status == "Active" else 1
-    )
-
-    if st.button("Update User"):
-
-        active_value = (
-            1
-            if updated_status == "Active"
-            else 0
-        )
-
-        if updated_password.strip() != "":
-
-            c.execute(
-                """
-                UPDATE users
-                SET
-                role=?,
-                password=?,
-                active=?
-                WHERE username=?
-                """,
-                (
-                    updated_role,
-                    updated_password,
-                    active_value,
-                    selected_user
-                )
-            )
-
-        else:
-
-            c.execute(
-                """
-                UPDATE users
-                SET
-                role=?,
-                active=?
-                WHERE username=?
-                """,
-                (
-                    updated_role,
-                    active_value,
-                    selected_user
-                )
-            )
-
-        conn.commit()
-
-        st.success(
-            "User Updated Successfully"
-        )
-
-    st.divider()
-
-    # =====================================================
-    # DELETE USER
-    # =====================================================
-
-    st.subheader("🗑️ Delete User")
-
-    delete_user = st.selectbox(
-        "Select User To Delete",
-        all_users["username"]
-    )
-
-    if st.button("Delete User"):
-
-        if delete_user == "admin":
-
-            st.error(
-                "Admin Cannot Be Deleted"
-            )
-
-        else:
-
-            c.execute(
-                """
-                DELETE FROM users
-                WHERE username=?
-                """,
-                (delete_user,)
-            )
-
-            conn.commit()
-
-            st.success(
-                "User Deleted Successfully"
-            )
-
 # =========================================================
 # REPORTS
 # =========================================================
@@ -911,29 +920,19 @@ elif menu == "Reports":
     st.title("📑 Reports")
 
     st.subheader("👥 Customers")
-
-    st.dataframe(
-        customers,
-        use_container_width=True
-    )
+    st.dataframe(customers)
 
     st.subheader("🏦 Loans")
-
-    st.dataframe(
-        loans,
-        use_container_width=True
-    )
+    st.dataframe(loans)
 
     st.subheader("💵 Collections")
+    st.dataframe(collections)
 
-    st.dataframe(
-        collections,
-        use_container_width=True
-    )
+    st.subheader("💳 Returns")
+    st.dataframe(principal_payments)
 
-    st.subheader("💳 Principal Returns")
+    st.subheader("🎁 Donations")
+    st.dataframe(donations)
 
-    st.dataframe(
-        principal_payments,
-        use_container_width=True
-    )
+    st.subheader("💸 Expenses")
+    st.dataframe(expenses)
