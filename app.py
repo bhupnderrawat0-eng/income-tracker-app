@@ -57,7 +57,7 @@ section[data-testid="stSidebar"] {
     border-right:
     1px solid rgba(255,255,255,0.08);
 
-    overflow-y:scroll;
+    overflow-y:auto;
     height:100vh;
 }
 
@@ -223,14 +223,18 @@ with st.sidebar:
     text-align:center;
     margin-bottom:0px;
     border:none;
+    overflow:hidden;
     ">
 
     <img src="data:image/png;base64,{}"
-    width="280"
+    width="150"
     style="
     object-fit:contain;
     mix-blend-mode:screen;
     filter:brightness(1.15);
+    transform:scale(1.55);
+    margin-top:20px;
+    margin-bottom:20px;
     "/>
 
     </div>
@@ -244,9 +248,9 @@ with st.sidebar:
     <h2 style='
     text-align:center;
     color:white;
-    font-size:24px;
+    font-size:22px;
     font-weight:800;
-    margin-top:5px;
+    margin-top:0px;
     '>
     Bal Yuva Mangal Dal
     </h2>
@@ -255,7 +259,7 @@ with st.sidebar:
     text-align:center;
     color:#cbd5e1;
     font-size:13px;
-    margin-bottom:20px;
+    margin-bottom:15px;
     '>
     SMART FINANCE TRACKER
     </p>
@@ -291,20 +295,20 @@ with st.sidebar:
         styles={
 
             "container": {
-                "padding":"5px",
+                "padding":"0px",
                 "background-color":"transparent",
             },
 
             "icon": {
                 "color":"white",
-                "font-size":"18px"
+                "font-size":"17px"
             },
 
             "nav-link": {
 
                 "font-size":"15px",
                 "text-align":"left",
-                "margin":"4px",
+                "margin":"2px",
                 "border-radius":"12px",
                 "color":"#ffffff",
                 "padding":"8px",
