@@ -218,23 +218,21 @@ with st.sidebar:
 
     st.markdown("""
     <div style="
-    background: transparent;
-    padding:0px;
-    text-align:center;
-    margin-bottom:0px;
-    border:none;
+    height:95px;
     overflow:hidden;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-bottom:0px;
     ">
 
     <img src="data:image/png;base64,{}"
-    width="150"
+    width="120"
     style="
     object-fit:contain;
+    transform:scale(2.4);
     mix-blend-mode:screen;
     filter:brightness(1.15);
-    transform:scale(1.28);
-    margin-top:0px;
-    margin-bottom:0px;
     "/>
 
     </div>
@@ -248,9 +246,10 @@ with st.sidebar:
     <h2 style='
     text-align:center;
     color:white;
-    font-size:22px;
+    font-size:20px;
     font-weight:800;
-    margin-top:0px;
+    margin-top:-5px;
+    margin-bottom:0px;
     '>
     Bal Yuva Mangal Dal
     </h2>
@@ -258,8 +257,8 @@ with st.sidebar:
     <p style='
     text-align:center;
     color:#cbd5e1;
-    font-size:13px;
-    margin-bottom:10px;
+    font-size:12px;
+    margin-bottom:8px;
     '>
     SMART FINANCE TRACKER
     </p>
