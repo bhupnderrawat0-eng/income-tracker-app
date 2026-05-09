@@ -219,7 +219,7 @@ with st.sidebar:
     st.markdown("""
     <div style="
     background: transparent;
-    padding:2px;
+    padding:0px;
     text-align:center;
     margin-bottom:0px;
     border:none;
@@ -232,9 +232,9 @@ with st.sidebar:
     object-fit:contain;
     mix-blend-mode:screen;
     filter:brightness(1.15);
-    transform:scale(1.55);
-    margin-top:20px;
-    margin-bottom:20px;
+    transform:scale(1.28);
+    margin-top:0px;
+    margin-bottom:0px;
     "/>
 
     </div>
@@ -259,7 +259,7 @@ with st.sidebar:
     text-align:center;
     color:#cbd5e1;
     font-size:13px;
-    margin-bottom:15px;
+    margin-bottom:10px;
     '>
     SMART FINANCE TRACKER
     </p>
