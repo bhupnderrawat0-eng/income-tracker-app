@@ -1,18 +1,20 @@
 import streamlit as st
 import pandas as pd
 
-# =========================================================
+# =====================================================
 # PAGE CONFIG
-# =========================================================
+# =====================================================
 
 st.set_page_config(
-    page_title="Smart Finance Tracker",
-    layout="wide"
+    page_title="Bal Yuva Mangal Dal",
+    page_icon="🔥",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# =========================================================
+# =====================================================
 # SESSION STATE
-# =========================================================
+# =====================================================
 
 if "customers" not in st.session_state:
     st.session_state.customers = []
@@ -26,9 +28,16 @@ if "donations" not in st.session_state:
 if "expenses" not in st.session_state:
     st.session_state.expenses = []
 
-# =========================================================
+if "users" not in st.session_state:
+    st.session_state.users = [
+        {"name": "Admin", "role": "Admin"},
+        {"name": "Editor", "role": "Editor"},
+        {"name": "Viewer", "role": "Viewer"}
+    ]
+
+# =====================================================
 # CUSTOM CSS
-# =========================================================
+# =====================================================
 
 st.markdown("""
 <style>
@@ -37,6 +46,8 @@ html, body, [class*="css"]{
     font-family:'Segoe UI',sans-serif;
 }
 
+/* APP */
+
 .stApp{
     background:
     radial-gradient(circle at top left,#1e3a8a 0%,#020617 40%),
@@ -44,89 +55,115 @@ html, body, [class*="css"]{
     color:white;
 }
 
+/* SIDEBAR */
+
 section[data-testid="stSidebar"]{
-    background:rgba(15,23,42,0.92);
+    background:rgba(15,23,42,0.94);
     border-right:1px solid rgba(255,255,255,0.08);
 }
 
+/* TOP SPACE */
+
 .block-container{
-    padding-top:2rem;
+    padding-top:1.5rem;
 }
 
+/* CARDS */
+
 .metric-card{
-    background:rgba(30,41,59,0.75);
-    padding:24px;
+    background:rgba(30,41,59,0.78);
+    padding:22px;
     border-radius:22px;
     border:1px solid rgba(255,255,255,0.08);
     box-shadow:0 8px 30px rgba(0,0,0,0.35);
 }
 
 .metric-title{
-    color:#ffffff;
-    font-size:20px;
-    font-weight:700;
-    margin-bottom:12px;
+    color:#cbd5e1;
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:10px;
 }
 
 .metric-value{
-    color:#ffffff;
-    font-size:46px;
-    font-weight:900;
+    color:white;
+    font-size:34px;
+    font-weight:800;
 }
 
-.menu-title{
-    font-size:14px;
-    letter-spacing:4px;
-    color:#cbd5e1;
-    margin-top:12px;
+/* BUTTON */
+
+.stButton>button{
+    width:100%;
+    border:none;
+    border-radius:14px;
+    padding:12px;
+    background:linear-gradient(135deg,#2563eb,#4f46e5);
+    color:white;
+    font-size:16px;
+    font-weight:700;
+}
+
+/* INPUT */
+
+.stTextInput input,
+.stNumberInput input{
+    border-radius:12px !important;
+}
+
+/* TABLE */
+
+[data-testid="stDataFrame"]{
+    border-radius:18px;
+    overflow:hidden;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================================
+# =====================================================
 # SIDEBAR LOGO
-# =========================================================
+# =====================================================
 
 st.sidebar.markdown("""
 <div style="
-background: rgba(255,255,255,0.05);
-padding: 25px;
-border-radius: 24px;
-text-align: center;
-margin-bottom: 20px;
+background:rgba(255,255,255,0.05);
+padding:24px;
+border-radius:24px;
+text-align:center;
+margin-bottom:20px;
 ">
 
 <div style="
-font-size: 72px;
-margin-bottom: 8px;
+font-size:72px;
+margin-bottom:8px;
 ">
 🔥
 </div>
 
 <div style="
-font-size: 22px;
-font-weight: 800;
-color: white;
-line-height: 1.2;
+font-size:22px;
+font-weight:800;
+color:white;
+line-height:1.2;
 ">
 Bal Yuva
 </div>
 
 <div style="
-font-size: 22px;
-font-weight: 800;
-color: #38bdf8;
-line-height: 1.2;
+font-size:22px;
+font-weight:800;
+color:#38bdf8;
+line-height:1.2;
 ">
 Mangal Dal
 </div>
 
 <div style="
-font-size: 11px;
-letter-spacing: 3px;
-color: #cbd5e1;
-margin-top: 10px;
+font-size:11px;
+letter-spacing:3px;
+color:#cbd5e1;
+margin-top:10px;
 ">
 SMART FINANCE TRACKER
 </div>
@@ -134,9 +171,9 @@ SMART FINANCE TRACKER
 </div>
 """, unsafe_allow_html=True)
 
-# =========================================================
+# =====================================================
 # MENU
-# =========================================================
+# =====================================================
 
 menu = st.sidebar.radio(
     "Navigation",
@@ -144,15 +181,17 @@ menu = st.sidebar.radio(
         "Dashboard",
         "Customers",
         "Collections",
+        "Loans",
         "Donations",
         "Expenses",
-        "Reports"
+        "Reports",
+        "Users"
     ]
 )
 
-# =========================================================
+# =====================================================
 # DASHBOARD
-# =========================================================
+# =====================================================
 
 if menu == "Dashboard":
 
@@ -171,11 +210,19 @@ if menu == "Dashboard":
         for x in st.session_state.expenses
     )
 
-    balance = collections_total + donations_total - expenses_total
+    balance = (
+        collections_total
+        + donations_total
+        - expenses_total
+    )
 
     st.markdown("""
     <div style="
-    background: linear-gradient(135deg, rgba(15,23,42,0.88), rgba(30,41,59,0.88));
+    background:linear-gradient(
+    135deg,
+    rgba(15,23,42,0.88),
+    rgba(30,41,59,0.88)
+    );
     padding:28px;
     border-radius:24px;
     margin-bottom:25px;
@@ -184,7 +231,7 @@ if menu == "Dashboard":
     ">
 
     <div style="
-    font-size:58px;
+    font-size:48px;
     font-weight:800;
     color:white;
     margin-bottom:10px;
@@ -193,7 +240,7 @@ if menu == "Dashboard":
     </div>
 
     <div style="
-    font-size:28px;
+    font-size:24px;
     font-weight:700;
     color:white;
     ">
@@ -201,7 +248,7 @@ if menu == "Dashboard":
     </div>
 
     <div style="
-    font-size:18px;
+    font-size:16px;
     color:#94a3b8;
     margin-top:8px;
     ">
@@ -254,9 +301,9 @@ if menu == "Dashboard":
     </div>
     """, unsafe_allow_html=True)
 
-# =========================================================
+# =====================================================
 # CUSTOMERS
-# =========================================================
+# =====================================================
 
 elif menu == "Customers":
 
@@ -268,6 +315,7 @@ elif menu == "Customers":
     if st.button("Add Customer"):
 
         if name != "":
+
             st.session_state.customers.append({
                 "name": name,
                 "phone": phone
@@ -278,18 +326,26 @@ elif menu == "Customers":
     if st.session_state.customers:
 
         df = pd.DataFrame(st.session_state.customers)
-        st.dataframe(df, use_container_width=True)
 
-# =========================================================
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
+
+# =====================================================
 # COLLECTIONS
-# =========================================================
+# =====================================================
 
 elif menu == "Collections":
 
     st.title("💵 Collections")
 
     person = st.text_input("Collected From")
-    amount = st.number_input("Amount", min_value=0)
+
+    amount = st.number_input(
+        "Amount",
+        min_value=0
+    )
 
     if st.button("Add Collection"):
 
@@ -302,19 +358,39 @@ elif menu == "Collections":
 
     if st.session_state.collections:
 
-        df = pd.DataFrame(st.session_state.collections)
-        st.dataframe(df, use_container_width=True)
+        df = pd.DataFrame(
+            st.session_state.collections
+        )
 
-# =========================================================
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
+
+# =====================================================
+# LOANS
+# =====================================================
+
+elif menu == "Loans":
+
+    st.title("🏦 Loans")
+
+    st.info("Loan module ready for future upgrades.")
+
+# =====================================================
 # DONATIONS
-# =========================================================
+# =====================================================
 
 elif menu == "Donations":
 
     st.title("🎁 Donations")
 
     donor = st.text_input("Donor Name")
-    amount = st.number_input("Donation Amount", min_value=0)
+
+    amount = st.number_input(
+        "Donation Amount",
+        min_value=0
+    )
 
     if st.button("Add Donation"):
 
@@ -327,19 +403,29 @@ elif menu == "Donations":
 
     if st.session_state.donations:
 
-        df = pd.DataFrame(st.session_state.donations)
-        st.dataframe(df, use_container_width=True)
+        df = pd.DataFrame(
+            st.session_state.donations
+        )
 
-# =========================================================
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
+
+# =====================================================
 # EXPENSES
-# =========================================================
+# =====================================================
 
 elif menu == "Expenses":
 
     st.title("💸 Expenses")
 
     item = st.text_input("Expense Title")
-    amount = st.number_input("Expense Amount", min_value=0)
+
+    amount = st.number_input(
+        "Expense Amount",
+        min_value=0
+    )
 
     if st.button("Add Expense"):
 
@@ -352,12 +438,18 @@ elif menu == "Expenses":
 
     if st.session_state.expenses:
 
-        df = pd.DataFrame(st.session_state.expenses)
-        st.dataframe(df, use_container_width=True)
+        df = pd.DataFrame(
+            st.session_state.expenses
+        )
 
-# =========================================================
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
+
+# =====================================================
 # REPORTS
-# =========================================================
+# =====================================================
 
 elif menu == "Reports":
 
@@ -378,7 +470,11 @@ elif menu == "Reports":
         for x in st.session_state.expenses
     )
 
-    balance = collections_total + donations_total - expenses_total
+    balance = (
+        collections_total
+        + donations_total
+        - expenses_total
+    )
 
     report_df = pd.DataFrame({
         "Category": [
@@ -395,8 +491,54 @@ elif menu == "Reports":
         ]
     })
 
-    st.dataframe(report_df, use_container_width=True)
+    st.dataframe(
+        report_df,
+        use_container_width=True
+    )
 
     st.bar_chart(
         report_df.set_index("Category")
+    )
+
+# =====================================================
+# USERS
+# =====================================================
+
+elif menu == "Users":
+
+    st.title("👨‍💻 User Management")
+
+    new_user = st.text_input("User Name")
+
+    role = st.selectbox(
+        "Role",
+        [
+            "Admin",
+            "Editor",
+            "Viewer"
+        ]
+    )
+
+    if st.button("Add User"):
+
+        if new_user:
+
+            st.session_state.users.append({
+                "name": new_user,
+                "role": role
+            })
+
+            st.success("User Added Successfully")
+
+    st.write("")
+
+    st.subheader("Current Users")
+
+    users_df = pd.DataFrame(
+        st.session_state.users
+    )
+
+    st.dataframe(
+        users_df,
+        use_container_width=True
     )
