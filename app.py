@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
-import base64
 
 # =====================================================
 # PAGE CONFIG
@@ -9,7 +8,7 @@ import base64
 
 st.set_page_config(
     page_title="Bal Yuva Mangal Dal",
-    page_icon="logo.png",
+    page_icon="🪔",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -148,34 +147,42 @@ if "expenses" not in st.session_state:
 
 with st.sidebar:
 
-    st.markdown(f"""
+    st.markdown("""
     <div style="
     text-align:center;
-    margin-top:-10px;
+    padding-top:10px;
+    padding-bottom:20px;
     ">
 
-    <img src="data:image/png;base64,{base64.b64encode(open('logo.png','rb').read()).decode()}"
-    width="160"
-    style="
-    object-fit:contain;
-    filter:brightness(1.1);
-    margin-bottom:10px;
+    <div style="
+    font-size:60px;
     ">
+    🪔
+    </div>
+
+    <h1 style="
+    color:#facc15;
+    font-size:26px;
+    margin-top:-10px;
+    font-weight:800;
+    ">
+    Bal Yuva
+    </h1>
 
     <h2 style="
     color:white;
-    margin-top:-5px;
-    font-size:20px;
-    font-weight:800;
+    font-size:22px;
+    margin-top:-18px;
+    font-weight:700;
     ">
-    Bal Yuva Mangal Dal
+    Mangal Dal
     </h2>
 
     <p style="
     color:#cbd5e1;
     font-size:12px;
-    margin-top:-10px;
-    letter-spacing:1px;
+    letter-spacing:2px;
+    margin-top:-5px;
     ">
     SMART FINANCE TRACKER
     </p>
