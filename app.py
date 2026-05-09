@@ -594,53 +594,56 @@ elif menu == "Reports":
         report_data.set_index("Category")
     )
 
-# =====================================================
+# =========================================================
 # USERS
-# =====================================================
+# =========================================================
 
 elif menu == "Users":
 
     # User Management
+    st.subheader("👥 User Management")
 
-st.subheader("👥 User Management")
+    if "users" not in st.session_state:
+        st.session_state.users = []
 
-if "users" not in st.session_state:
-    st.session_state.users = []
+    col1, col2, col3 = st.columns(3)
 
-col1, col2, col3 = st.columns(3)
+    with col1:
+        username = st.text_input("User Name")
 
-with col1:
-    username = st.text_input("User Name")
+    with col2:
+        password = st.text_input("Password", type="password")
 
-with col2:
-    password = st.text_input("Password", type="password")
+    with col3:
+        role = st.selectbox(
+            "Select Role",
+            ["Admin", "Editor", "Viewer"]
+        )
 
-with col3:
-    role = st.selectbox(
-        "Select Role",
-        ["Admin", "Editor", "Viewer"]
-    )
+    if st.button("Add User"):
 
-if st.button("Add User"):
+        if username and password:
 
-    if username and password:
+            st.session_state.users.append({
 
-        st.session_state.users.append({
+                "name": username,
+                "password": password,
+                "role": role
 
-            "name": username,
-            "password": password,
-            "role": role
+            })
 
-        })
+            st.success("User Added Successfully!")
 
-        st.success("User Added Successfully!")
     st.write("")
 
-    users_df = pd.DataFrame(
-        st.session_state.users
-    )
+    if len(st.session_state.users) > 0:
 
-    st.dataframe(
-        users_df,
-        use_container_width=True
-    )
+        users_df = pd.DataFrame(st.session_state.users)
+
+        st.dataframe(
+            users_df,
+            use_container_width=True
+        )
+
+    else:
+        st.info("No users added yet.")
