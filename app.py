@@ -600,10 +600,14 @@ elif menu == "Reports":
 
 elif menu == "Users":
 
-    st.title("👨‍💻 User Management")
+    # User Management
 
-    
-    col1, col2, col3 = st.columns(3)
+st.subheader("👥 User Management")
+
+if "users" not in st.session_state:
+    st.session_state.users = []
+
+col1, col2, col3 = st.columns(3)
 
 with col1:
     username = st.text_input("User Name")
