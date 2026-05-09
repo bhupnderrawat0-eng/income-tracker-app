@@ -27,128 +27,98 @@ if "expenses" not in st.session_state:
     st.session_state.expenses = []
 
 # =========================================================
-# CUSTOM CSS
+# CSS
 # =========================================================
 
 st.markdown("""
 <style>
 
 html, body, [class*="css"]{
-    font-family:'Segoe UI',sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
+    font-family: Arial !important;
 }
 
 .stApp{
-    background:
-    radial-gradient(circle at top left,#1e3a8a 0%,#020617 40%),
-    linear-gradient(to bottom right,#0f172a,#111827);
+    background: linear-gradient(135deg,#0f172a,#1e3a8a);
     color:white;
 }
 
 section[data-testid="stSidebar"]{
-    background:rgba(15,23,42,0.92);
-    border-right:1px solid rgba(255,255,255,0.08);
+    background:#111827;
 }
 
 .block-container{
-    max-width:95%;
     padding-top:2rem;
-}
-
-p, div, label, span{
-    font-weight:600 !important;
+    max-width:95%;
 }
 
 .metric-card{
-    background:rgba(30,41,59,0.78);
-    padding:24px;
-    border-radius:22px;
+    background:rgba(59,130,246,0.18);
+    padding:20px;
+    border-radius:20px;
     border:1px solid rgba(255,255,255,0.08);
-    box-shadow:0 8px 30px rgba(0,0,0,0.35);
 }
 
 .metric-title{
-    color:#ffffff;
-    font-size:20px;
-    font-weight:800;
-    margin-bottom:12px;
+    font-size:18px;
+    font-weight:bold;
+    color:white;
 }
 
 .metric-value{
-    color:#ffffff;
-    font-size:46px;
-    font-weight:900;
+    font-size:40px;
+    font-weight:bold;
+    color:white;
 }
 
-.sidebar-logo{
-    background:linear-gradient(
-        135deg,
-        rgba(15,23,42,0.88),
-        rgba(30,41,59,0.88)
-    );
-    padding:28px;
-    border-radius:24px;
-    border:1px solid rgba(96,165,250,0.12);
-    box-shadow:0 8px 30px rgba(0,0,0,0.35);
+.sidebar-box{
+    background:rgba(255,255,255,0.05);
+    padding:25px;
+    border-radius:25px;
     text-align:center;
     margin-bottom:20px;
-}
-
-.menu-title{
-    font-size:14px;
-    letter-spacing:4px;
-    color:#cbd5e1;
-    margin-top:12px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # =========================================================
-# SIDEBAR LOGO
+# SIDEBAR
 # =========================================================
 
 st.sidebar.markdown("""
-<div class="sidebar-logo">
+<div class="sidebar-box">
 
-<div style="
-font-size:82px;
-margin-bottom:8px;
-filter:drop-shadow(0 0 14px rgba(255,120,0,0.60));
-">
+<div style="font-size:80px;">
 🔥
 </div>
 
 <div style="
-font-size:32px;
-font-weight:900;
+font-size:24px;
+font-weight:bold;
 color:white;
-line-height:1.1;
 ">
 Bal Yuva
 </div>
 
 <div style="
-font-size:32px;
-font-weight:900;
-color:#38bdf8;
-line-height:1.1;
+font-size:24px;
+font-weight:bold;
+color:#22d3ee;
 ">
 Mangal Dal
 </div>
 
-<div class="menu-title">
+<div style="
+font-size:12px;
+letter-spacing:3px;
+color:#cbd5e1;
+margin-top:10px;
+">
 SMART FINANCE TRACKER
 </div>
 
 </div>
 """, unsafe_allow_html=True)
-
-# =========================================================
-# MENU
-# =========================================================
 
 menu = st.sidebar.radio(
     "Navigation",
@@ -170,38 +140,32 @@ if menu == "Dashboard":
 
     st.markdown("""
     <div style="
-    background: linear-gradient(
-        135deg,
-        rgba(15,23,42,0.88),
-        rgba(30,41,59,0.88)
-    );
-    padding:28px;
-    border-radius:24px;
+    background:rgba(30,41,59,0.75);
+    padding:30px;
+    border-radius:25px;
     margin-bottom:25px;
-    border:1px solid rgba(96,165,250,0.12);
-    box-shadow:0 8px 30px rgba(0,0,0,0.35);
     ">
 
     <div style="
-    font-size:60px;
-    font-weight:900;
+    font-size:42px;
+    font-weight:bold;
     color:white;
-    margin-bottom:10px;
     ">
     📊 Dashboard
     </div>
 
     <div style="
-    font-size:30px;
-    font-weight:800;
+    font-size:24px;
+    font-weight:bold;
+    margin-top:10px;
     color:white;
     ">
     Welcome back 👋
     </div>
 
     <div style="
-    font-size:18px;
-    color:#cbd5e1;
+    font-size:16px;
+    color:#d1d5db;
     margin-top:8px;
     ">
     Here's what's happening today.
@@ -232,32 +196,32 @@ if menu == "Dashboard":
     with c1:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-title">💵 Collections</div>
-            <div class="metric-value">₹ {collections_total}</div>
+        <div class="metric-title">💵 Collections</div>
+        <div class="metric-value">₹ {collections_total}</div>
         </div>
         """, unsafe_allow_html=True)
 
     with c2:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-title">🎁 Donations</div>
-            <div class="metric-value">₹ {donations_total}</div>
+        <div class="metric-title">🎁 Donations</div>
+        <div class="metric-value">₹ {donations_total}</div>
         </div>
         """, unsafe_allow_html=True)
 
     with c3:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-title">💸 Expenses</div>
-            <div class="metric-value">₹ {expenses_total}</div>
+        <div class="metric-title">💸 Expenses</div>
+        <div class="metric-value">₹ {expenses_total}</div>
         </div>
         """, unsafe_allow_html=True)
 
     with c4:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-title">👥 Customers</div>
-            <div class="metric-value">{len(st.session_state.customers)}</div>
+        <div class="metric-title">👥 Customers</div>
+        <div class="metric-value">{len(st.session_state.customers)}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -265,8 +229,8 @@ if menu == "Dashboard":
 
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-title">🧾 Net Balance</div>
-        <div class="metric-value">₹ {balance}</div>
+    <div class="metric-title">🧾 Net Balance</div>
+    <div class="metric-value">₹ {balance}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -284,6 +248,7 @@ elif menu == "Customers":
     if st.button("Add Customer"):
 
         if name != "":
+
             st.session_state.customers.append({
                 "name": name,
                 "phone": phone
@@ -377,7 +342,7 @@ elif menu == "Expenses":
 
 elif menu == "Reports":
 
-    st.title("📈 Reports")
+    st.title("📊 Reports")
 
     collections_total = sum(
         x["amount"]
@@ -397,13 +362,13 @@ elif menu == "Reports":
     balance = collections_total + donations_total - expenses_total
 
     report_df = pd.DataFrame({
-        "Category": [
+        "Category":[
             "Collections",
             "Donations",
             "Expenses",
             "Balance"
         ],
-        "Amount": [
+        "Amount":[
             collections_total,
             donations_total,
             expenses_total,
