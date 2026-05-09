@@ -312,30 +312,30 @@ if menu == "Dashboard":
 
     box-shadow:0 8px 30px rgba(0,0,0,0.35);
 
-    '>
+    ">
 
-    <div style='
+    <div style="
     font-size:52px;
     font-weight:800;
     color:white;
-    '>
+    ">
     📊 Dashboard
     </div>
 
-    <div style='
+    <div style="
     font-size:34px;
     font-weight:700;
     margin-top:10px;
     color:white;
-    '>
+    >
     Welcome back 👋
     </div>
 
-    <div style='
+    <div style="
     font-size:18px;
     color:#94a3b8;
     margin-top:8px;
-    '>
+    >
     Here's what's happening today.
     </div>
 
