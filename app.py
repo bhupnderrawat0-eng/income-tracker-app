@@ -34,91 +34,145 @@ st.markdown("""
 <style>
 
 html, body, [class*="css"]{
-    font-family: Arial !important;
+    font-family: 'Segoe UI', sans-serif !important;
 }
 
+/* MAIN BACKGROUND */
 .stApp{
     background: linear-gradient(135deg,#0f172a,#1e3a8a);
     color:white;
 }
 
-section[data-testid="stSidebar"]{
-    background:#111827;
-}
-
+/* REMOVE TOP SPACE */
 .block-container{
-    padding-top:2rem;
-    max-width:95%;
+    padding-top: 1rem !important;
+    max-width: 100% !important;
 }
 
+/* SIDEBAR */
+section[data-testid="stSidebar"]{
+    background: #111827;
+    width: 320px !important;
+}
+
+/* SIDEBAR TEXT */
+section[data-testid="stSidebar"] *{
+    font-size: 22px !important;
+    color: white !important;
+}
+
+/* RADIO BUTTON */
+.stRadio label{
+    font-size: 22px !important;
+    font-weight: 600 !important;
+}
+
+/* DASHBOARD CARD */
+.dashboard-card{
+    background: rgba(30,41,59,0.75);
+    padding: 40px;
+    border-radius: 28px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* METRIC CARD */
 .metric-card{
-    background:rgba(59,130,246,0.18);
-    padding:20px;
-    border-radius:20px;
-    border:1px solid rgba(255,255,255,0.08);
+    background: rgba(59,130,246,0.22);
+    padding: 30px;
+    border-radius: 25px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
 }
 
+/* METRIC TITLE */
 .metric-title{
-    font-size:18px;
-    font-weight:bold;
-    color:white;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    color: white !important;
 }
 
+/* METRIC VALUE */
 .metric-value{
-    font-size:40px;
-    font-weight:bold;
-    color:white;
+    font-size: 52px !important;
+    font-weight: 900 !important;
+    color: white !important;
+    margin-top: 10px;
 }
 
-.sidebar-box{
-    background:rgba(255,255,255,0.05);
-    padding:25px;
-    border-radius:25px;
-    text-align:center;
-    margin-bottom:20px;
+/* INPUT */
+input{
+    font-size: 20px !important;
+}
+
+/* BUTTON */
+.stButton button{
+    font-size: 20px !important;
+    border-radius: 15px !important;
+    padding: 10px 25px !important;
+}
+
+/* HEADINGS */
+h1{
+    font-size: 48px !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 # =========================================================
-# SIDEBAR
+# SIDEBAR LOGO
 # =========================================================
 
 st.sidebar.markdown("""
-<div class="sidebar-box">
+<div style="
+background: rgba(255,255,255,0.06);
+padding: 35px;
+border-radius: 28px;
+text-align: center;
+margin-bottom: 25px;
+">
 
-<div style="font-size:80px;">
+<div style="
+font-size: 95px;
+margin-bottom: 10px;
+">
 🔥
 </div>
 
 <div style="
-font-size:24px;
-font-weight:bold;
-color:white;
+font-size: 28px;
+font-weight: 800;
+color: white;
+line-height: 1.2;
 ">
 Bal Yuva
 </div>
 
 <div style="
-font-size:24px;
-font-weight:bold;
-color:#22d3ee;
+font-size: 28px;
+font-weight: 800;
+color: #22d3ee;
+line-height: 1.2;
 ">
 Mangal Dal
 </div>
 
 <div style="
-font-size:12px;
-letter-spacing:3px;
-color:#cbd5e1;
-margin-top:10px;
+font-size: 13px;
+letter-spacing: 4px;
+color: #cbd5e1;
+margin-top: 14px;
 ">
 SMART FINANCE TRACKER
 </div>
 
 </div>
 """, unsafe_allow_html=True)
+
+# =========================================================
+# MENU
+# =========================================================
 
 menu = st.sidebar.radio(
     "Navigation",
@@ -138,42 +192,6 @@ menu = st.sidebar.radio(
 
 if menu == "Dashboard":
 
-    st.markdown("""
-    <div style="
-    background:rgba(30,41,59,0.75);
-    padding:30px;
-    border-radius:25px;
-    margin-bottom:25px;
-    ">
-
-    <div style="
-    font-size:42px;
-    font-weight:bold;
-    color:white;
-    ">
-    📊 Dashboard
-    </div>
-
-    <div style="
-    font-size:24px;
-    font-weight:bold;
-    margin-top:10px;
-    color:white;
-    ">
-    Welcome back 👋
-    </div>
-
-    <div style="
-    font-size:16px;
-    color:#d1d5db;
-    margin-top:8px;
-    ">
-    Here's what's happening today.
-    </div>
-
-    </div>
-    """, unsafe_allow_html=True)
-
     collections_total = sum(
         x["amount"]
         for x in st.session_state.collections
@@ -190,6 +208,37 @@ if menu == "Dashboard":
     )
 
     balance = collections_total + donations_total - expenses_total
+
+    st.markdown("""
+    <div class="dashboard-card">
+
+    <div style="
+    font-size: 68px;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 15px;
+    ">
+    📊 Dashboard
+    </div>
+
+    <div style="
+    font-size: 40px;
+    font-weight: 800;
+    color: white;
+    ">
+    Welcome back 👋
+    </div>
+
+    <div style="
+    font-size: 24px;
+    color: #d1d5db;
+    margin-top: 10px;
+    ">
+    Here's what's happening today.
+    </div>
+
+    </div>
+    """, unsafe_allow_html=True)
 
     c1, c2, c3, c4 = st.columns(4)
 
@@ -362,13 +411,13 @@ elif menu == "Reports":
     balance = collections_total + donations_total - expenses_total
 
     report_df = pd.DataFrame({
-        "Category":[
+        "Category": [
             "Collections",
             "Donations",
             "Expenses",
             "Balance"
         ],
-        "Amount":[
+        "Amount": [
             collections_total,
             donations_total,
             expenses_total,
