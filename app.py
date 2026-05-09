@@ -293,54 +293,47 @@ with st.sidebar:
 if menu == "Dashboard":
 
     st.markdown("""
-    <div style='
+<div style="
+background: linear-gradient(
+135deg,
+rgba(15,23,42,0.88),
+rgba(30,41,59,0.88)
+);
 
-    background:
-    linear-gradient(
-    135deg,
-    rgba(15,23,42,0.88),
-    rgba(30,41,59,0.88)
-    );
+padding:28px;
+border-radius:24px;
+margin-bottom:25px;
+border:1px solid rgba(96,165,250,0.12);
+box-shadow:0 8px 30px rgba(0,0,0,0.35);
+">
 
-    padding:28px;
+<div style="
+font-size:52px;
+font-weight:800;
+color:white;
+">
+📊 Dashboard
+</div>
 
-    border-radius:24px;
+<div style="
+font-size:34px;
+font-weight:700;
+margin-top:10px;
+color:white;
+">
+Welcome back 👋
+</div>
 
-    margin-bottom:25px;
+<div style="
+font-size:18px;
+color:#94a3b8;
+margin-top:8px;
+">
+Here's what's happening today.
+</div>
 
-    border:1px solid rgba(96,165,250,0.12);
-
-    box-shadow:0 8px 30px rgba(0,0,0,0.35);
-
-    '>
-
-    <div style="
-    font-size:52px;
-    font-weight:800;
-    color:white;
-    ">
-    📊 Dashboard
-    </div>
-
-    <div style="
-    font-size:34px;
-    font-weight:700;
-    margin-top:10px;
-    color:white;
-    >
-    Welcome back 👋
-    </div>
-
-    <div style="
-    font-size:18px;
-    color:#94a3b8;
-    margin-top:8px;
-    >
-    Here's what's happening today.
-    </div>
-
-    </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
     collections_total = sum(
         x["amount"]
