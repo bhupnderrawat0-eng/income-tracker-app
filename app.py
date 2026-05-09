@@ -8,7 +8,7 @@ from streamlit_option_menu import option_menu
 
 st.set_page_config(
     page_title="Bal Yuva Mangal Dal",
-    page_icon="🪔",
+    page_icon="🔥",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -71,19 +71,23 @@ h1,h2,h3,h4,h5,h6,p,label,span{
 div[data-testid="metric-container"]{
 
     background:
-    rgba(17,24,39,0.88);
+    linear-gradient(
+    135deg,
+    rgba(30,41,59,0.95),
+    rgba(15,23,42,0.95)
+    );
 
     border:
-    1px solid rgba(255,255,255,0.08);
+    1px solid rgba(96,165,250,0.15);
 
-    border-radius:20px;
+    border-radius:22px;
 
-    padding:25px;
+    padding:28px;
 
     box-shadow:
-    0 10px 30px rgba(0,0,0,0.35);
+    0 10px 35px rgba(0,0,0,0.45);
 
-    backdrop-filter:blur(10px);
+    backdrop-filter:blur(14px);
 }
 
 /* BUTTONS */
@@ -181,7 +185,7 @@ with st.sidebar:
     font-size:55px;
     margin-bottom:10px;
     '>
-    🪔
+    🔥
     </div>
 
     <div style='
@@ -196,7 +200,7 @@ with st.sidebar:
     <div style='
     font-size:30px;
     font-weight:800;
-    color:#60a5fa;
+    color:#38bdf8;
     line-height:1.1;
     margin-bottom:10px;
     '>
@@ -289,11 +293,41 @@ with st.sidebar:
 if menu == "Dashboard":
 
     st.markdown("""
-    # 📊 Dashboard
+    <div style='
+    background:rgba(255,255,255,0.03);
+    padding:28px;
+    border-radius:24px;
+    margin-bottom:25px;
+    border:1px solid rgba(255,255,255,0.06);
+    '>
 
-    ### Welcome back 👋
+    <div style='
+    font-size:52px;
+    font-weight:800;
+    color:white;
+    '>
+    📊 Dashboard
+    </div>
+
+    <div style='
+    font-size:34px;
+    font-weight:700;
+    margin-top:10px;
+    color:white;
+    '>
+    Welcome back 👋
+    </div>
+
+    <div style='
+    font-size:18px;
+    color:#94a3b8;
+    margin-top:8px;
+    '>
     Here's what's happening today.
-    """)
+    </div>
+
+    </div>
+    """, unsafe_allow_html=True)
 
     collections_total = sum(
         x["amount"]
