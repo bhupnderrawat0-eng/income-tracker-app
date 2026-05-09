@@ -8,7 +8,7 @@ from streamlit_option_menu import option_menu
 
 st.set_page_config(
     page_title="Bal Yuva Mangal Dal",
-    page_icon="🔥",
+    page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -182,10 +182,10 @@ with st.sidebar:
     '>
 
     <div style='
-    font-size:55px;
+    font-size:60px;
     margin-bottom:10px;
     '>
-    🔥
+    🚀
     </div>
 
     <div style='
@@ -294,11 +294,24 @@ if menu == "Dashboard":
 
     st.markdown("""
     <div style='
-    background:rgba(255,255,255,0.03);
+
+    background:
+    linear-gradient(
+    135deg,
+    rgba(15,23,42,0.88),
+    rgba(30,41,59,0.88)
+    );
+
     padding:28px;
+
     border-radius:24px;
+
     margin-bottom:25px;
-    border:1px solid rgba(255,255,255,0.06);
+
+    border:1px solid rgba(96,165,250,0.12);
+
+    box-shadow:0 8px 30px rgba(0,0,0,0.35);
+
     '>
 
     <div style='
