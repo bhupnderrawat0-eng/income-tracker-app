@@ -254,8 +254,8 @@ with st.sidebar:
         styles={
 
             "container": {
-                "padding":"0!important",
-                "background-color":"transparent"
+                "padding":"5px",
+                "background-color":"#0f172a",
             },
 
             "icon": {
@@ -269,7 +269,9 @@ with st.sidebar:
                 "text-align":"left",
                 "margin":"6px",
                 "border-radius":"12px",
-                "color":"white",
+                "color":"#ffffff",
+                "padding":"12px",
+                "--hover-color":"#1e293b",
             },
 
             "nav-link-selected": {
@@ -418,9 +420,7 @@ elif menu == "Customers":
 
     st.title("👥 Customers")
 
-    name = st.text_input(
-        "Customer Name"
-    )
+    name = st.text_input("Customer Name")
 
     if st.button("Add Customer"):
 
@@ -437,10 +437,7 @@ elif menu == "Customers":
             columns=["Customer Name"]
         )
 
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
+        st.dataframe(df, use_container_width=True)
 
 # =====================================================
 # COLLECTIONS
@@ -452,9 +449,7 @@ elif menu == "Collections":
 
     if len(st.session_state.customers) == 0:
 
-        st.warning(
-            "Please add customers first"
-        )
+        st.warning("Please add customers first")
 
     else:
 
@@ -541,9 +536,7 @@ elif menu == "Donations":
 
     st.title("🎁 Donations")
 
-    donor_name = st.text_input(
-        "Donor Name"
-    )
+    donor_name = st.text_input("Donor Name")
 
     donation_amount = st.number_input(
         "Donation Amount",
@@ -575,9 +568,7 @@ elif menu == "Expenses":
 
     st.title("💸 Expenses")
 
-    expense_title = st.text_input(
-        "Expense Title"
-    )
+    expense_title = st.text_input("Expense Title")
 
     expense_amount = st.number_input(
         "Expense Amount",
@@ -609,18 +600,18 @@ elif menu == "Reports":
 
     st.title("📊 Reports")
 
-    st.subheader("Collections Report")
-
     if st.session_state.collections:
+
+        st.subheader("Collections Report")
 
         st.dataframe(
             pd.DataFrame(st.session_state.collections),
             use_container_width=True
         )
 
-    st.subheader("Loans Report")
-
     if st.session_state.loans:
+
+        st.subheader("Loans Report")
 
         st.dataframe(
             pd.DataFrame(st.session_state.loans),
@@ -641,13 +632,9 @@ elif menu == "Users":
 
         st.title("👨‍💻 User Management")
 
-        new_username = st.text_input(
-            "New Username"
-        )
+        new_username = st.text_input("New Username")
 
-        new_password = st.text_input(
-            "New Password"
-        )
+        new_password = st.text_input("New Password")
 
         new_role = st.selectbox(
             "Role",
