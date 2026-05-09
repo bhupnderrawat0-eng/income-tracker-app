@@ -24,6 +24,8 @@ st.markdown("""
 footer {visibility:hidden;}
 header {visibility:hidden;}
 
+/* APP BACKGROUND */
+
 .stApp{
     background:
     linear-gradient(
@@ -55,7 +57,7 @@ section[data-testid="stSidebar"]{
     border-right:
     1px solid rgba(255,255,255,0.08);
 
-    width:300px !important;
+    width:320px !important;
 }
 
 /* TEXT */
@@ -69,17 +71,17 @@ h1,h2,h3,h4,h5,h6,p,label,span{
 div[data-testid="metric-container"]{
 
     background:
-    rgba(17,24,39,0.85);
+    rgba(17,24,39,0.88);
 
     border:
-    1px solid rgba(255,255,255,0.06);
+    1px solid rgba(255,255,255,0.08);
 
     border-radius:20px;
 
     padding:25px;
 
     box-shadow:
-    0 10px 25px rgba(0,0,0,0.35);
+    0 10px 30px rgba(0,0,0,0.35);
 
     backdrop-filter:blur(10px);
 }
@@ -149,6 +151,16 @@ if "donations" not in st.session_state:
 if "expenses" not in st.session_state:
     st.session_state.expenses = []
 
+if "users" not in st.session_state:
+
+    st.session_state.users = [
+
+        {
+            "name":"Admin",
+            "role":"Admin"
+        }
+    ]
+
 # =====================================================
 # SIDEBAR
 # =====================================================
@@ -156,13 +168,51 @@ if "expenses" not in st.session_state:
 with st.sidebar:
 
     st.markdown("""
-    # 🪔 Bal Yuva
-    ### Mangal Dal
-    """)
+    <div style='
+    background:rgba(255,255,255,0.04);
+    padding:22px;
+    border-radius:22px;
+    text-align:center;
+    border:1px solid rgba(255,255,255,0.06);
+    margin-bottom:20px;
+    '>
 
-    st.caption("SMART FINANCE TRACKER")
+    <div style='
+    font-size:55px;
+    margin-bottom:10px;
+    '>
+    🪔
+    </div>
 
-    st.write("")
+    <div style='
+    font-size:30px;
+    font-weight:800;
+    color:white;
+    line-height:1.1;
+    '>
+    Bal Yuva
+    </div>
+
+    <div style='
+    font-size:30px;
+    font-weight:800;
+    color:#60a5fa;
+    line-height:1.1;
+    margin-bottom:10px;
+    '>
+    Mangal Dal
+    </div>
+
+    <div style='
+    font-size:11px;
+    letter-spacing:3px;
+    color:#94a3b8;
+    '>
+    SMART FINANCE TRACKER
+    </div>
+
+    </div>
+    """, unsafe_allow_html=True)
 
     menu = option_menu(
         menu_title=None,
@@ -268,25 +318,29 @@ if menu == "Dashboard":
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric(
-        "💵 Collections",
-        f"₹ {collections_total}"
-    )
+    with c1:
+        st.metric(
+            "💵 Collections",
+            f"₹ {collections_total}"
+        )
 
-    c2.metric(
-        "🎁 Donations",
-        f"₹ {donations_total}"
-    )
+    with c2:
+        st.metric(
+            "🎁 Donations",
+            f"₹ {donations_total}"
+        )
 
-    c3.metric(
-        "💸 Expenses",
-        f"₹ {expenses_total}"
-    )
+    with c3:
+        st.metric(
+            "💸 Expenses",
+            f"₹ {expenses_total}"
+        )
 
-    c4.metric(
-        "👥 Customers",
-        len(st.session_state.customers)
-    )
+    with c4:
+        st.metric(
+            "👥 Customers",
+            len(st.session_state.customers)
+        )
 
     st.write("")
 
@@ -308,8 +362,10 @@ elif menu == "Customers":
     if st.button("Add Customer"):
 
         if name:
+
             st.session_state.customers.append(name)
-            st.success("Customer Added")
+
+            st.success("Customer Added Successfully")
 
     if st.session_state.customers:
 
@@ -350,11 +406,12 @@ elif menu == "Collections":
         if st.button("Save Collection"):
 
             st.session_state.collections.append({
+
                 "customer": customer,
                 "amount": amount
             })
 
-            st.success("Collection Saved")
+            st.success("Collection Saved Successfully")
 
 # =====================================================
 # LOANS
@@ -363,7 +420,8 @@ elif menu == "Collections":
 elif menu == "Loans":
 
     st.title("🏦 Loans")
-    st.info("Loans section ready")
+
+    st.info("Loans Section Ready")
 
 # =====================================================
 # DONATIONS
@@ -381,10 +439,11 @@ elif menu == "Donations":
     if st.button("Save Donation"):
 
         st.session_state.donations.append({
+
             "amount": amount
         })
 
-        st.success("Donation Saved")
+        st.success("Donation Saved Successfully")
 
 # =====================================================
 # EXPENSES
@@ -402,10 +461,11 @@ elif menu == "Expenses":
     if st.button("Save Expense"):
 
         st.session_state.expenses.append({
+
             "amount": amount
         })
 
-        st.success("Expense Saved")
+        st.success("Expense Saved Successfully")
 
 # =====================================================
 # REPORTS
@@ -425,11 +485,20 @@ elif menu == "Reports":
 
         "Amount": [
 
-            sum(x["amount"] for x in st.session_state.collections),
+            sum(
+                x["amount"]
+                for x in st.session_state.collections
+            ),
 
-            sum(x["amount"] for x in st.session_state.donations),
+            sum(
+                x["amount"]
+                for x in st.session_state.donations
+            ),
 
-            sum(x["amount"] for x in st.session_state.expenses)
+            sum(
+                x["amount"]
+                for x in st.session_state.expenses
+            )
         ]
     })
 
@@ -448,6 +517,40 @@ elif menu == "Reports":
 
 elif menu == "Users":
 
-    st.title("👨‍💻 Users")
+    st.title("👨‍💻 User Management")
 
-    st.info("Admin Panel Ready")
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        username = st.text_input("User Name")
+
+    with col2:
+
+        role = st.selectbox(
+            "Select Role",
+            ["Admin", "Editor", "Viewer"]
+        )
+
+    if st.button("Add User"):
+
+        if username:
+
+            st.session_state.users.append({
+
+                "name": username,
+                "role": role
+            })
+
+            st.success("User Added Successfully")
+
+    st.write("")
+
+    users_df = pd.DataFrame(
+        st.session_state.users
+    )
+
+    st.dataframe(
+        users_df,
+        use_container_width=True
+    )
