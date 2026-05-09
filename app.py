@@ -35,6 +35,9 @@ st.markdown("""
 
 html, body, [class*="css"]{
     font-family:'Segoe UI',sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 }
 
 .stApp{
@@ -50,11 +53,16 @@ section[data-testid="stSidebar"]{
 }
 
 .block-container{
+    max-width:95%;
     padding-top:2rem;
 }
 
+p, div, label, span{
+    font-weight:600 !important;
+}
+
 .metric-card{
-    background:rgba(30,41,59,0.75);
+    background:rgba(30,41,59,0.78);
     padding:24px;
     border-radius:22px;
     border:1px solid rgba(255,255,255,0.08);
@@ -64,7 +72,7 @@ section[data-testid="stSidebar"]{
 .metric-title{
     color:#ffffff;
     font-size:20px;
-    font-weight:700;
+    font-weight:800;
     margin-bottom:12px;
 }
 
@@ -75,7 +83,11 @@ section[data-testid="stSidebar"]{
 }
 
 .sidebar-logo{
-    background:linear-gradient(135deg, rgba(15,23,42,0.88), rgba(30,41,59,0.88));
+    background:linear-gradient(
+        135deg,
+        rgba(15,23,42,0.88),
+        rgba(30,41,59,0.88)
+    );
     padding:28px;
     border-radius:24px;
     border:1px solid rgba(96,165,250,0.12);
@@ -102,16 +114,16 @@ st.sidebar.markdown("""
 <div class="sidebar-logo">
 
 <div style="
-font-size:78px;
-margin-bottom:6px;
-filter:drop-shadow(0 0 12px rgba(255,120,0,0.55));
+font-size:82px;
+margin-bottom:8px;
+filter:drop-shadow(0 0 14px rgba(255,120,0,0.60));
 ">
 🔥
 </div>
 
 <div style="
-font-size:30px;
-font-weight:800;
+font-size:32px;
+font-weight:900;
 color:white;
 line-height:1.1;
 ">
@@ -119,8 +131,8 @@ Bal Yuva
 </div>
 
 <div style="
-font-size:30px;
-font-weight:800;
+font-size:32px;
+font-weight:900;
 color:#38bdf8;
 line-height:1.1;
 ">
@@ -158,7 +170,11 @@ if menu == "Dashboard":
 
     st.markdown("""
     <div style="
-    background: linear-gradient(135deg, rgba(15,23,42,0.88), rgba(30,41,59,0.88));
+    background: linear-gradient(
+        135deg,
+        rgba(15,23,42,0.88),
+        rgba(30,41,59,0.88)
+    );
     padding:28px;
     border-radius:24px;
     margin-bottom:25px;
@@ -167,8 +183,8 @@ if menu == "Dashboard":
     ">
 
     <div style="
-    font-size:58px;
-    font-weight:800;
+    font-size:60px;
+    font-weight:900;
     color:white;
     margin-bottom:10px;
     ">
@@ -176,8 +192,8 @@ if menu == "Dashboard":
     </div>
 
     <div style="
-    font-size:28px;
-    font-weight:700;
+    font-size:30px;
+    font-weight:800;
     color:white;
     ">
     Welcome back 👋
