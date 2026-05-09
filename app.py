@@ -154,7 +154,27 @@ if "donations" not in st.session_state:
 
 if "expenses" not in st.session_state:
     st.session_state.expenses = []
+# =====================================
+# LOGIN SYSTEM
+# =====================================
 
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if "current_user" not in st.session_state:
+    st.session_state.current_user = ""
+
+if "current_role" not in st.session_state:
+    st.session_state.current_role = ""
+
+if "users_data" not in st.session_state:
+    st.session_state.users_data = [
+        {
+            "username": "admin",
+            "password": "admin123",
+            "role": "Admin"
+        }
+    ]
 if "users" not in st.session_state:
 
     st.session_state.users = [
