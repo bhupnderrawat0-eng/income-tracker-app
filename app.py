@@ -213,17 +213,18 @@ with st.sidebar:
     st.markdown("""
     <div style="
     background: transparent;
-    padding:10px;
+    padding:0px;
     text-align:center;
     margin-bottom:10px;
     border:none;
-    border-radius:0px;
     ">
 
     <img src="data:image/png;base64,{}"
-    width="180"
+    width="140"
     style="
     object-fit:contain;
+    mix-blend-mode:screen;
+    filter:brightness(1.15);
     "/>
 
     </div>
@@ -237,9 +238,9 @@ with st.sidebar:
     <h2 style='
     text-align:center;
     color:white;
-    font-size:30px;
+    font-size:22px;
     font-weight:800;
-    margin-top:10px;
+    margin-top:5px;
     '>
     Bal Yuva Mangal Dal
     </h2>
@@ -247,7 +248,7 @@ with st.sidebar:
     <p style='
     text-align:center;
     color:gray;
-    font-size:15px;
+    font-size:14px;
     '>
     SMART FINANCE TRACKER
     </p>
@@ -433,7 +434,8 @@ if menu == "Dashboard":
     fig.update_layout(
         paper_bgcolor="#020617",
         plot_bgcolor="#020617",
-        font_color="white"
+        font_color="white",
+        height=320
     )
 
     st.plotly_chart(
