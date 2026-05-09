@@ -1,5 +1,3 @@
-import streamlit as st
-
 # =========================================
 # PAGE CONFIG
 # =========================================
@@ -14,29 +12,27 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* GOOGLE FONT */
+/* FONT */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 html, body, [class*="css"]{
     font-family: 'Poppins', sans-serif;
 }
 
-/* REMOVE TOP WHITE SPACE */
+/* REMOVE TOP SPACE */
 .block-container{
-    padding-top: 0rem !important;
-    margin-top: 0rem !important;
+    padding-top: 1rem !important;
 }
 
 header[data-testid="stHeader"]{
-    height:0px;
-    background:transparent;
+    background: transparent;
 }
 
-.main .block-container{
-    padding-top: 0rem !important;
-}
+/* HIDE STREAMLIT */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
 
-/* MAIN BACKGROUND */
+/* APP BACKGROUND */
 .stApp{
     background:
     linear-gradient(rgba(8,15,35,0.82), rgba(8,15,35,0.82)),
@@ -57,62 +53,50 @@ section[data-testid="stSidebar"] *{
     color: white !important;
 }
 
-/* HIDE STREAMLIT MENU */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-
-/* CARD STYLE */
-.metric-card{
+/* LOGO CARD */
+.logo-card{
     background: linear-gradient(
         135deg,
-        rgba(59,130,246,0.35),
-        rgba(96,165,250,0.25)
+        rgba(30,41,59,0.82),
+        rgba(15,23,42,0.82)
     );
-    border-radius: 24px;
-    padding: 28px;
+
+    border-radius: 28px;
+    padding: 30px;
+    text-align: center;
+    margin-bottom: 25px;
+
     border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(14px);
+
     box-shadow: 0 8px 30px rgba(0,0,0,0.35);
 }
 
-/* CARD TITLE */
-.metric-title{
-    font-size: 28px;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 12px;
-}
-
-/* CARD VALUE */
-.metric-value{
-    font-size: 58px;
-    font-weight: 800;
-    color: white;
-}
-
-/* HERO SECTION */
+/* HERO CARD */
 .hero-card{
     background: linear-gradient(
         135deg,
         rgba(30,41,59,0.82),
         rgba(15,23,42,0.82)
     );
+
     border-radius: 28px;
-    padding: 36px;
-    margin-bottom: 24px;
+    padding: 35px;
+    margin-bottom: 25px;
+
     border: 1px solid rgba(255,255,255,0.08);
+
     box-shadow: 0 8px 30px rgba(0,0,0,0.35);
 }
 
 /* HERO TITLE */
 .hero-title{
-    font-size: 72px;
+    font-size: 68px;
     font-weight: 800;
     color: white;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
-/* HERO SUBTITLE */
+/* HERO SUB */
 .hero-sub{
     font-size: 34px;
     font-weight: 700;
@@ -123,22 +107,40 @@ footer {visibility: hidden;}
 .hero-text{
     font-size: 22px;
     color: #cbd5e1;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
-/* SIDEBAR LOGO CARD */
-.logo-card{
+/* METRIC CARD */
+.metric-card{
     background: linear-gradient(
         135deg,
-        rgba(30,41,59,0.82),
-        rgba(15,23,42,0.82)
+        rgba(59,130,246,0.35),
+        rgba(96,165,250,0.25)
     );
-    border-radius: 28px;
-    padding: 32px;
-    text-align: center;
-    margin-bottom: 30px;
+
+    border-radius: 24px;
+    padding: 28px;
+
     border: 1px solid rgba(255,255,255,0.08);
+
+    backdrop-filter: blur(12px);
+
     box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+}
+
+/* METRIC TITLE */
+.metric-title{
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 12px;
+}
+
+/* METRIC VALUE */
+.metric-value{
+    font-size: 56px;
+    font-weight: 800;
+    color: white;
 }
 
 </style>
