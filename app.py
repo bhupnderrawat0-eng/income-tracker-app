@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # =====================================================
-# PREMIUM UI CSS
+# PREMIUM CSS
 # =====================================================
 
 st.markdown("""
@@ -26,11 +26,20 @@ st.markdown("""
 footer {visibility:hidden;}
 header {visibility:hidden;}
 
+.block-container{
+    padding-top:1rem;
+    padding-bottom:0rem !important;
+}
+
+/* MAIN APP */
+
 .stApp {
+
     background:
     radial-gradient(circle at top,
     #0f172a,
     #020617);
+
     color:white;
 }
 
@@ -48,7 +57,8 @@ section[data-testid="stSidebar"] {
     border-right:
     1px solid rgba(255,255,255,0.08);
 
-    overflow-y:auto;
+    overflow-y:scroll;
+    height:100vh;
 }
 
 /* METRIC CARDS */
@@ -61,29 +71,29 @@ div[data-testid="metric-container"] {
     border:
     1px solid rgba(255,255,255,0.06);
 
-    border-radius:24px;
+    border-radius:22px;
 
-    padding:25px;
+    padding:20px;
 
-    backdrop-filter:blur(14px);
+    backdrop-filter:blur(12px);
 
     box-shadow:
-    0 8px 32px rgba(0,0,0,0.45);
+    0 8px 30px rgba(0,0,0,0.4);
 
     transition:0.3s;
 }
 
 div[data-testid="metric-container"]:hover {
 
-    transform:translateY(-5px);
+    transform:translateY(-4px);
 }
 
-/* BUTTONS */
+/* BUTTON */
 
 .stButton>button {
 
     width:100%;
-    height:50px;
+    height:48px;
 
     border:none;
 
@@ -171,7 +181,7 @@ def login(username, password):
     return False
 
 # =====================================================
-# LOGIN SCREEN
+# LOGIN PAGE
 # =====================================================
 
 if not st.session_state.logged_in:
@@ -187,10 +197,7 @@ if not st.session_state.logged_in:
 
     if st.button("Login"):
 
-        success = login(
-            username,
-            password
-        )
+        success = login(username, password)
 
         if success:
 
@@ -212,14 +219,14 @@ with st.sidebar:
     st.markdown("""
     <div style="
     background: transparent;
-    padding:0px;
+    padding:2px;
     text-align:center;
-    margin-bottom:10px;
+    margin-bottom:0px;
     border:none;
     ">
 
     <img src="data:image/png;base64,{}"
-    width="220"
+    width="280"
     style="
     object-fit:contain;
     mix-blend-mode:screen;
@@ -237,7 +244,7 @@ with st.sidebar:
     <h2 style='
     text-align:center;
     color:white;
-    font-size:22px;
+    font-size:24px;
     font-weight:800;
     margin-top:5px;
     '>
@@ -246,8 +253,9 @@ with st.sidebar:
 
     <p style='
     text-align:center;
-    color:gray;
-    font-size:14px;
+    color:#cbd5e1;
+    font-size:13px;
+    margin-bottom:20px;
     '>
     SMART FINANCE TRACKER
     </p>
@@ -294,12 +302,12 @@ with st.sidebar:
 
             "nav-link": {
 
-                "font-size":"16px",
+                "font-size":"15px",
                 "text-align":"left",
-                "margin":"6px",
+                "margin":"4px",
                 "border-radius":"12px",
                 "color":"#ffffff",
-                "padding":"12px",
+                "padding":"8px",
                 "--hover-color":"#1e293b",
             },
 
