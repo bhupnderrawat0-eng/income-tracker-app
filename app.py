@@ -14,132 +14,6 @@ st.set_page_config(
 )
 
 # =====================================================
-# PREMIUM CSS
-# =====================================================
-
-st.markdown("""
-<style>
-
-#MainMenu {visibility:hidden;}
-footer {visibility:hidden;}
-header {visibility:hidden;}
-
-/* APP BACKGROUND */
-
-.stApp{
-    background:
-    linear-gradient(
-    135deg,
-    #0f172a,
-    #020617
-    );
-}
-
-/* MAIN CONTENT */
-
-.block-container{
-    padding-top:2rem;
-    padding-left:2rem;
-    padding-right:2rem;
-}
-
-/* SIDEBAR */
-
-section[data-testid="stSidebar"]{
-
-    background:
-    linear-gradient(
-    180deg,
-    #111827,
-    #0f172a
-    );
-
-    border-right:
-    1px solid rgba(255,255,255,0.08);
-
-    width:320px !important;
-}
-
-/* TEXT */
-
-h1,h2,h3,h4,h5,h6,p,label,span{
-    color:white !important;
-}
-
-/* METRIC CARDS */
-
-div[data-testid="metric-container"]{
-
-    background:
-    linear-gradient(
-    135deg,
-    rgba(30,41,59,0.95),
-    rgba(15,23,42,0.95)
-    );
-
-    border:
-    1px solid rgba(96,165,250,0.15);
-
-    border-radius:22px;
-
-    padding:28px;
-
-    box-shadow:
-    0 10px 35px rgba(0,0,0,0.45);
-
-    backdrop-filter:blur(14px);
-}
-
-/* BUTTONS */
-
-.stButton>button{
-
-    width:100%;
-
-    border:none;
-
-    border-radius:12px;
-
-    height:48px;
-
-    font-size:16px;
-
-    font-weight:700;
-
-    color:white;
-
-    background:
-    linear-gradient(
-    90deg,
-    #2563eb,
-    #7c3aed
-    );
-}
-
-/* INPUTS */
-
-.stTextInput input,
-.stNumberInput input,
-.stSelectbox div{
-
-    background:#111827 !important;
-
-    color:white !important;
-
-    border-radius:10px !important;
-}
-
-/* DATAFRAME */
-
-[data-testid="stDataFrame"]{
-    border-radius:15px;
-    overflow:hidden;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# =====================================================
 # SESSION STATE
 # =====================================================
 
@@ -156,14 +30,173 @@ if "expenses" not in st.session_state:
     st.session_state.expenses = []
 
 if "users" not in st.session_state:
-
     st.session_state.users = [
-
         {
-            "name":"Admin",
-            "role":"Admin"
+            "name": "Admin",
+            "role": "Admin"
         }
     ]
+
+# =====================================================
+# PREMIUM CSS
+# =====================================================
+
+st.markdown("""
+<style>
+
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
+
+.block-container{
+    padding-top:1rem;
+    padding-left:2rem;
+    padding-right:2rem;
+}
+
+/* APP */
+
+.stApp{
+    background:
+    radial-gradient(circle at top,
+    #111827 0%,
+    #0f172a 45%,
+    #020617 100%);
+    color:white;
+}
+
+/* SIDEBAR */
+
+section[data-testid="stSidebar"]{
+
+    width:330px !important;
+    min-width:330px !important;
+
+    background:
+    linear-gradient(
+    180deg,
+    #0f172a 0%,
+    #111827 100%
+    );
+
+    border-right:
+    1px solid rgba(255,255,255,0.06);
+}
+
+/* REMOVE WHITE */
+
+.css-1d391kg,
+.css-163ttbj,
+.css-1wrcr25{
+    background:transparent !important;
+}
+
+/* METRIC CARDS */
+
+div[data-testid="metric-container"]{
+
+    background:
+    linear-gradient(
+    135deg,
+    rgba(15,23,42,0.88),
+    rgba(30,41,59,0.88)
+    );
+
+    border:
+    1px solid rgba(96,165,250,0.12);
+
+    border-radius:22px;
+
+    padding:22px;
+
+    backdrop-filter:blur(14px);
+
+    box-shadow:
+    0 8px 30px rgba(0,0,0,0.35);
+
+    transition:0.3s;
+}
+
+div[data-testid="metric-container"]:hover{
+
+    transform:translateY(-4px);
+
+    border:
+    1px solid rgba(96,165,250,0.3);
+}
+
+/* BUTTON */
+
+.stButton>button{
+
+    width:100%;
+    height:50px;
+
+    border:none;
+
+    border-radius:14px;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    color:white;
+
+    background:
+    linear-gradient(
+    90deg,
+    #2563eb,
+    #7c3aed
+    );
+
+    box-shadow:
+    0 6px 20px rgba(37,99,235,0.35);
+}
+
+.stButton>button:hover{
+
+    transform:scale(1.02);
+
+    background:
+    linear-gradient(
+    90deg,
+    #1d4ed8,
+    #6d28d9
+    );
+}
+
+/* INPUTS */
+
+.stTextInput input,
+.stNumberInput input,
+.stSelectbox div[data-baseweb="select"]{
+
+    background-color:
+    rgba(15,23,42,0.85) !important;
+
+    color:white !important;
+
+    border-radius:12px !important;
+
+    border:
+    1px solid rgba(255,255,255,0.08) !important;
+}
+
+/* TEXT */
+
+h1,h2,h3,h4,h5,h6,p,label{
+    color:white !important;
+}
+
+/* DATAFRAME */
+
+[data-testid="stDataFrame"]{
+    border-radius:18px;
+    overflow:hidden;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 # =====================================================
 # SIDEBAR
@@ -172,13 +205,28 @@ if "users" not in st.session_state:
 with st.sidebar:
 
     st.markdown("""
+
     <div style='
-    background:rgba(255,255,255,0.04);
-    padding:22px;
-    border-radius:22px;
+
+    background:
+    linear-gradient(
+    135deg,
+    rgba(15,23,42,0.88),
+    rgba(30,41,59,0.88)
+    );
+
+    padding:28px;
+
+    border-radius:24px;
+
+    margin-bottom:25px;
+
+    border:1px solid rgba(96,165,250,0.12);
+
+    box-shadow:0 8px 30px rgba(0,0,0,0.35);
+
     text-align:center;
-    border:1px solid rgba(255,255,255,0.06);
-    margin-bottom:20px;
+
     '>
 
     <div style='
@@ -203,23 +251,25 @@ with st.sidebar:
     font-weight:800;
     color:#38bdf8;
     line-height:1.1;
-    margin-bottom:10px;
     '>
     Mangal Dal
     </div>
 
     <div style='
-    font-size:11px;
-    letter-spacing:3px;
     color:#94a3b8;
+    font-size:12px;
+    letter-spacing:3px;
+    margin-top:12px;
     '>
     SMART FINANCE TRACKER
     </div>
 
     </div>
+
     """, unsafe_allow_html=True)
 
     menu = option_menu(
+
         menu_title=None,
 
         options=[
@@ -248,42 +298,43 @@ with st.sidebar:
 
         styles={
 
-            "container":{
+            "container": {
+                "padding":"0!important",
                 "background-color":"transparent",
-                "padding":"0px"
             },
 
-            "icon":{
-                "color":"white",
-                "font-size":"18px"
+            "icon": {
+                "color":"#f8fafc",
+                "font-size":"20px"
             },
 
-            "nav-link":{
+            "nav-link": {
 
-                "font-size":"16px",
-
+                "font-size":"18px",
+                "font-weight":"600",
                 "text-align":"left",
+                "margin":"10px 0",
+                "padding":"16px",
+                "border-radius":"18px",
 
-                "margin":"8px 0",
-
-                "padding":"14px",
-
-                "border-radius":"14px",
-
-                "background-color":"#1e293b",
+                "background":
+                "linear-gradient(135deg,#334155,#1e293b)",
 
                 "color":"white",
 
-                "--hover-color":"#334155",
+                "--hover-color":"#2563eb",
             },
 
-            "nav-link-selected":{
+            "nav-link-selected": {
 
                 "background":
                 "linear-gradient(90deg,#2563eb,#7c3aed)",
 
-                "font-weight":"700",
-            }
+                "color":"white",
+
+                "box-shadow":
+                "0 6px 18px rgba(37,99,235,0.35)",
+            },
         }
     )
 
@@ -366,29 +417,25 @@ if menu == "Dashboard":
 
     c1, c2, c3, c4 = st.columns(4)
 
-    with c1:
-        st.metric(
-            "💵 Collections",
-            f"₹ {collections_total}"
-        )
+    c1.metric(
+        "💵 Collections",
+        f"₹ {collections_total}"
+    )
 
-    with c2:
-        st.metric(
-            "🎁 Donations",
-            f"₹ {donations_total}"
-        )
+    c2.metric(
+        "🎁 Donations",
+        f"₹ {donations_total}"
+    )
 
-    with c3:
-        st.metric(
-            "💸 Expenses",
-            f"₹ {expenses_total}"
-        )
+    c3.metric(
+        "💸 Expenses",
+        f"₹ {expenses_total}"
+    )
 
-    with c4:
-        st.metric(
-            "👥 Customers",
-            len(st.session_state.customers)
-        )
+    c4.metric(
+        "👥 Customers",
+        len(st.session_state.customers)
+    )
 
     st.write("")
 
@@ -437,7 +484,7 @@ elif menu == "Collections":
 
     if len(st.session_state.customers) == 0:
 
-        st.warning("Add customers first")
+        st.warning("Please add customers first")
 
     else:
 
@@ -459,7 +506,7 @@ elif menu == "Collections":
                 "amount": amount
             })
 
-            st.success("Collection Saved Successfully")
+            st.success("Collection Saved")
 
 # =====================================================
 # LOANS
@@ -469,7 +516,7 @@ elif menu == "Loans":
 
     st.title("🏦 Loans")
 
-    st.info("Loans Section Ready")
+    st.info("Loan Management Section Ready")
 
 # =====================================================
 # DONATIONS
@@ -487,11 +534,10 @@ elif menu == "Donations":
     if st.button("Save Donation"):
 
         st.session_state.donations.append({
-
             "amount": amount
         })
 
-        st.success("Donation Saved Successfully")
+        st.success("Donation Saved")
 
 # =====================================================
 # EXPENSES
@@ -509,11 +555,10 @@ elif menu == "Expenses":
     if st.button("Save Expense"):
 
         st.session_state.expenses.append({
-
             "amount": amount
         })
 
-        st.success("Expense Saved Successfully")
+        st.success("Expense Saved")
 
 # =====================================================
 # REPORTS
@@ -567,32 +612,30 @@ elif menu == "Users":
 
     st.title("👨‍💻 User Management")
 
-    col1, col2 = st.columns(2)
+    st.subheader("Add New User")
 
-    with col1:
+    new_user = st.text_input("User Name")
 
-        username = st.text_input("User Name")
-
-    with col2:
-
-        role = st.selectbox(
-            "Select Role",
-            ["Admin", "Editor", "Viewer"]
-        )
+    role = st.selectbox(
+        "Select Role",
+        ["Admin", "Editor", "Viewer"]
+    )
 
     if st.button("Add User"):
 
-        if username:
+        if new_user:
 
             st.session_state.users.append({
 
-                "name": username,
+                "name": new_user,
                 "role": role
             })
 
             st.success("User Added Successfully")
 
     st.write("")
+
+    st.subheader("Current Users")
 
     users_df = pd.DataFrame(
         st.session_state.users
