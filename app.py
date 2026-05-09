@@ -58,6 +58,12 @@ section[data-testid="stSidebar"] {
     min-height:100vh;
 }
 
+/* SIDEBAR TEXT */
+
+section[data-testid="stSidebar"] * {
+    color:white !important;
+}
+
 /* REMOVE WHITE BACKGROUND */
 
 [data-testid="stSidebarNav"],
@@ -142,48 +148,13 @@ if "expenses" not in st.session_state:
 
 with st.sidebar:
 
-    st.markdown(
-        """
-        <div style='text-align:center; padding-top:20px; padding-bottom:25px;'>
+    st.markdown("# 🪔")
+    st.markdown("## Bal Yuva")
+    st.markdown("## Mangal Dal")
 
-            <div style='
-                width:90px;
-                height:90px;
-                margin:auto;
-                border-radius:24px;
-                background:linear-gradient(135deg,#2563eb,#7c3aed);
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                font-size:42px;
-                box-shadow:0 8px 25px rgba(37,99,235,0.45);
-            '>
-                🪔
-            </div>
+    st.caption("SMART FINANCE TRACKER")
 
-            <h1 style='
-                color:white;
-                font-size:28px;
-                margin-top:18px;
-                font-weight:800;
-                line-height:1.2;
-            '>
-                Bal Yuva <br> Mangal Dal
-            </h1>
-
-            <p style='
-                color:#94a3b8;
-                font-size:12px;
-                letter-spacing:3px;
-                margin-top:-5px;
-            '>
-                SMART FINANCE TRACKER
-            </p>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.write("")
 
     menu = option_menu(
         menu_title=None,
@@ -229,15 +200,13 @@ with st.sidebar:
                 "font-size":"15px",
                 "text-align":"left",
                 "margin":"8px 0",
-                "border-radius":"14px",
+                "border-radius":"12px",
 
                 "background-color":"#111827",
 
-                "color":"#e5e7eb",
+                "color":"white",
 
                 "padding":"14px",
-
-                "--hover-color":"#1e293b",
             },
 
             "nav-link-selected": {
