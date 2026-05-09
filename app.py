@@ -184,7 +184,39 @@ if "users" not in st.session_state:
             "role":"Admin"
         }
     ]
+# =========================
+# LOGIN PAGE
+# =========================
 
+if not st.session_state.logged_in:
+
+    st.markdown("<h1 style='text-align:center;'>🔐 Login</h1>", unsafe_allow_html=True)
+
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+
+        found = False
+
+        for user in st.session_state.users_data:
+
+            if (
+                user["username"] == username
+                and user["password"] == password
+            ):
+
+                st.session_state.logged_in = True
+                st.session_state.current_user = username
+                st.session_state.current_role = user["role"]
+
+                found = True
+                st.rerun()
+
+        if not found:
+            st.error("Invalid Username or Password")
+
+    st.stop()
 # =====================================================
 # SIDEBAR
 # =====================================================
