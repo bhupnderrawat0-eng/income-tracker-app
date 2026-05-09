@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import hashlib
+import plotly.express as px
+from streamlit_option_menu import option_menu
 
 # =====================================================
 # PAGE CONFIG
@@ -9,8 +10,67 @@ import hashlib
 
 st.set_page_config(
     page_title="Smart Finance Tracker Pro",
-    layout="wide"
+    page_icon="💰",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
+
+# =====================================================
+# PROFESSIONAL UI
+# =====================================================
+
+st.markdown("""
+<style>
+
+.main {
+    background-color: #0e1117;
+}
+
+.stApp {
+    background: #0e1117;
+    color: white;
+}
+
+section[data-testid="stSidebar"] {
+    background: #111827;
+}
+
+div[data-testid="metric-container"] {
+    background: linear-gradient(135deg,#1f2937,#111827);
+    padding: 20px;
+    border-radius: 18px;
+    border: 1px solid #374151;
+    box-shadow: 0px 0px 15px rgba(0,0,0,0.4);
+}
+
+div[data-testid="metric-container"] label {
+    color: #9ca3af !important;
+}
+
+div[data-testid="metric-container"] div {
+    color: white !important;
+}
+
+.stButton>button {
+    width: 100%;
+    border-radius: 12px;
+    height: 3em;
+    background: linear-gradient(90deg,#2563eb,#1d4ed8);
+    color: white;
+    border: none;
+    font-weight: bold;
+}
+
+.stTextInput>div>div>input {
+    border-radius: 10px;
+}
+
+.stNumberInput>div>div>input {
+    border-radius: 10px;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 # =====================================================
 # SESSION STATE
@@ -50,7 +110,7 @@ if "expenses" not in st.session_state:
     st.session_state.expenses = []
 
 # =====================================================
-# LOGIN
+# LOGIN FUNCTION
 # =====================================================
 
 def login(username, password):
@@ -78,7 +138,7 @@ def login(username, password):
 
 if not st.session_state.logged_in:
 
-    st.title("🔐 Login")
+    st.title("🔐 Smart Finance Tracker Login")
 
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
@@ -97,34 +157,52 @@ if not st.session_state.logged_in:
     st.stop()
 
 # =====================================================
-# SIDEBAR
+# PROFESSIONAL SIDEBAR
 # =====================================================
 
-st.sidebar.title("📌 Menu")
+with st.sidebar:
 
-menu = st.sidebar.radio(
-    "Select Option",
-    [
-        "Dashboard",
-        "Customers",
-        "Monthly Collections",
-        "Start Loan",
-        "Loan Management",
-        "Donations",
-        "Expenses",
-        "Pending Collections",
-        "Reports",
-        "User Management"
-    ]
-)
+    st.image(
+        "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+        width=100
+    )
 
-st.sidebar.write("👤", st.session_state.username)
-st.sidebar.write("🔐", st.session_state.role)
+    st.markdown("## 💰 Smart Finance Tracker")
 
-if st.sidebar.button("Logout"):
+    menu = option_menu(
+        menu_title=None,
+        options=[
+            "Dashboard",
+            "Customers",
+            "Collections",
+            "Loans",
+            "Donations",
+            "Expenses",
+            "Reports",
+            "Users"
+        ],
+        icons=[
+            "house",
+            "people",
+            "cash-stack",
+            "bank",
+            "gift",
+            "wallet2",
+            "bar-chart",
+            "person"
+        ],
+        default_index=0,
+    )
 
-    st.session_state.logged_in = False
-    st.rerun()
+    st.divider()
+
+    st.write(f"👤 {st.session_state.username}")
+    st.write(f"🔐 {st.session_state.role}")
+
+    if st.button("Logout"):
+
+        st.session_state.logged_in = False
+        st.rerun()
 
 # =====================================================
 # DASHBOARD
@@ -167,16 +245,47 @@ if menu == "Dashboard":
         - expenses_total
     )
 
-    c1, c2, c3 = st.columns(3)
+    c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("💵 Collections", f"₹ {collections_total}")
-    c2.metric("🎁 Donations", f"₹ {donations_total}")
-    c3.metric("💸 Expenses", f"₹ {expenses_total}")
+    c1.metric("💵 Collections", f"₹ {collections_total:,.0f}")
+    c2.metric("🎁 Donations", f"₹ {donations_total:,.0f}")
+    c3.metric("💸 Expenses", f"₹ {expenses_total:,.0f}")
+    c4.metric("🏦 Loan Pending", f"₹ {remaining_loans:,.0f}")
 
-    c4, c5 = st.columns(2)
+    st.divider()
 
-    c4.metric("🏦 Remaining Loan", f"₹ {remaining_loans}")
-    c5.metric("🪙 Remaining Balance", f"₹ {balance}")
+    c5, c6 = st.columns(2)
+
+    c5.metric("🪙 Net Balance", f"₹ {balance:,.0f}")
+    c6.metric("👥 Customers", len(st.session_state.customers))
+
+    st.divider()
+
+    chart_data = pd.DataFrame({
+        "Category": [
+            "Collections",
+            "Donations",
+            "Expenses"
+        ],
+        "Amount": [
+            collections_total,
+            donations_total,
+            expenses_total
+        ]
+    })
+
+    fig = px.bar(
+        chart_data,
+        x="Category",
+        y="Amount",
+        text="Amount",
+        title="Finance Overview"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
 # =====================================================
 # CUSTOMERS
@@ -206,12 +315,12 @@ elif menu == "Customers":
         st.dataframe(df, use_container_width=True)
 
 # =====================================================
-# MONTHLY COLLECTIONS
+# COLLECTIONS
 # =====================================================
 
-elif menu == "Monthly Collections":
+elif menu == "Collections":
 
-    st.title("💵 Monthly Collections")
+    st.title("💵 Collections")
 
     if len(st.session_state.customers) == 0:
 
@@ -256,110 +365,105 @@ elif menu == "Monthly Collections":
             st.success("Collection Saved")
 
 # =====================================================
-# START LOAN
+# LOANS
 # =====================================================
 
-elif menu == "Start Loan":
+elif menu == "Loans":
 
-    st.title("🏦 Start Loan")
+    st.title("🏦 Loans")
 
-    if len(st.session_state.customers) == 0:
+    tab1, tab2 = st.tabs([
+        "Start Loan",
+        "Loan Management"
+    ])
 
-        st.warning("Please add customers first")
+    with tab1:
 
-    else:
+        if len(st.session_state.customers) == 0:
 
-        customer = st.selectbox(
-            "Select Customer",
-            st.session_state.customers
-        )
+            st.warning("Please add customers first")
 
-        loan_amount = st.number_input(
-            "Loan Amount",
-            min_value=0.0
-        )
+        else:
 
-        interest_rate = st.number_input(
-            "Interest %",
-            min_value=0.0
-        )
+            customer = st.selectbox(
+                "Select Customer",
+                st.session_state.customers
+            )
 
-        if st.button("Start Loan"):
+            loan_amount = st.number_input(
+                "Loan Amount",
+                min_value=0.0
+            )
 
-            st.session_state.loans.append({
-                "customer": customer,
-                "loan_amount": loan_amount,
-                "returned": 0.0,
-                "interest_rate": interest_rate
-            })
+            interest_rate = st.number_input(
+                "Interest %",
+                min_value=0.0
+            )
 
-            st.success("Loan Started")
+            if st.button("Start Loan"):
 
-# =====================================================
-# LOAN MANAGEMENT
-# =====================================================
+                st.session_state.loans.append({
+                    "customer": customer,
+                    "loan_amount": loan_amount,
+                    "returned": 0.0,
+                    "interest_rate": interest_rate
+                })
 
-elif menu == "Loan Management":
+                st.success("Loan Started")
 
-    st.title("🏢 Loan Management")
+    with tab2:
 
-    if len(st.session_state.loans) == 0:
+        if len(st.session_state.loans) == 0:
 
-        st.info("No loans available")
+            st.info("No loans available")
 
-    else:
+        else:
 
-        customer_names = [
-            x["customer"]
-            for x in st.session_state.loans
-        ]
+            customer_names = [
+                x["customer"]
+                for x in st.session_state.loans
+            ]
 
-        selected_customer = st.selectbox(
-            "Select Customer",
-            customer_names
-        )
+            selected_customer = st.selectbox(
+                "Select Customer",
+                customer_names
+            )
 
-        loan = next(
-            x for x in st.session_state.loans
-            if x["customer"] == selected_customer
-        )
+            loan = next(
+                x for x in st.session_state.loans
+                if x["customer"] == selected_customer
+            )
 
-        original_loan = loan["loan_amount"]
-        returned = loan["returned"]
+            original_loan = loan["loan_amount"]
+            returned = loan["returned"]
 
-        remaining = original_loan - returned
+            remaining = original_loan - returned
 
-        interest = (
-            remaining
-            * loan["interest_rate"]
-            / 100
-        )
+            interest = (
+                remaining
+                * loan["interest_rate"]
+                / 100
+            )
 
-        c1, c2, c3, c4 = st.columns(4)
+            c1, c2, c3, c4 = st.columns(4)
 
-        c1.metric("🏦 Original Loan", f"₹ {original_loan}")
-        c2.metric("💰 Returned", f"₹ {returned}")
-        c3.metric("📄 Remaining", f"₹ {remaining}")
-        c4.metric("📈 Interest", f"₹ {interest}")
+            c1.metric("🏦 Original Loan", f"₹ {original_loan}")
+            c2.metric("💰 Returned", f"₹ {returned}")
+            c3.metric("📄 Remaining", f"₹ {remaining}")
+            c4.metric("📈 Interest", f"₹ {interest}")
 
-        st.divider()
+            st.divider()
 
-        st.subheader("💵 Add Principal Return")
+            return_amount = st.number_input(
+                "Return Amount",
+                min_value=0.0
+            )
 
-        return_amount = st.number_input(
-            "Return Amount",
-            min_value=0.0
-        )
+            if st.button("Save Return"):
 
-        return_date = st.date_input(
-            "Return Date"
-        )
+                loan["returned"] += return_amount
 
-        if st.button("Save Return"):
-
-            loan["returned"] += return_amount
-
-            st.success("Return Saved")
+                st.success("Return Saved")
 
 # =====================================================
 # DONATIONS
@@ -434,29 +538,6 @@ elif menu == "Expenses":
         st.dataframe(df, use_container_width=True)
 
 # =====================================================
-# PENDING COLLECTIONS
-# =====================================================
-
-elif menu == "Pending Collections":
-
-    st.title("⏳ Pending Collections")
-
-    pending = [
-        x for x in st.session_state.collections
-        if x["status"] == "Pending"
-    ]
-
-    if pending:
-
-        df = pd.DataFrame(pending)
-
-        st.dataframe(df, use_container_width=True)
-
-    else:
-
-        st.success("No Pending Collections")
-
-# =====================================================
 # REPORTS
 # =====================================================
 
@@ -518,8 +599,6 @@ elif menu == "Reports":
 
     st.divider()
 
-    st.subheader("👥 Customer Collection Report")
-
     if not collections_df.empty:
 
         customer_report = (
@@ -528,52 +607,28 @@ elif menu == "Reports":
             .reset_index()
         )
 
+        fig = px.bar(
+            customer_report,
+            x="customer",
+            y="amount",
+            title="Customer Collections"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
         st.dataframe(
             customer_report,
             use_container_width=True
         )
 
-        st.bar_chart(
-            customer_report.set_index("customer")
-        )
-
-    st.subheader("🏦 Loan Report")
-
-    if not loans_df.empty:
-
-        loans_df["pending"] = (
-            loans_df["loan_amount"]
-            - loans_df["returned"]
-        )
-
-        st.dataframe(
-            loans_df,
-            use_container_width=True
-        )
-
-    st.subheader("🎁 Donation Report")
-
-    if not donations_df.empty:
-
-        st.dataframe(
-            donations_df,
-            use_container_width=True
-        )
-
-    st.subheader("💸 Expense Report")
-
-    if not expenses_df.empty:
-
-        st.dataframe(
-            expenses_df,
-            use_container_width=True
-        )
-
 # =====================================================
-# USER MANAGEMENT
+# USERS
 # =====================================================
 
-elif menu == "User Management":
+elif menu == "Users":
 
     if st.session_state.role != "admin":
 
@@ -614,50 +669,19 @@ elif menu == "User Management":
 
         st.divider()
 
-        st.subheader("👥 Existing Users")
+        users_df = pd.DataFrame(
+            [
+                {
+                    "Username": user,
+                    "Role": data["role"],
+                    "Active": data["active"]
+                }
+                for user, data
+                in st.session_state.users.items()
+            ]
+        )
 
-        for user, data in st.session_state.users.items():
-
-            st.write("---")
-
-            c1, c2, c3 = st.columns(3)
-
-            c1.write(f"👤 {user}")
-
-            new_user_role = c2.selectbox(
-                f"Role {user}",
-                ["viewer", "editor", "admin"],
-                index=["viewer", "editor", "admin"].index(
-                    data["role"]
-                ),
-                key=f"role_{user}"
-            )
-
-            if c2.button(
-                f"Update Role {user}"
-            ):
-
-                st.session_state.users[user]["role"] = new_user_role
-
-                st.success("Role Updated")
-
-            active_status = c3.checkbox(
-                f"Active {user}",
-                value=data["active"],
-                key=f"active_{user}"
-            )
-
-            st.session_state.users[user]["active"] = active_status
-
-            new_pass = st.text_input(
-                f"New Password for {user}",
-                key=f"pass_{user}"
-            )
-
-            if st.button(
-                f"Change Password {user}"
-            ):
-
-                st.session_state.users[user]["password"] = new_pass
-
-                st.success("Password Updated")
+        st.dataframe(
+            users_df,
+            use_container_width=True
+        )
