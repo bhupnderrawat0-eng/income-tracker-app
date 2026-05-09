@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 from streamlit_option_menu import option_menu
 import base64
 
@@ -28,7 +27,6 @@ header {visibility:hidden;}
 
 .block-container{
     padding-top:1rem;
-    padding-bottom:0rem !important;
 }
 
 /* MAIN APP */
@@ -59,17 +57,14 @@ section[data-testid="stSidebar"] {
     1px solid rgba(255,255,255,0.08);
 
     min-height:100vh;
-    overflow-y:auto;
 }
 
-/* OPTION MENU FIX */
+/* REMOVE WHITE BOX */
 
-.st-emotion-cache-1v0mbdj{
-    background:transparent !important;
-}
-
-ul[data-testid="stSidebarNavItems"]{
-    background:transparent !important;
+.css-1d391kg,
+.css-163ttbj,
+.css-1wrcr25 {
+    background: transparent !important;
 }
 
 /* METRIC CARDS */
@@ -92,10 +87,6 @@ div[data-testid="metric-container"] {
     0 8px 30px rgba(0,0,0,0.4);
 
     transition:0.3s;
-}
-
-div[data-testid="metric-container"]:hover {
-    transform:translateY(-4px);
 }
 
 /* BUTTON */
@@ -123,7 +114,7 @@ div[data-testid="metric-container"]:hover {
     );
 }
 
-h1,h2,h3,h4 {
+h1,h2,h3,h4,h5,p {
     color:white !important;
 }
 
@@ -134,32 +125,11 @@ h1,h2,h3,h4 {
 # SESSION STATE
 # =====================================================
 
-if "users" not in st.session_state:
-    st.session_state.users = {
-        "admin": {
-            "password": "admin123",
-            "role": "admin",
-            "active": True
-        }
-    }
-
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-if "username" not in st.session_state:
-    st.session_state.username = ""
-
-if "role" not in st.session_state:
-    st.session_state.role = ""
-
 if "customers" not in st.session_state:
     st.session_state.customers = []
 
 if "collections" not in st.session_state:
     st.session_state.collections = []
-
-if "loans" not in st.session_state:
-    st.session_state.loans = []
 
 if "donations" not in st.session_state:
     st.session_state.donations = []
@@ -168,110 +138,42 @@ if "expenses" not in st.session_state:
     st.session_state.expenses = []
 
 # =====================================================
-# LOGIN FUNCTION
-# =====================================================
-
-def login(username, password):
-
-    users = st.session_state.users
-
-    if username in users:
-
-        if (
-            users[username]["password"] == password
-            and users[username]["active"]
-        ):
-
-            st.session_state.logged_in = True
-            st.session_state.username = username
-            st.session_state.role = users[username]["role"]
-
-            return True
-
-    return False
-
-# =====================================================
-# LOGIN PAGE
-# =====================================================
-
-if not st.session_state.logged_in:
-
-    st.title("🔐 Login")
-
-    username = st.text_input("Username")
-
-    password = st.text_input(
-        "Password",
-        type="password"
-    )
-
-    if st.button("Login"):
-
-        success = login(username, password)
-
-        if success:
-
-            st.success("Login Successful")
-            st.rerun()
-
-        else:
-
-            st.error("Invalid Login")
-
-    st.stop()
-
-# =====================================================
 # SIDEBAR
 # =====================================================
 
 with st.sidebar:
 
-    st.markdown("""
+    st.markdown(f"""
     <div style="
-    height:95px;
-    overflow:hidden;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    margin-bottom:0px;
+    text-align:center;
+    margin-top:-10px;
     ">
 
-    <img src="data:image/png;base64,{}"
-    width="170"
+    <img src="data:image/png;base64,{base64.b64encode(open('logo.png','rb').read()).decode()}"
+    width="190"
     style="
     object-fit:contain;
-    transform:scale(1.35);
-    mix-blend-mode:screen;
-    filter:brightness(1.15);
-    "/>
+    filter:brightness(1.1);
+    ">
 
-    </div>
-    """.format(
-        base64.b64encode(
-            open("logo.png", "rb").read()
-        ).decode()
-    ), unsafe_allow_html=True)
-
-    st.markdown("""
-    <h2 style='
-    text-align:center;
+    <h2 style="
     color:white;
-    font-size:22px;
+    margin-top:-10px;
+    font-size:18px;
     font-weight:800;
-    margin-top:8px;
-    margin-bottom:0px;
-    '>
+    ">
     Bal Yuva Mangal Dal
     </h2>
 
-    <p style='
-    text-align:center;
+    <p style="
     color:#cbd5e1;
-    font-size:13px;
-    margin-bottom:10px;
-    '>
+    font-size:12px;
+    margin-top:-10px;
+    ">
     SMART FINANCE TRACKER
     </p>
+
+    </div>
     """, unsafe_allow_html=True)
 
     menu = option_menu(
@@ -305,12 +207,12 @@ with st.sidebar:
 
             "container": {
                 "padding":"0!important",
-                "background-color":"transparent!important",
+                "background-color":"transparent",
             },
 
             "icon": {
                 "color":"white",
-                "font-size":"17px"
+                "font-size":"16px"
             },
 
             "nav-link": {
@@ -319,28 +221,21 @@ with st.sidebar:
                 "text-align":"left",
                 "margin":"4px",
                 "border-radius":"12px",
-                "color":"#ffffff",
+                "color":"#111827",
                 "padding":"10px",
-                "--hover-color":"#1e293b",
+                "--hover-color":"#dbeafe",
+                "background-color":"white"
             },
 
             "nav-link-selected": {
 
                 "background":
                 "linear-gradient(90deg,#2563eb,#4f46e5)",
+
+                "color":"white",
             },
         }
     )
-
-    st.divider()
-
-    st.write(f"👤 {st.session_state.username}")
-    st.write(f"🔐 {st.session_state.role}")
-
-    if st.button("🚪 Logout"):
-
-        st.session_state.logged_in = False
-        st.rerun()
 
 # =====================================================
 # DASHBOARD
@@ -370,21 +265,6 @@ if menu == "Dashboard":
         for x in st.session_state.expenses
     )
 
-    total_loans = sum(
-        x["loan_amount"]
-        for x in st.session_state.loans
-    )
-
-    returned_loans = sum(
-        x["returned"]
-        for x in st.session_state.loans
-    )
-
-    remaining_loans = (
-        total_loans
-        - returned_loans
-    )
-
     balance = (
         collections_total
         + donations_total
@@ -393,17 +273,32 @@ if menu == "Dashboard":
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("💵 Collections", f"₹ {collections_total}")
-    c2.metric("🎁 Donations", f"₹ {donations_total}")
-    c3.metric("💸 Expenses", f"₹ {expenses_total}")
-    c4.metric("🏦 Loan Pending", f"₹ {remaining_loans}")
+    c1.metric(
+        "💵 Collections",
+        f"₹ {collections_total}"
+    )
+
+    c2.metric(
+        "🎁 Donations",
+        f"₹ {donations_total}"
+    )
+
+    c3.metric(
+        "💸 Expenses",
+        f"₹ {expenses_total}"
+    )
+
+    c4.metric(
+        "👥 Customers",
+        len(st.session_state.customers)
+    )
 
     st.write("")
 
-    c5, c6 = st.columns(2)
-
-    c5.metric("🪙 Net Balance", f"₹ {balance}")
-    c6.metric("👥 Customers", len(st.session_state.customers))
+    st.metric(
+        "🪙 Net Balance",
+        f"₹ {balance}"
+    )
 
 # =====================================================
 # CUSTOMERS
@@ -417,7 +312,7 @@ elif menu == "Customers":
 
     if st.button("Add Customer"):
 
-        if name != "":
+        if name:
             st.session_state.customers.append(name)
             st.success("Customer Added")
 
@@ -428,7 +323,10 @@ elif menu == "Customers":
             columns=["Customer Name"]
         )
 
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
 
 # =====================================================
 # COLLECTIONS
@@ -438,7 +336,30 @@ elif menu == "Collections":
 
     st.title("💵 Collections")
 
-    st.write("Collections section ready.")
+    if len(st.session_state.customers) == 0:
+
+        st.warning("Add customers first")
+
+    else:
+
+        customer = st.selectbox(
+            "Select Customer",
+            st.session_state.customers
+        )
+
+        amount = st.number_input(
+            "Collection Amount",
+            min_value=0.0
+        )
+
+        if st.button("Save Collection"):
+
+            st.session_state.collections.append({
+                "customer": customer,
+                "amount": amount
+            })
+
+            st.success("Collection Saved")
 
 # =====================================================
 # LOANS
@@ -447,8 +368,7 @@ elif menu == "Collections":
 elif menu == "Loans":
 
     st.title("🏦 Loans")
-
-    st.write("Loans section ready.")
+    st.info("Loans section ready")
 
 # =====================================================
 # DONATIONS
@@ -458,7 +378,18 @@ elif menu == "Donations":
 
     st.title("🎁 Donations")
 
-    st.write("Donations section ready.")
+    amount = st.number_input(
+        "Donation Amount",
+        min_value=0.0
+    )
+
+    if st.button("Save Donation"):
+
+        st.session_state.donations.append({
+            "amount": amount
+        })
+
+        st.success("Donation Saved")
 
 # =====================================================
 # EXPENSES
@@ -468,7 +399,18 @@ elif menu == "Expenses":
 
     st.title("💸 Expenses")
 
-    st.write("Expenses section ready.")
+    amount = st.number_input(
+        "Expense Amount",
+        min_value=0.0
+    )
+
+    if st.button("Save Expense"):
+
+        st.session_state.expenses.append({
+            "amount": amount
+        })
+
+        st.success("Expense Saved")
 
 # =====================================================
 # REPORTS
@@ -478,7 +420,32 @@ elif menu == "Reports":
 
     st.title("📊 Reports")
 
-    st.write("Reports section ready.")
+    report_data = pd.DataFrame({
+
+        "Category": [
+            "Collections",
+            "Donations",
+            "Expenses"
+        ],
+
+        "Amount": [
+
+            sum(x["amount"] for x in st.session_state.collections),
+
+            sum(x["amount"] for x in st.session_state.donations),
+
+            sum(x["amount"] for x in st.session_state.expenses)
+        ]
+    })
+
+    st.dataframe(
+        report_data,
+        use_container_width=True
+    )
+
+    st.bar_chart(
+        report_data.set_index("Category")
+    )
 
 # =====================================================
 # USERS
@@ -486,13 +453,6 @@ elif menu == "Reports":
 
 elif menu == "Users":
 
-    st.title("👨‍💻 User Management")
+    st.title("👨‍💻 Users")
 
-    users_df = pd.DataFrame(
-        st.session_state.users
-    ).T
-
-    st.dataframe(
-        users_df,
-        use_container_width=True
-    )
+    st.info("Admin Panel Ready")
