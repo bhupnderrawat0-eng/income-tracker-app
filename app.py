@@ -33,7 +33,7 @@ header {visibility:hidden;}
 .stApp {
     background:
     radial-gradient(circle at top,
-    #0f172a,
+    #111827,
     #020617);
     color:white;
 }
@@ -52,22 +52,17 @@ section[data-testid="stSidebar"] {
     #0f172a
     );
 
-    background-color:#020617 !important;
-
     border-right:
     1px solid rgba(255,255,255,0.08);
 
     min-height:100vh;
 }
 
-/* FIX WHITE BACKGROUND */
+/* REMOVE WHITE BACKGROUND */
 
-.st-emotion-cache-1v0mbdj,
-.st-emotion-cache-16txtl3,
-.st-emotion-cache-6qob1r,
-.css-1d391kg,
-.css-163ttbj,
-.css-1wrcr25 {
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarContent"],
+section[data-testid="stSidebar"] > div {
     background: transparent !important;
 }
 
@@ -76,7 +71,7 @@ section[data-testid="stSidebar"] {
 div[data-testid="metric-container"] {
 
     background:
-    rgba(15,23,42,0.75);
+    rgba(15,23,42,0.65);
 
     border:
     1px solid rgba(255,255,255,0.06);
@@ -85,10 +80,10 @@ div[data-testid="metric-container"] {
 
     padding:20px;
 
-    backdrop-filter:blur(12px);
+    backdrop-filter:blur(10px);
 
     box-shadow:
-    0 8px 30px rgba(0,0,0,0.4);
+    0 8px 30px rgba(0,0,0,0.35);
 
     transition:0.3s;
 }
@@ -114,7 +109,7 @@ div[data-testid="metric-container"] {
     linear-gradient(
     90deg,
     #2563eb,
-    #4f46e5
+    #7c3aed
     );
 }
 
@@ -150,38 +145,52 @@ with st.sidebar:
     st.markdown("""
     <div style="
     text-align:center;
-    padding-top:10px;
-    padding-bottom:20px;
+    padding-top:20px;
+    padding-bottom:25px;
     ">
 
     <div style="
-    font-size:60px;
+    width:90px;
+    height:90px;
+    margin:auto;
+
+    border-radius:24px;
+
+    background:
+    linear-gradient(
+    135deg,
+    #2563eb,
+    #7c3aed
+    );
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:42px;
+
+    box-shadow:
+    0 8px 25px rgba(37,99,235,0.45);
     ">
     🪔
     </div>
 
     <h1 style="
-    color:#facc15;
-    font-size:26px;
-    margin-top:-10px;
+    color:white;
+    font-size:28px;
+    margin-top:18px;
     font-weight:800;
+    line-height:1.2;
     ">
     Bal Yuva
+    <br>
+    Mangal Dal
     </h1>
 
-    <h2 style="
-    color:white;
-    font-size:22px;
-    margin-top:-18px;
-    font-weight:700;
-    ">
-    Mangal Dal
-    </h2>
-
     <p style="
-    color:#cbd5e1;
+    color:#94a3b8;
     font-size:12px;
-    letter-spacing:2px;
+    letter-spacing:3px;
     margin-top:-5px;
     ">
     SMART FINANCE TRACKER
@@ -235,30 +244,34 @@ with st.sidebar:
 
                 "text-align":"left",
 
-                "margin":"6px 0px",
+                "margin":"8px 0px",
 
-                "border-radius":"14px",
+                "border-radius":"16px",
 
                 "color":"#e2e8f0",
 
-                "padding":"12px 16px",
+                "padding":"14px 18px",
 
-                "background-color":"transparent",
+                "background-color":"rgba(15,23,42,0.45)",
 
-                "transition":"0.3s",
+                "backdrop-filter":"blur(8px)",
+
+                "border":"1px solid rgba(255,255,255,0.05)",
+
+                "--hover-color":"rgba(37,99,235,0.20)",
             },
 
             "nav-link-selected": {
 
                 "background":
-                "linear-gradient(90deg,#2563eb,#4f46e5)",
+                "linear-gradient(90deg,#2563eb,#7c3aed)",
 
                 "color":"white",
 
                 "font-weight":"700",
 
                 "box-shadow":
-                "0 4px 15px rgba(37,99,235,0.4)",
+                "0 8px 20px rgba(37,99,235,0.35)",
             },
         }
     )
