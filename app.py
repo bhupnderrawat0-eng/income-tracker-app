@@ -312,7 +312,7 @@ if menu == "Dashboard":
 
     box-shadow:0 8px 30px rgba(0,0,0,0.35);
 
-    ">
+    '>
 
     <div style="
     font-size:52px;
