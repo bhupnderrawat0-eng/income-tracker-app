@@ -156,8 +156,7 @@ with st.sidebar:
 
     </div>
     """, unsafe_allow_html=True)
-
-# =========================================
+    # =========================================
 # MENU
 # =========================================
 menu = st.sidebar.radio(
@@ -205,6 +204,7 @@ if menu == "Dashboard":
         border:1px solid rgba(96,165,250,0.12);
         box-shadow:0 8px 30px rgba(0,0,0,0.35);
     ">
+
         <div style="
             font-size:58px;
             font-weight:800;
@@ -229,6 +229,7 @@ if menu == "Dashboard":
         ">
             Here's what's happening today.
         </div>
+
     </div>
     """, unsafe_allow_html=True)
 
@@ -274,166 +275,3 @@ if menu == "Dashboard":
         <div class="metric-value">₹ {balance}</div>
     </div>
     """, unsafe_allow_html=True)
-
-# =========================================
-# CUSTOMERS
-# =========================================
-elif menu == "Customers":
-
-    st.title("👥 Customers")
-
-    name = st.text_input("Customer Name")
-
-    if st.button("Add Customer"):
-        if name:
-            st.session_state.customers.append(name)
-            st.success("Customer Added")
-
-    st.write(st.session_state.customers)
-
-# =========================================
-# COLLECTIONS
-# =========================================
-elif menu == "Collections":
-
-    st.title("💵 Collections")
-
-    cname = st.text_input("Customer Name")
-    amount = st.number_input("Amount", step=100)
-
-    if st.button("Add Collection"):
-        st.session_state.collections.append({
-            "name": cname,
-            "amount": amount
-        })
-        st.success("Collection Added")
-
-    st.dataframe(pd.DataFrame(st.session_state.collections))
-
-# =========================================
-# LOANS
-# =========================================
-elif menu == "Loans":
-
-    st.title("🏦 Loans")
-
-    st.info("Loan module ready for next upgrade.")
-
-# =========================================
-# DONATIONS
-# =========================================
-elif menu == "Donations":
-
-    st.title("🎁 Donations")
-
-    donor = st.text_input("Donor Name")
-    amount = st.number_input("Donation Amount", step=100)
-
-    if st.button("Add Donation"):
-        st.session_state.donations.append({
-            "name": donor,
-            "amount": amount
-        })
-        st.success("Donation Added")
-
-    st.dataframe(pd.DataFrame(st.session_state.donations))
-
-# =========================================
-# EXPENSES
-# =========================================
-elif menu == "Expenses":
-
-    st.title("💸 Expenses")
-
-    item = st.text_input("Expense Name")
-    amount = st.number_input("Expense Amount", step=100)
-
-    if st.button("Add Expense"):
-        st.session_state.expenses.append({
-            "item": item,
-            "amount": amount
-        })
-        st.success("Expense Added")
-
-    st.dataframe(pd.DataFrame(st.session_state.expenses))
-
-# =========================================
-# REPORTS
-# =========================================
-elif menu == "Reports":
-
-    st.title("📈 Reports")
-
-    collections_total = sum(
-        x["amount"]
-        for x in st.session_state.collections
-    )
-
-    donations_total = sum(
-        x["amount"]
-        for x in st.session_state.donations
-    )
-
-    expenses_total = sum(
-        x["amount"]
-        for x in st.session_state.expenses
-    )
-
-    report_df = pd.DataFrame({
-        "Category": [
-            "Collections",
-            "Donations",
-            "Expenses"
-        ],
-        "Amount": [
-            collections_total,
-            donations_total,
-            expenses_total
-        ]
-    })
-
-    st.dataframe(report_df)
-
-    st.bar_chart(report_df.set_index("Category"))
-
-# =========================================
-# USERS
-# =========================================
-elif menu == "Users":
-
-    st.title("👤 User Management")
-
-    new_user = st.text_input("User Name")
-
-    role = st.selectbox(
-        "Role",
-        [
-            "Admin",
-            "Editor",
-            "Viewer"
-        ]
-    )
-
-    if st.button("Add User"):
-
-        if new_user:
-
-            st.session_state.users.append({
-                "name": new_user,
-                "role": role
-            })
-
-            st.success("User Added Successfully")
-
-    st.write("")
-
-    st.subheader("Current Users")
-
-    users_df = pd.DataFrame(
-        st.session_state.users
-    )
-
-    st.dataframe(
-        users_df,
-        use_container_width=True
-    )
