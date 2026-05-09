@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import plotly.express as px
 from streamlit_option_menu import option_menu
 import base64
 
@@ -220,7 +219,7 @@ with st.sidebar:
     ">
 
     <img src="data:image/png;base64,{}"
-    width="140"
+    width="220"
     style="
     object-fit:contain;
     mix-blend-mode:screen;
@@ -405,42 +404,6 @@ if menu == "Dashboard":
     c6.metric(
         "👥 Customers",
         len(st.session_state.customers)
-    )
-
-    st.divider()
-
-    chart_data = pd.DataFrame({
-
-        "Category":[
-            "Collections",
-            "Donations",
-            "Expenses"
-        ],
-
-        "Amount":[
-            collections_total,
-            donations_total,
-            expenses_total
-        ]
-    })
-
-    fig = px.bar(
-        chart_data,
-        x="Category",
-        y="Amount",
-        text="Amount"
-    )
-
-    fig.update_layout(
-        paper_bgcolor="#020617",
-        plot_bgcolor="#020617",
-        font_color="white",
-        height=320
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
     )
 
 # =====================================================
