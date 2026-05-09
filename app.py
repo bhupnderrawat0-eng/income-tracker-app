@@ -227,13 +227,13 @@ with st.sidebar:
 
     text-align:center;
 
-    '>
+    ">
 
     <div style='
     font-size:78px;
     margin-bottom:6px;
     filter:drop-shadow(0 0 12px rgba(255,120,0,0.55));
-    '>
+    ">
     🔥
     </div>
 
@@ -242,7 +242,7 @@ with st.sidebar:
     font-weight:800;
     color:white;
     line-height:1.1;
-    '>
+    ">
     Bal Yuva
     </div>
 
@@ -251,7 +251,7 @@ with st.sidebar:
     font-weight:800;
     color:#38bdf8;
     line-height:1.1;
-    '>
+    ">
     Mangal Dal
     </div>
 
@@ -260,7 +260,7 @@ with st.sidebar:
     font-size:12px;
     letter-spacing:3px;
     margin-top:12px;
-    '>
+    ">
     SMART FINANCE TRACKER
     </div>
 
