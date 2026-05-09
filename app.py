@@ -179,11 +179,14 @@ if "users" not in st.session_state:
 
     st.session_state.users = [
 
-        {
-            "name":"Admin",
-            "role":"Admin"
-        }
-    ]
+    {
+        "name": "Admin",
+        "username": "admin",
+        "password": "admin123",
+        "role": "Admin"
+    }
+
+]
 # =========================
 # LOGIN PAGE
 # =========================
