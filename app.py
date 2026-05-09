@@ -16,7 +16,7 @@ st.set_page_config(
 )
 
 # =====================================================
-# PREMIUM DARK UI
+# PREMIUM UI CSS
 # =====================================================
 
 st.markdown("""
@@ -27,100 +27,97 @@ footer {visibility:hidden;}
 header {visibility:hidden;}
 
 .stApp {
-    background: linear-gradient(
-        135deg,
-        #020617,
-        #0f172a,
-        #111827
-    );
+    background:
+    radial-gradient(circle at top,
+    #0f172a,
+    #020617);
     color:white;
 }
 
-/* Sidebar */
+/* SIDEBAR */
 
 section[data-testid="stSidebar"] {
-    background: linear-gradient(
-        180deg,
-        #020617,
-        #0f172a
+
+    background:
+    linear-gradient(
+    180deg,
+    #020617,
+    #0f172a
     );
+
     border-right:
     1px solid rgba(255,255,255,0.08);
 }
 
-/* Metric Cards */
+/* METRIC CARDS */
 
 div[data-testid="metric-container"] {
 
     background:
-    rgba(17,24,39,0.85);
+    rgba(15,23,42,0.75);
 
     border:
-    1px solid rgba(255,255,255,0.08);
+    1px solid rgba(255,255,255,0.06);
 
-    padding:22px;
+    border-radius:24px;
 
-    border-radius:20px;
+    padding:25px;
 
-    backdrop-filter:blur(12px);
+    backdrop-filter:blur(14px);
 
     box-shadow:
-    0 8px 30px rgba(0,0,0,0.35);
+    0 8px 32px rgba(0,0,0,0.45);
 
     transition:0.3s;
 }
 
 div[data-testid="metric-container"]:hover {
 
-    transform:translateY(-4px);
-
-    box-shadow:
-    0 12px 35px rgba(0,0,0,0.45);
+    transform:translateY(-5px);
 }
 
-div[data-testid="metric-container"] label {
-    color:#94a3b8 !important;
-}
-
-div[data-testid="metric-container"] div {
-    color:white !important;
-}
-
-/* Buttons */
+/* BUTTONS */
 
 .stButton>button {
 
     width:100%;
-    border-radius:14px;
-    height:3.2em;
+    height:58px;
+
     border:none;
+
+    border-radius:18px;
+
+    font-size:18px;
+
     font-weight:600;
+
     color:white;
 
     background:
     linear-gradient(
     90deg,
     #2563eb,
-    #1d4ed8
+    #4f46e5
     );
 }
 
-/* Inputs */
+/* INPUTS */
 
-.stTextInput>div>div>input,
-.stNumberInput>div>div>input {
+.stTextInput input,
+.stNumberInput input {
 
-    border-radius:12px;
+    border-radius:14px !important;
 }
 
-/* Tables */
+/* TABLES */
 
 [data-testid="stDataFrame"] {
-    border-radius:16px;
+
+    border-radius:20px;
     overflow:hidden;
 }
 
-h1,h2,h3 {
+h1,h2,h3,h4 {
     color:white !important;
 }
 
@@ -228,7 +225,7 @@ with st.sidebar:
 
     st.image(
         "logo.png",
-        width=220
+        width=180
     )
 
     st.markdown("""
@@ -281,13 +278,64 @@ with st.sidebar:
             "person-fill"
         ],
 
-        default_index=0
+        default_index=0,
+
+        styles={
+
+            "container": {
+                "padding":"0!important",
+                "background-color":"transparent"
+            },
+
+            "icon": {
+                "color":"white",
+                "font-size":"18px"
+            },
+
+            "nav-link": {
+
+                "font-size":"16px",
+                "text-align":"left",
+                "margin":"8px",
+                "border-radius":"14px",
+                "color":"#e2e8f0",
+                "padding":"14px",
+            },
+
+            "nav-link-selected": {
+
+                "background":
+                "linear-gradient(90deg,#2563eb,#4f46e5)",
+
+                "color":"white",
+            },
+        }
     )
 
     st.divider()
 
-    st.write(f"👤 {st.session_state.username}")
-    st.write(f"🔐 {st.session_state.role}")
+    st.markdown(f"""
+
+    <div style="
+    background:rgba(15,23,42,0.8);
+    padding:15px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.08);
+    ">
+
+    <h4 style="color:white;">
+    👤 {st.session_state.username}
+    </h4>
+
+    <p style="color:#94a3b8;">
+    🔐 {st.session_state.role}
+    </p>
+
+    </div>
+
+    """, unsafe_allow_html=True)
+
+    st.write("")
 
     if st.button("🚪 Logout"):
 
@@ -300,7 +348,12 @@ with st.sidebar:
 
 if menu == "Dashboard":
 
-    st.title("📊 Dashboard")
+    st.markdown("""
+    # 📊 Dashboard
+
+    ### Welcome back 👋
+    Here's what's happening today.
+    """)
 
     collections_total = sum(
         x["amount"]
@@ -337,6 +390,8 @@ if menu == "Dashboard":
         + donations_total
         - expenses_total
     )
+
+    # METRICS
 
     c1, c2, c3, c4 = st.columns(4)
 
@@ -376,6 +431,8 @@ if menu == "Dashboard":
 
     st.divider()
 
+    # CHART
+
     chart_data = pd.DataFrame({
 
         "Category":[
@@ -391,24 +448,55 @@ if menu == "Dashboard":
         ]
     })
 
-    fig = px.bar(
+    fig = px.line(
         chart_data,
         x="Category",
         y="Amount",
-        text="Amount",
-        title="Finance Overview"
+        markers=True
     )
 
     fig.update_layout(
-        paper_bgcolor="#0f172a",
-        plot_bgcolor="#0f172a",
-        font_color="white"
+
+        paper_bgcolor="#020617",
+
+        plot_bgcolor="#020617",
+
+        font_color="white",
+
+        height=450,
+
+        margin=dict(
+            l=20,
+            r=20,
+            t=40,
+            b=20
+        )
     )
 
     st.plotly_chart(
         fig,
         use_container_width=True
     )
+
+    st.divider()
+
+    # QUICK ACTIONS
+
+    st.subheader("⚡ Quick Actions")
+
+    q1, q2, q3, q4 = st.columns(4)
+
+    with q1:
+        st.button("➕ Add Customer")
+
+    with q2:
+        st.button("💰 Add Collection")
+
+    with q3:
+        st.button("🏦 Start Loan")
+
+    with q4:
+        st.button("🎁 Add Donation")
 
 # =====================================================
 # CUSTOMERS
