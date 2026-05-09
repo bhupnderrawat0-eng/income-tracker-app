@@ -47,6 +47,8 @@ section[data-testid="stSidebar"] {
 
     border-right:
     1px solid rgba(255,255,255,0.08);
+
+    overflow-y:auto;
 }
 
 /* METRIC CARDS */
