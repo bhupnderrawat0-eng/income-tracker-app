@@ -293,19 +293,7 @@ with st.sidebar:
 if menu == "Dashboard":
 
     st.markdown("""
-<div style="
-background: linear-gradient(
-135deg,
-rgba(15,23,42,0.88),
-rgba(30,41,59,0.88)
-);
-
-padding:28px;
-border-radius:24px;
-margin-bottom:25px;
-border:1px solid rgba(96,165,250,0.12);
-box-shadow:0 8px 30px rgba(0,0,0,0.35);
-">
+<div style="background:linear-gradient(135deg, rgba(15,23,42,0.88), rgba(30,41,59,0.88)); padding:28px; border-radius:24px; margin-bottom:25px; border:1px solid rgba(96,165,250,0.12); box-shadow:0 8px 30px rgba(0,0,0,0.35);">
 
 <div style="
 font-size:52px;
