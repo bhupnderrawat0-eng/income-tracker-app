@@ -212,18 +212,17 @@ with st.sidebar:
 
     st.markdown("""
     <div style="
-    background: linear-gradient(180deg,#0f172a,#111827);
-    padding:20px;
-    border-radius:24px;
+    background: transparent;
+    padding:10px;
     text-align:center;
-    margin-bottom:20px;
-    border:1px solid rgba(255,255,255,0.08);
+    margin-bottom:10px;
+    border:none;
+    border-radius:0px;
     ">
 
     <img src="data:image/png;base64,{}"
-    width="170"
+    width="180"
     style="
-    border-radius:20px;
     object-fit:contain;
     "/>
 
@@ -235,11 +234,21 @@ with st.sidebar:
     ), unsafe_allow_html=True)
 
     st.markdown("""
-    <h2 style='text-align:center;color:white;'>
+    <h2 style='
+    text-align:center;
+    color:white;
+    font-size:30px;
+    font-weight:800;
+    margin-top:10px;
+    '>
     Bal Yuva Mangal Dal
     </h2>
 
-    <p style='text-align:center;color:gray;'>
+    <p style='
+    text-align:center;
+    color:gray;
+    font-size:15px;
+    '>
     SMART FINANCE TRACKER
     </p>
     """, unsafe_allow_html=True)
@@ -275,7 +284,7 @@ with st.sidebar:
 
             "container": {
                 "padding":"5px",
-                "background-color":"#0f172a",
+                "background-color":"transparent",
             },
 
             "icon": {
