@@ -142,62 +142,48 @@ if "expenses" not in st.session_state:
 
 with st.sidebar:
 
-    st.markdown("""
-    <div style="
-    text-align:center;
-    padding-top:20px;
-    padding-bottom:25px;
-    ">
+    st.markdown(
+        """
+        <div style='text-align:center; padding-top:20px; padding-bottom:25px;'>
 
-    <div style="
-    width:90px;
-    height:90px;
-    margin:auto;
+            <div style='
+                width:90px;
+                height:90px;
+                margin:auto;
+                border-radius:24px;
+                background:linear-gradient(135deg,#2563eb,#7c3aed);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:42px;
+                box-shadow:0 8px 25px rgba(37,99,235,0.45);
+            '>
+                🪔
+            </div>
 
-    border-radius:24px;
+            <h1 style='
+                color:white;
+                font-size:28px;
+                margin-top:18px;
+                font-weight:800;
+                line-height:1.2;
+            '>
+                Bal Yuva <br> Mangal Dal
+            </h1>
 
-    background:
-    linear-gradient(
-    135deg,
-    #2563eb,
-    #7c3aed
-    );
+            <p style='
+                color:#94a3b8;
+                font-size:12px;
+                letter-spacing:3px;
+                margin-top:-5px;
+            '>
+                SMART FINANCE TRACKER
+            </p>
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    font-size:42px;
-
-    box-shadow:
-    0 8px 25px rgba(37,99,235,0.45);
-    ">
-    🪔
-    </div>
-
-    <h1 style="
-    color:white;
-    font-size:28px;
-    margin-top:18px;
-    font-weight:800;
-    line-height:1.2;
-    ">
-    Bal Yuva
-    <br>
-    Mangal Dal
-    </h1>
-
-    <p style="
-    color:#94a3b8;
-    font-size:12px;
-    letter-spacing:3px;
-    margin-top:-5px;
-    ">
-    SMART FINANCE TRACKER
-    </p>
-
-    </div>
-    """, unsafe_allow_html=True)
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     menu = option_menu(
         menu_title=None,
@@ -234,31 +220,24 @@ with st.sidebar:
             },
 
             "icon": {
-                "color":"#ffffff",
+                "color":"white",
                 "font-size":"18px"
             },
 
             "nav-link": {
 
                 "font-size":"15px",
-
                 "text-align":"left",
+                "margin":"8px 0",
+                "border-radius":"14px",
 
-                "margin":"8px 0px",
+                "background-color":"#111827",
 
-                "border-radius":"16px",
+                "color":"#e5e7eb",
 
-                "color":"#e2e8f0",
+                "padding":"14px",
 
-                "padding":"14px 18px",
-
-                "background-color":"rgba(15,23,42,0.45)",
-
-                "backdrop-filter":"blur(8px)",
-
-                "border":"1px solid rgba(255,255,255,0.05)",
-
-                "--hover-color":"rgba(37,99,235,0.20)",
+                "--hover-color":"#1e293b",
             },
 
             "nav-link-selected": {
@@ -269,9 +248,6 @@ with st.sidebar:
                 "color":"white",
 
                 "font-weight":"700",
-
-                "box-shadow":
-                "0 8px 20px rgba(37,99,235,0.35)",
             },
         }
     )
