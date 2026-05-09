@@ -4,6 +4,15 @@ from datetime import datetime
 import plotly.express as px
 from streamlit_option_menu import option_menu
 
+from io import BytesIO
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer
+)
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import letter
+
 # =====================================================
 # PAGE CONFIG
 # =====================================================
@@ -157,7 +166,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # =====================================================
-# PROFESSIONAL SIDEBAR
+# SIDEBAR
 # =====================================================
 
 with st.sidebar:
@@ -452,8 +461,6 @@ elif menu == "Loans":
             c3.metric("📄 Remaining", f"₹ {remaining}")
             c4.metric("📈 Interest", f"₹ {interest}")
 
-            st.divider()
-
             return_amount = st.number_input(
                 "Return Amount",
                 min_value=0.0
@@ -464,224 +471,3 @@ elif menu == "Loans":
                 loan["returned"] += return_amount
 
                 st.success("Return Saved")
-
-# =====================================================
-# DONATIONS
-# =====================================================
-
-elif menu == "Donations":
-
-    st.title("🎁 Donations")
-
-    donor_name = st.text_input("Donor Name")
-
-    donation_amount = st.number_input(
-        "Donation Amount",
-        min_value=0.0
-    )
-
-    note = st.text_area("Comment / Note")
-
-    donation_date = st.date_input("Donation Date")
-
-    if st.button("Save Donation"):
-
-        st.session_state.donations.append({
-            "name": donor_name,
-            "amount": donation_amount,
-            "note": note,
-            "date": str(donation_date)
-        })
-
-        st.success("Donation Saved")
-
-    if st.session_state.donations:
-
-        df = pd.DataFrame(st.session_state.donations)
-
-        st.dataframe(df, use_container_width=True)
-
-# =====================================================
-# EXPENSES
-# =====================================================
-
-elif menu == "Expenses":
-
-    st.title("💸 Expenses")
-
-    expense_title = st.text_input("Expense Title")
-
-    expense_amount = st.number_input(
-        "Expense Amount",
-        min_value=0.0
-    )
-
-    expense_note = st.text_area("Expense Note")
-
-    expense_date = st.date_input("Expense Date")
-
-    if st.button("Save Expense"):
-
-        st.session_state.expenses.append({
-            "title": expense_title,
-            "amount": expense_amount,
-            "note": expense_note,
-            "date": str(expense_date)
-        })
-
-        st.success("Expense Saved")
-
-    if st.session_state.expenses:
-
-        df = pd.DataFrame(st.session_state.expenses)
-
-        st.dataframe(df, use_container_width=True)
-
-# =====================================================
-# REPORTS
-# =====================================================
-
-elif menu == "Reports":
-
-    st.header("📊 Reports Dashboard")
-
-    collections_df = pd.DataFrame(st.session_state.collections)
-    loans_df = pd.DataFrame(st.session_state.loans)
-    expenses_df = pd.DataFrame(st.session_state.expenses)
-    donations_df = pd.DataFrame(st.session_state.donations)
-
-    total_collections = (
-        collections_df["amount"].sum()
-        if not collections_df.empty else 0
-    )
-
-    total_loans = (
-        loans_df["loan_amount"].sum()
-        if not loans_df.empty else 0
-    )
-
-    returned_loans = (
-        loans_df["returned"].sum()
-        if not loans_df.empty else 0
-    )
-
-    pending_loans = total_loans - returned_loans
-
-    total_expenses = (
-        expenses_df["amount"].sum()
-        if not expenses_df.empty else 0
-    )
-
-    total_donations = (
-        donations_df["amount"].sum()
-        if not donations_df.empty else 0
-    )
-
-    net_balance = (
-        total_collections
-        + total_donations
-        - total_expenses
-    )
-
-    c1, c2, c3 = st.columns(3)
-
-    c1.metric("💰 Collections", f"₹ {total_collections}")
-    c2.metric("🎁 Donations", f"₹ {total_donations}")
-    c3.metric("💸 Expenses", f"₹ {total_expenses}")
-
-    c4, c5, c6 = st.columns(3)
-
-    c4.metric("🏦 Total Loan", f"₹ {total_loans}")
-    c5.metric("✅ Returned", f"₹ {returned_loans}")
-    c6.metric("📌 Pending", f"₹ {pending_loans}")
-
-    st.metric("💼 Net Balance", f"₹ {net_balance}")
-
-    st.divider()
-
-    if not collections_df.empty:
-
-        customer_report = (
-            collections_df.groupby("customer")["amount"]
-            .sum()
-            .reset_index()
-        )
-
-        fig = px.bar(
-            customer_report,
-            x="customer",
-            y="amount",
-            title="Customer Collections"
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
-
-        st.dataframe(
-            customer_report,
-            use_container_width=True
-        )
-
-# =====================================================
-# USERS
-# =====================================================
-
-elif menu == "Users":
-
-    if st.session_state.role != "admin":
-
-        st.error("Only admin allowed")
-
-    else:
-
-        st.title("👨‍💻 User Management")
-
-        st.subheader("➕ Create User")
-
-        new_username = st.text_input("New Username")
-
-        new_password = st.text_input(
-            "New Password"
-        )
-
-        new_role = st.selectbox(
-            "Role",
-            ["viewer", "editor", "admin"]
-        )
-
-        if st.button("Create User"):
-
-            if new_username not in st.session_state.users:
-
-                st.session_state.users[new_username] = {
-                    "password": new_password,
-                    "role": new_role,
-                    "active": True
-                }
-
-                st.success("User Created")
-
-            else:
-
-                st.error("Username already exists")
-
-        st.divider()
-
-        users_df = pd.DataFrame(
-            [
-                {
-                    "Username": user,
-                    "Role": data["role"],
-                    "Active": data["active"]
-                }
-                for user, data
-                in st.session_state.users.items()
-            ]
-        )
-
-        st.dataframe(
-            users_df,
-            use_container_width=True
-        )
