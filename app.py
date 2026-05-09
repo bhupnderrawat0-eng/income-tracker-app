@@ -22,49 +22,33 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-#MainMenu {
-    visibility:hidden;
-}
-
-footer {
-    visibility:hidden;
-}
-
-header {
-    visibility:hidden;
-}
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
 
 .stApp {
-    background:
-    linear-gradient(
-    135deg,
-    #020617,
-    #0f172a,
-    #111827
+    background: linear-gradient(
+        135deg,
+        #020617,
+        #0f172a,
+        #111827
     );
     color:white;
 }
 
-/* =========================
-SIDEBAR
-========================= */
+/* Sidebar */
 
 section[data-testid="stSidebar"] {
-
-    background:
-    linear-gradient(
-    180deg,
-    #020617,
-    #0f172a
+    background: linear-gradient(
+        180deg,
+        #020617,
+        #0f172a
     );
-
     border-right:
     1px solid rgba(255,255,255,0.08);
 }
 
-/* =========================
-METRIC CARDS
-========================= */
+/* Metric Cards */
 
 div[data-testid="metric-container"] {
 
@@ -95,31 +79,22 @@ div[data-testid="metric-container"]:hover {
 }
 
 div[data-testid="metric-container"] label {
-
     color:#94a3b8 !important;
 }
 
 div[data-testid="metric-container"] div {
-
     color:white !important;
 }
 
-/* =========================
-BUTTONS
-========================= */
+/* Buttons */
 
 .stButton>button {
 
     width:100%;
-
     border-radius:14px;
-
     height:3.2em;
-
     border:none;
-
     font-weight:600;
-
     color:white;
 
     background:
@@ -128,25 +103,9 @@ BUTTONS
     #2563eb,
     #1d4ed8
     );
-
-    transition:0.3s;
 }
 
-.stButton>button:hover {
-
-    transform:scale(1.02);
-
-    background:
-    linear-gradient(
-    90deg,
-    #1d4ed8,
-    #2563eb
-    );
-}
-
-/* =========================
-INPUTS
-========================= */
+/* Inputs */
 
 .stTextInput>div>div>input,
 .stNumberInput>div>div>input {
@@ -154,22 +113,14 @@ INPUTS
     border-radius:12px;
 }
 
-/* =========================
-TABLES
-========================= */
+/* Tables */
 
 [data-testid="stDataFrame"] {
-
     border-radius:16px;
     overflow:hidden;
 }
 
-/* =========================
-HEADINGS
-========================= */
-
 h1,h2,h3 {
-
     color:white !important;
 }
 
@@ -245,6 +196,7 @@ if not st.session_state.logged_in:
     st.title("🔐 Bal Yuva Mangal Dal Login")
 
     username = st.text_input("Username")
+
     password = st.text_input(
         "Password",
         type="password"
@@ -269,7 +221,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 # =====================================================
-# PREMIUM SIDEBAR
+# SIDEBAR
 # =====================================================
 
 with st.sidebar:
@@ -329,64 +281,13 @@ with st.sidebar:
             "person-fill"
         ],
 
-        default_index=0,
-
-        styles={
-
-            "container": {
-                "padding":"0!important",
-                "background-color":"transparent"
-            },
-
-            "icon": {
-                "color":"white",
-                "font-size":"18px"
-            },
-
-            "nav-link": {
-
-                "font-size":"16px",
-                "text-align":"left",
-                "margin":"6px",
-                "border-radius":"14px",
-                "color":"#e2e8f0",
-                "padding":"12px",
-            },
-
-            "nav-link-selected": {
-
-                "background":
-                "linear-gradient(90deg,#2563eb,#1d4ed8)",
-
-                "color":"white",
-            },
-        }
+        default_index=0
     )
 
     st.divider()
 
-    st.markdown(f"""
-
-    <div style="
-    background:rgba(17,24,39,0.9);
-    padding:15px;
-    border-radius:16px;
-    border:1px solid rgba(255,255,255,0.08);
-    ">
-
-    <h4 style="color:white;">
-    👤 {st.session_state.username}
-    </h4>
-
-    <p style="color:#94a3b8;">
-    🔐 {st.session_state.role}
-    </p>
-
-    </div>
-
-    """, unsafe_allow_html=True)
-
-    st.write("")
+    st.write(f"👤 {st.session_state.username}")
+    st.write(f"🔐 {st.session_state.role}")
 
     if st.button("🚪 Logout"):
 
@@ -437,10 +338,6 @@ if menu == "Dashboard":
         - expenses_total
     )
 
-    # =========================
-    # METRICS
-    # =========================
-
     c1, c2, c3, c4 = st.columns(4)
 
     c1.metric(
@@ -479,10 +376,6 @@ if menu == "Dashboard":
 
     st.divider()
 
-    # =========================
-    # CHART
-    # =========================
-
     chart_data = pd.DataFrame({
 
         "Category":[
@@ -499,27 +392,17 @@ if menu == "Dashboard":
     })
 
     fig = px.bar(
-
         chart_data,
-
         x="Category",
-
         y="Amount",
-
         text="Amount",
-
         title="Finance Overview"
     )
 
     fig.update_layout(
-
         paper_bgcolor="#0f172a",
-
         plot_bgcolor="#0f172a",
-
-        font_color="white",
-
-        title_font_color="white"
+        font_color="white"
     )
 
     st.plotly_chart(
@@ -527,47 +410,229 @@ if menu == "Dashboard":
         use_container_width=True
     )
 
-    st.divider()
+# =====================================================
+# CUSTOMERS
+# =====================================================
 
-    # =========================
-    # QUICK ACTIONS
-    # =========================
+elif menu == "Customers":
 
-    st.subheader("⚡ Quick Actions")
+    st.title("👥 Customers")
 
-    q1, q2, q3, q4 = st.columns(4)
+    name = st.text_input(
+        "Customer Name"
+    )
 
-    with q1:
-        st.button("➕ Add Customer")
+    if st.button("Add Customer"):
 
-    with q2:
-        st.button("💰 Add Collection")
+        if name != "":
 
-    with q3:
-        st.button("🏦 Start Loan")
+            st.session_state.customers.append(name)
 
-    with q4:
-        st.button("🎁 Add Donation")
+            st.success("Customer Added")
 
-    st.divider()
+    if st.session_state.customers:
 
-    # =========================
-    # FOOTER
-    # =========================
+        df = pd.DataFrame(
+            st.session_state.customers,
+            columns=["Customer Name"]
+        )
 
-    st.markdown("""
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
 
-    <div style="
-    text-align:center;
-    color:#94a3b8;
-    padding:20px;
-    ">
+# =====================================================
+# COLLECTIONS
+# =====================================================
 
-    Made with ❤️ by
-    <span style="color:#fbbf24;">
-    Bal Yuva Mangal Dal
-    </span>
+elif menu == "Collections":
 
-    </div>
+    st.title("💵 Collections")
 
-    """, unsafe_allow_html=True)
+    if len(st.session_state.customers) == 0:
+
+        st.warning(
+            "Please add customers first"
+        )
+
+    else:
+
+        customer = st.selectbox(
+            "Customer",
+            st.session_state.customers
+        )
+
+        month = st.text_input(
+            "Month",
+            value=datetime.now().strftime("%B %Y")
+        )
+
+        amount = st.number_input(
+            "Amount",
+            min_value=0.0
+        )
+
+        status = st.selectbox(
+            "Status",
+            ["Paid", "Pending"]
+        )
+
+        if st.button("Save Collection"):
+
+            st.session_state.collections.append({
+                "customer": customer,
+                "month": month,
+                "amount": amount,
+                "status": status
+            })
+
+            st.success("Collection Saved")
+
+# =====================================================
+# LOANS
+# =====================================================
+
+elif menu == "Loans":
+
+    st.title("🏦 Loans")
+
+    customer = st.selectbox(
+        "Customer",
+        st.session_state.customers
+        if st.session_state.customers
+        else ["No Customers"]
+    )
+
+    loan_amount = st.number_input(
+        "Loan Amount",
+        min_value=0.0
+    )
+
+    interest = st.number_input(
+        "Interest %",
+        min_value=0.0
+    )
+
+    if st.button("Start Loan"):
+
+        st.session_state.loans.append({
+
+            "customer": customer,
+            "loan_amount": loan_amount,
+            "returned": 0.0,
+            "interest_rate": interest
+        })
+
+        st.success("Loan Started")
+
+# =====================================================
+# DONATIONS
+# =====================================================
+
+elif menu == "Donations":
+
+    st.title("🎁 Donations")
+
+    donor_name = st.text_input(
+        "Donor Name"
+    )
+
+    donation_amount = st.number_input(
+        "Donation Amount",
+        min_value=0.0
+    )
+
+    if st.button("Save Donation"):
+
+        st.session_state.donations.append({
+
+            "name": donor_name,
+            "amount": donation_amount
+        })
+
+        st.success("Donation Saved")
+
+# =====================================================
+# EXPENSES
+# =====================================================
+
+elif menu == "Expenses":
+
+    st.title("💸 Expenses")
+
+    expense_title = st.text_input(
+        "Expense Title"
+    )
+
+    expense_amount = st.number_input(
+        "Expense Amount",
+        min_value=0.0
+    )
+
+    if st.button("Save Expense"):
+
+        st.session_state.expenses.append({
+
+            "title": expense_title,
+            "amount": expense_amount
+        })
+
+        st.success("Expense Saved")
+
+# =====================================================
+# REPORTS
+# =====================================================
+
+elif menu == "Reports":
+
+    st.title("📊 Reports")
+
+    collections_df = pd.DataFrame(
+        st.session_state.collections
+    )
+
+    if not collections_df.empty:
+
+        st.dataframe(
+            collections_df,
+            use_container_width=True
+        )
+
+# =====================================================
+# USERS
+# =====================================================
+
+elif menu == "Users":
+
+    if st.session_state.role != "admin":
+
+        st.error("Only admin allowed")
+
+    else:
+
+        st.title("👨‍💻 User Management")
+
+        new_username = st.text_input(
+            "New Username"
+        )
+
+        new_password = st.text_input(
+            "New Password"
+        )
+
+        new_role = st.selectbox(
+            "Role",
+            ["viewer", "editor", "admin"]
+        )
+
+        if st.button("Create User"):
+
+            st.session_state.users[new_username] = {
+
+                "password": new_password,
+                "role": new_role,
+                "active": True
+            }
+
+            st.success("User Created")
