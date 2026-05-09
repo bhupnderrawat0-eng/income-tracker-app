@@ -182,11 +182,12 @@ with st.sidebar:
     '>
 
     <div style='
-    font-size:60px;
-    margin-bottom:10px;
-    '>
-    🚀
-    </div>
+font-size:78px;
+margin-bottom:6px;
+filter:drop-shadow(0 0 12px rgba(255,120,0,0.55));
+'>
+🔥
+</div>
 
     <div style='
     font-size:30px;
