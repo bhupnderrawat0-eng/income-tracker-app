@@ -150,16 +150,17 @@ with st.sidebar:
     ">
 
     <img src="data:image/png;base64,{base64.b64encode(open('logo.png','rb').read()).decode()}"
-    width="190"
+    width="160"
     style="
     object-fit:contain;
     filter:brightness(1.1);
+    margin-bottom:10px;
     ">
 
     <h2 style="
     color:white;
-    margin-top:-10px;
-    font-size:18px;
+    margin-top:-5px;
+    font-size:20px;
     font-weight:800;
     ">
     Bal Yuva Mangal Dal
@@ -169,6 +170,7 @@ with st.sidebar:
     color:#cbd5e1;
     font-size:12px;
     margin-top:-10px;
+    letter-spacing:1px;
     ">
     SMART FINANCE TRACKER
     </p>
@@ -211,20 +213,29 @@ with st.sidebar:
             },
 
             "icon": {
-                "color":"white",
-                "font-size":"16px"
+                "color":"#ffffff",
+                "font-size":"18px"
             },
 
             "nav-link": {
 
-                "font-size":"16px",
+                "font-size":"15px",
+
                 "text-align":"left",
-                "margin":"4px",
-                "border-radius":"12px",
-                "color":"#111827",
-                "padding":"10px",
-                "--hover-color":"#dbeafe",
-                "background-color":"white"
+
+                "margin":"6px 0px",
+
+                "border-radius":"14px",
+
+                "color":"#e2e8f0",
+
+                "padding":"12px 16px",
+
+                "background-color":"rgba(255,255,255,0.05)",
+
+                "transition":"0.3s",
+
+                "--hover-color":"rgba(37,99,235,0.25)",
             },
 
             "nav-link-selected": {
@@ -233,6 +244,11 @@ with st.sidebar:
                 "linear-gradient(90deg,#2563eb,#4f46e5)",
 
                 "color":"white",
+
+                "font-weight":"700",
+
+                "box-shadow":
+                "0 4px 15px rgba(37,99,235,0.4)",
             },
         }
     )
