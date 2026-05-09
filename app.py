@@ -57,8 +57,8 @@ section[data-testid="stSidebar"] {
     border-right:
     1px solid rgba(255,255,255,0.08);
 
+    min-height:100vh;
     overflow-y:auto;
-    height:100vh;
 }
 
 /* METRIC CARDS */
@@ -218,7 +218,7 @@ with st.sidebar:
 
     st.markdown("""
     <div style="
-    height:95px;
+    height:70px;
     overflow:hidden;
     display:flex;
     justify-content:center;
@@ -230,7 +230,7 @@ with st.sidebar:
     width="120"
     style="
     object-fit:contain;
-    transform:scale(2.4);
+    transform:scale(2.1);
     mix-blend-mode:screen;
     filter:brightness(1.15);
     "/>
@@ -248,7 +248,7 @@ with st.sidebar:
     color:white;
     font-size:20px;
     font-weight:800;
-    margin-top:-5px;
+    margin-top:5px;
     margin-bottom:0px;
     '>
     Bal Yuva Mangal Dal
@@ -526,13 +526,6 @@ elif menu == "Loans":
 
         st.success("Loan Started")
 
-    if st.session_state.loans:
-
-        st.dataframe(
-            pd.DataFrame(st.session_state.loans),
-            use_container_width=True
-        )
-
 # =====================================================
 # DONATIONS
 # =====================================================
@@ -557,13 +550,6 @@ elif menu == "Donations":
         })
 
         st.success("Donation Saved")
-
-    if st.session_state.donations:
-
-        st.dataframe(
-            pd.DataFrame(st.session_state.donations),
-            use_container_width=True
-        )
 
 # =====================================================
 # EXPENSES
@@ -590,13 +576,6 @@ elif menu == "Expenses":
 
         st.success("Expense Saved")
 
-    if st.session_state.expenses:
-
-        st.dataframe(
-            pd.DataFrame(st.session_state.expenses),
-            use_container_width=True
-        )
-
 # =====================================================
 # REPORTS
 # =====================================================
@@ -607,19 +586,8 @@ elif menu == "Reports":
 
     if st.session_state.collections:
 
-        st.subheader("Collections Report")
-
         st.dataframe(
             pd.DataFrame(st.session_state.collections),
-            use_container_width=True
-        )
-
-    if st.session_state.loans:
-
-        st.subheader("Loans Report")
-
-        st.dataframe(
-            pd.DataFrame(st.session_state.loans),
             use_container_width=True
         )
 
@@ -629,39 +597,13 @@ elif menu == "Reports":
 
 elif menu == "Users":
 
-    if st.session_state.role != "admin":
+    st.title("👨‍💻 User Management")
 
-        st.error("Only admin allowed")
+    users_df = pd.DataFrame(
+        st.session_state.users
+    ).T
 
-    else:
-
-        st.title("👨‍💻 User Management")
-
-        new_username = st.text_input("New Username")
-
-        new_password = st.text_input("New Password")
-
-        new_role = st.selectbox(
-            "Role",
-            ["viewer", "editor", "admin"]
-        )
-
-        if st.button("Create User"):
-
-            st.session_state.users[new_username] = {
-
-                "password": new_password,
-                "role": new_role,
-                "active": True
-            }
-
-            st.success("User Created")
-
-        users_df = pd.DataFrame(
-            st.session_state.users
-        ).T
-
-        st.dataframe(
-            users_df,
-            use_container_width=True
-        )
+    st.dataframe(
+        users_df,
+        use_container_width=True
+    )
