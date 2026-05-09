@@ -1,290 +1,603 @@
-# =========================================
+import streamlit as st
+import pandas as pd
+from streamlit_option_menu import option_menu
+
+# =====================================================
 # PAGE CONFIG
-# =========================================
+# =====================================================
+
 st.set_page_config(
-    page_title="Smart Finance Tracker",
-    layout="wide"
+    page_title="Bal Yuva Mangal Dal",
+    page_icon="🚀",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# =========================================
-# CUSTOM CSS
-# =========================================
+# =====================================================
+# PREMIUM CSS
+# =====================================================
+
 st.markdown("""
 <style>
 
-/* FONT */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-
-html, body, [class*="css"]{
-    font-family: 'Poppins', sans-serif;
-}
-
-/* REMOVE TOP SPACE */
-.block-container{
-    padding-top: 1rem !important;
-}
-
-header[data-testid="stHeader"]{
-    background: transparent;
-}
-
-/* HIDE STREAMLIT */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
 
 /* APP BACKGROUND */
+
 .stApp{
     background:
-    linear-gradient(rgba(8,15,35,0.82), rgba(8,15,35,0.82)),
-    url("https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?q=80&w=1974&auto=format&fit=crop");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+    linear-gradient(
+    135deg,
+    #0f172a,
+    #020617
+    );
+}
+
+/* MAIN CONTENT */
+
+.block-container{
+    padding-top:2rem;
+    padding-left:2rem;
+    padding-right:2rem;
 }
 
 /* SIDEBAR */
+
 section[data-testid="stSidebar"]{
-    background: rgba(15,23,42,0.78);
-    border-right: 1px solid rgba(255,255,255,0.08);
-}
 
-/* SIDEBAR TEXT */
-section[data-testid="stSidebar"] *{
-    color: white !important;
-}
-
-/* LOGO CARD */
-.logo-card{
-    background: linear-gradient(
-        135deg,
-        rgba(30,41,59,0.82),
-        rgba(15,23,42,0.82)
+    background:
+    linear-gradient(
+    180deg,
+    #111827,
+    #0f172a
     );
 
-    border-radius: 28px;
-    padding: 30px;
-    text-align: center;
-    margin-bottom: 25px;
+    border-right:
+    1px solid rgba(255,255,255,0.08);
 
-    border: 1px solid rgba(255,255,255,0.08);
-
-    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    width:320px !important;
 }
 
-/* HERO CARD */
-.hero-card{
-    background: linear-gradient(
-        135deg,
-        rgba(30,41,59,0.82),
-        rgba(15,23,42,0.82)
+/* TEXT */
+
+h1,h2,h3,h4,h5,h6,p,label,span{
+    color:white !important;
+}
+
+/* METRIC CARDS */
+
+div[data-testid="metric-container"]{
+
+    background:
+    linear-gradient(
+    135deg,
+    rgba(30,41,59,0.95),
+    rgba(15,23,42,0.95)
     );
 
-    border-radius: 28px;
-    padding: 35px;
-    margin-bottom: 25px;
+    border:
+    1px solid rgba(96,165,250,0.15);
 
-    border: 1px solid rgba(255,255,255,0.08);
+    border-radius:22px;
 
-    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    padding:28px;
+
+    box-shadow:
+    0 10px 35px rgba(0,0,0,0.45);
+
+    backdrop-filter:blur(14px);
 }
 
-/* HERO TITLE */
-.hero-title{
-    font-size: 68px;
-    font-weight: 800;
-    color: white;
-    margin-bottom: 8px;
-}
+/* BUTTONS */
 
-/* HERO SUB */
-.hero-sub{
-    font-size: 34px;
-    font-weight: 700;
-    color: white;
-}
+.stButton>button{
 
-/* HERO TEXT */
-.hero-text{
-    font-size: 22px;
-    color: #cbd5e1;
-    margin-top: 8px;
-}
+    width:100%;
 
-/* METRIC CARD */
-.metric-card{
-    background: linear-gradient(
-        135deg,
-        rgba(59,130,246,0.35),
-        rgba(96,165,250,0.25)
+    border:none;
+
+    border-radius:12px;
+
+    height:48px;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    color:white;
+
+    background:
+    linear-gradient(
+    90deg,
+    #2563eb,
+    #7c3aed
     );
-
-    border-radius: 24px;
-    padding: 28px;
-
-    border: 1px solid rgba(255,255,255,0.08);
-
-    backdrop-filter: blur(12px);
-
-    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
 }
 
-/* METRIC TITLE */
-.metric-title{
-    font-size: 26px;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 12px;
+/* INPUTS */
+
+.stTextInput input,
+.stNumberInput input,
+.stSelectbox div{
+
+    background:#111827 !important;
+
+    color:white !important;
+
+    border-radius:10px !important;
 }
 
-/* METRIC VALUE */
-.metric-value{
-    font-size: 56px;
-    font-weight: 800;
-    color: white;
+/* DATAFRAME */
+
+[data-testid="stDataFrame"]{
+    border-radius:15px;
+    overflow:hidden;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================
-# SIDEBAR LOGO
-# =========================================
-st.sidebar.markdown("""
-<div class="logo-card">
+# =====================================================
+# SESSION STATE
+# =====================================================
 
-    <div style="
-        font-size:90px;
-        margin-bottom:8px;
-        filter:drop-shadow(0 0 12px rgba(255,120,0,0.55));
-    ">
-        🔥
-    </div>
+if "customers" not in st.session_state:
+    st.session_state.customers = []
 
-    <div style="
-        font-size:34px;
-        font-weight:800;
-        color:white;
-        line-height:1.1;
-    ">
-        Bal Yuva
-    </div>
+if "collections" not in st.session_state:
+    st.session_state.collections = []
 
-    <div style="
-        font-size:34px;
-        font-weight:800;
-        color:#38bdf8;
-        line-height:1.1;
-    ">
-        Mangal Dal
-    </div>
+if "donations" not in st.session_state:
+    st.session_state.donations = []
 
-    <div style="
-        font-size:16px;
-        letter-spacing:5px;
-        color:#cbd5e1;
-        margin-top:14px;
-    ">
-        SMART FINANCE TRACKER
-    </div>
+if "expenses" not in st.session_state:
+    st.session_state.expenses = []
 
-</div>
-""", unsafe_allow_html=True)
+if "users" not in st.session_state:
 
-# =========================================
-# MENU
-# =========================================
-menu = st.sidebar.radio(
-    "Navigation",
-    [
-        "Dashboard",
-        "Customers",
-        "Collections",
-        "Loans",
-        "Donations",
-        "Expenses",
-        "Reports",
-        "Users"
+    st.session_state.users = [
+
+        {
+            "name":"Admin",
+            "role":"Admin"
+        }
     ]
-)
 
-# =========================================
-# DUMMY DATA
-# =========================================
-collections_total = 0
-donations_total = 0
-expenses_total = 0
-customers_total = 0
-balance = 0
+# =====================================================
+# SIDEBAR
+# =====================================================
 
-# =========================================
-# DASHBOARD
-# =========================================
-if menu == "Dashboard":
+with st.sidebar:
 
     st.markdown("""
-    <div class="hero-card">
+    <div style='
+    background:rgba(255,255,255,0.04);
+    padding:22px;
+    border-radius:22px;
+    text-align:center;
+    border:1px solid rgba(255,255,255,0.06);
+    margin-bottom:20px;
+    '>
 
-        <div class="hero-title">
-            📊 Dashboard
-        </div>
+    <div style='
+    font-size:60px;
+    margin-bottom:10px;
+    '>
+    🚀
+    </div>
 
-        <div class="hero-sub">
-            Welcome back 👋
-        </div>
+    <div style='
+    font-size:30px;
+    font-weight:800;
+    color:white;
+    line-height:1.1;
+    '>
+    Bal Yuva
+    </div>
 
-        <div class="hero-text">
-            Here's what's happening today.
-        </div>
+    <div style='
+    font-size:30px;
+    font-weight:800;
+    color:#38bdf8;
+    line-height:1.1;
+    margin-bottom:10px;
+    '>
+    Mangal Dal
+    </div>
+
+    <div style='
+    font-size:11px;
+    letter-spacing:3px;
+    color:#94a3b8;
+    '>
+    SMART FINANCE TRACKER
+    </div>
 
     </div>
     """, unsafe_allow_html=True)
+
+    menu = option_menu(
+        menu_title=None,
+
+        options=[
+            "Dashboard",
+            "Customers",
+            "Collections",
+            "Loans",
+            "Donations",
+            "Expenses",
+            "Reports",
+            "Users"
+        ],
+
+        icons=[
+            "grid-fill",
+            "people-fill",
+            "cash-stack",
+            "bank2",
+            "gift-fill",
+            "wallet2",
+            "bar-chart-fill",
+            "person-fill"
+        ],
+
+        default_index=0,
+
+        styles={
+
+            "container":{
+                "background-color":"transparent",
+                "padding":"0px"
+            },
+
+            "icon":{
+                "color":"white",
+                "font-size":"18px"
+            },
+
+            "nav-link":{
+
+                "font-size":"16px",
+
+                "text-align":"left",
+
+                "margin":"8px 0",
+
+                "padding":"14px",
+
+                "border-radius":"14px",
+
+                "background-color":"#1e293b",
+
+                "color":"white",
+
+                "--hover-color":"#334155",
+            },
+
+            "nav-link-selected":{
+
+                "background":
+                "linear-gradient(90deg,#2563eb,#7c3aed)",
+
+                "font-weight":"700",
+            }
+        }
+    )
+
+# =====================================================
+# DASHBOARD
+# =====================================================
+
+if menu == "Dashboard":
+
+    st.markdown("""
+    <div style='
+
+    background:
+    linear-gradient(
+    135deg,
+    rgba(15,23,42,0.88),
+    rgba(30,41,59,0.88)
+    );
+
+    padding:28px;
+
+    border-radius:24px;
+
+    margin-bottom:25px;
+
+    border:1px solid rgba(96,165,250,0.12);
+
+    box-shadow:0 8px 30px rgba(0,0,0,0.35);
+
+    '>
+
+    <div style='
+    font-size:52px;
+    font-weight:800;
+    color:white;
+    '>
+    📊 Dashboard
+    </div>
+
+    <div style='
+    font-size:34px;
+    font-weight:700;
+    margin-top:10px;
+    color:white;
+    '>
+    Welcome back 👋
+    </div>
+
+    <div style='
+    font-size:18px;
+    color:#94a3b8;
+    margin-top:8px;
+    '>
+    Here's what's happening today.
+    </div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    collections_total = sum(
+        x["amount"]
+        for x in st.session_state.collections
+    )
+
+    donations_total = sum(
+        x["amount"]
+        for x in st.session_state.donations
+    )
+
+    expenses_total = sum(
+        x["amount"]
+        for x in st.session_state.expenses
+    )
+
+    balance = (
+        collections_total
+        + donations_total
+        - expenses_total
+    )
 
     c1, c2, c3, c4 = st.columns(4)
 
     with c1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-title">💵 Collections</div>
-            <div class="metric-value">₹ {collections_total}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric(
+            "💵 Collections",
+            f"₹ {collections_total}"
+        )
 
     with c2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-title">🎁 Donations</div>
-            <div class="metric-value">₹ {donations_total}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric(
+            "🎁 Donations",
+            f"₹ {donations_total}"
+        )
 
     with c3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-title">🛠️ Expenses</div>
-            <div class="metric-value">₹ {expenses_total}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric(
+            "💸 Expenses",
+            f"₹ {expenses_total}"
+        )
 
     with c4:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-title">👥 Customers</div>
-            <div class="metric-value">{customers_total}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.metric(
+            "👥 Customers",
+            len(st.session_state.customers)
+        )
 
     st.write("")
 
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-title">📄 Net Balance</div>
-        <div class="metric-value">₹ {balance}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.metric(
+        "🪙 Net Balance",
+        f"₹ {balance}"
+    )
 
-# =========================================
-# OTHER PAGES
-# =========================================
-else:
-    st.title(menu)
-    st.info(f"{menu} page coming soon...")
+# =====================================================
+# CUSTOMERS
+# =====================================================
+
+elif menu == "Customers":
+
+    st.title("👥 Customers")
+
+    name = st.text_input("Customer Name")
+
+    if st.button("Add Customer"):
+
+        if name:
+
+            st.session_state.customers.append(name)
+
+            st.success("Customer Added Successfully")
+
+    if st.session_state.customers:
+
+        df = pd.DataFrame(
+            st.session_state.customers,
+            columns=["Customer Name"]
+        )
+
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
+
+# =====================================================
+# COLLECTIONS
+# =====================================================
+
+elif menu == "Collections":
+
+    st.title("💵 Collections")
+
+    if len(st.session_state.customers) == 0:
+
+        st.warning("Add customers first")
+
+    else:
+
+        customer = st.selectbox(
+            "Select Customer",
+            st.session_state.customers
+        )
+
+        amount = st.number_input(
+            "Collection Amount",
+            min_value=0.0
+        )
+
+        if st.button("Save Collection"):
+
+            st.session_state.collections.append({
+
+                "customer": customer,
+                "amount": amount
+            })
+
+            st.success("Collection Saved Successfully")
+
+# =====================================================
+# LOANS
+# =====================================================
+
+elif menu == "Loans":
+
+    st.title("🏦 Loans")
+
+    st.info("Loans Section Ready")
+
+# =====================================================
+# DONATIONS
+# =====================================================
+
+elif menu == "Donations":
+
+    st.title("🎁 Donations")
+
+    amount = st.number_input(
+        "Donation Amount",
+        min_value=0.0
+    )
+
+    if st.button("Save Donation"):
+
+        st.session_state.donations.append({
+
+            "amount": amount
+        })
+
+        st.success("Donation Saved Successfully")
+
+# =====================================================
+# EXPENSES
+# =====================================================
+
+elif menu == "Expenses":
+
+    st.title("💸 Expenses")
+
+    amount = st.number_input(
+        "Expense Amount",
+        min_value=0.0
+    )
+
+    if st.button("Save Expense"):
+
+        st.session_state.expenses.append({
+
+            "amount": amount
+        })
+
+        st.success("Expense Saved Successfully")
+
+# =====================================================
+# REPORTS
+# =====================================================
+
+elif menu == "Reports":
+
+    st.title("📊 Reports")
+
+    report_data = pd.DataFrame({
+
+        "Category": [
+            "Collections",
+            "Donations",
+            "Expenses"
+        ],
+
+        "Amount": [
+
+            sum(
+                x["amount"]
+                for x in st.session_state.collections
+            ),
+
+            sum(
+                x["amount"]
+                for x in st.session_state.donations
+            ),
+
+            sum(
+                x["amount"]
+                for x in st.session_state.expenses
+            )
+        ]
+    })
+
+    st.dataframe(
+        report_data,
+        use_container_width=True
+    )
+
+    st.bar_chart(
+        report_data.set_index("Category")
+    )
+
+# =====================================================
+# USERS
+# =====================================================
+
+elif menu == "Users":
+
+    st.title("👨‍💻 User Management")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        username = st.text_input("User Name")
+
+    with col2:
+
+        role = st.selectbox(
+            "Select Role",
+            ["Admin", "Editor", "Viewer"]
+        )
+
+    if st.button("Add User"):
+
+        if username:
+
+            st.session_state.users.append({
+
+                "name": username,
+                "role": role
+            })
+
+            st.success("User Added Successfully")
+
+    st.write("")
+
+    users_df = pd.DataFrame(
+        st.session_state.users
+    )
+
+    st.dataframe(
+        users_df,
+        use_container_width=True
+    )
