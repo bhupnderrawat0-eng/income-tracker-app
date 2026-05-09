@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 import plotly.express as px
 from streamlit_option_menu import option_menu
+import base64
 
 # =====================================================
 # PAGE CONFIG
@@ -209,10 +210,29 @@ if not st.session_state.logged_in:
 
 with st.sidebar:
 
-    st.image(
-        "logo.png",
-        width=180
-    )
+    st.markdown("""
+    <div style="
+    background: linear-gradient(180deg,#0f172a,#111827);
+    padding:20px;
+    border-radius:24px;
+    text-align:center;
+    margin-bottom:20px;
+    border:1px solid rgba(255,255,255,0.08);
+    ">
+
+    <img src="data:image/png;base64,{}"
+    width="170"
+    style="
+    border-radius:20px;
+    object-fit:contain;
+    "/>
+
+    </div>
+    """.format(
+        base64.b64encode(
+            open("logo.png", "rb").read()
+        ).decode()
+    ), unsafe_allow_html=True)
 
     st.markdown("""
     <h2 style='text-align:center;color:white;'>
