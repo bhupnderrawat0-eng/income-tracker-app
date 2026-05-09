@@ -33,6 +33,10 @@ if "expenses" not in st.session_state:
 st.markdown("""
 <style>
 
+html, body, [class*="css"]{
+    font-family:'Segoe UI',sans-serif;
+}
+
 .stApp{
     background:
     radial-gradient(circle at top left,#1e3a8a 0%,#020617 40%),
@@ -58,15 +62,16 @@ section[data-testid="stSidebar"]{
 }
 
 .metric-title{
-    color:#cbd5e1;
-    font-size:18px;
-    margin-bottom:10px;
+    color:#ffffff;
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:12px;
 }
 
 .metric-value{
-    color:white;
-    font-size:42px;
-    font-weight:700;
+    color:#ffffff;
+    font-size:46px;
+    font-weight:900;
 }
 
 .sidebar-logo{
@@ -180,7 +185,7 @@ if menu == "Dashboard":
 
     <div style="
     font-size:18px;
-    color:#94a3b8;
+    color:#cbd5e1;
     margin-top:8px;
     ">
     Here's what's happening today.
