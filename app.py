@@ -53,14 +53,19 @@ section[data-testid="stSidebar"] {
     #0f172a
     );
 
+    background-color:#020617 !important;
+
     border-right:
     1px solid rgba(255,255,255,0.08);
 
     min-height:100vh;
 }
 
-/* REMOVE WHITE BOX */
+/* FIX WHITE BACKGROUND */
 
+.st-emotion-cache-1v0mbdj,
+.st-emotion-cache-16txtl3,
+.st-emotion-cache-6qob1r,
 .css-1d391kg,
 .css-163ttbj,
 .css-1wrcr25 {
@@ -231,11 +236,9 @@ with st.sidebar:
 
                 "padding":"12px 16px",
 
-                "background-color":"rgba(255,255,255,0.05)",
+                "background-color":"transparent",
 
                 "transition":"0.3s",
-
-                "--hover-color":"rgba(37,99,235,0.25)",
             },
 
             "nav-link-selected": {
