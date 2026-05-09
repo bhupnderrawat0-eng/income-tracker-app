@@ -605,28 +605,30 @@ elif menu == "Users":
     col1, col2 = st.columns(2)
 
     with col1:
+    username = st.text_input("User Name")
 
-        username = st.text_input("User Name")
+with col2:
+    password = st.text_input("Password", type="password")
 
-    with col2:
+with col3:
+    role = st.selectbox(
+        "Select Role",
+        ["Admin", "Editor", "Viewer"]
+    )
 
-        role = st.selectbox(
-            "Select Role",
-            ["Admin", "Editor", "Viewer"]
-        )
+if st.button("Add User"):
 
-    if st.button("Add User"):
+    if username and password:
 
-        if username:
+        st.session_state.users.append({
 
-            st.session_state.users.append({
+            "name": username,
+            "password": password,
+            "role": role
 
-                "name": username,
-                "role": role
-            })
+        })
 
-            st.success("User Added Successfully")
-
+        st.success("User Added Successfully!")
     st.write("")
 
     users_df = pd.DataFrame(
