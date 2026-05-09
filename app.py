@@ -4,78 +4,173 @@ from datetime import datetime
 import plotly.express as px
 from streamlit_option_menu import option_menu
 
-from io import BytesIO
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer
-)
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.pagesizes import letter
-
 # =====================================================
 # PAGE CONFIG
 # =====================================================
 
 st.set_page_config(
-    page_title="Smart Finance Tracker Pro",
-    page_icon="💰",
+    page_title="Bal Yuva Mangal Dal",
+    page_icon="logo.png",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # =====================================================
-# PROFESSIONAL UI
+# PREMIUM DARK UI
 # =====================================================
 
 st.markdown("""
 <style>
 
-.main {
-    background-color: #0e1117;
+#MainMenu {
+    visibility:hidden;
+}
+
+footer {
+    visibility:hidden;
+}
+
+header {
+    visibility:hidden;
 }
 
 .stApp {
-    background: #0e1117;
-    color: white;
+    background:
+    linear-gradient(
+    135deg,
+    #020617,
+    #0f172a,
+    #111827
+    );
+    color:white;
 }
+
+/* =========================
+SIDEBAR
+========================= */
 
 section[data-testid="stSidebar"] {
-    background: #111827;
+
+    background:
+    linear-gradient(
+    180deg,
+    #020617,
+    #0f172a
+    );
+
+    border-right:
+    1px solid rgba(255,255,255,0.08);
 }
 
+/* =========================
+METRIC CARDS
+========================= */
+
 div[data-testid="metric-container"] {
-    background: linear-gradient(135deg,#1f2937,#111827);
-    padding: 20px;
-    border-radius: 18px;
-    border: 1px solid #374151;
-    box-shadow: 0px 0px 15px rgba(0,0,0,0.4);
+
+    background:
+    rgba(17,24,39,0.85);
+
+    border:
+    1px solid rgba(255,255,255,0.08);
+
+    padding:22px;
+
+    border-radius:20px;
+
+    backdrop-filter:blur(12px);
+
+    box-shadow:
+    0 8px 30px rgba(0,0,0,0.35);
+
+    transition:0.3s;
+}
+
+div[data-testid="metric-container"]:hover {
+
+    transform:translateY(-4px);
+
+    box-shadow:
+    0 12px 35px rgba(0,0,0,0.45);
 }
 
 div[data-testid="metric-container"] label {
-    color: #9ca3af !important;
+
+    color:#94a3b8 !important;
 }
 
 div[data-testid="metric-container"] div {
-    color: white !important;
+
+    color:white !important;
 }
+
+/* =========================
+BUTTONS
+========================= */
 
 .stButton>button {
-    width: 100%;
-    border-radius: 12px;
-    height: 3em;
-    background: linear-gradient(90deg,#2563eb,#1d4ed8);
-    color: white;
-    border: none;
-    font-weight: bold;
+
+    width:100%;
+
+    border-radius:14px;
+
+    height:3.2em;
+
+    border:none;
+
+    font-weight:600;
+
+    color:white;
+
+    background:
+    linear-gradient(
+    90deg,
+    #2563eb,
+    #1d4ed8
+    );
+
+    transition:0.3s;
 }
 
-.stTextInput>div>div>input {
-    border-radius: 10px;
+.stButton>button:hover {
+
+    transform:scale(1.02);
+
+    background:
+    linear-gradient(
+    90deg,
+    #1d4ed8,
+    #2563eb
+    );
 }
 
+/* =========================
+INPUTS
+========================= */
+
+.stTextInput>div>div>input,
 .stNumberInput>div>div>input {
-    border-radius: 10px;
+
+    border-radius:12px;
+}
+
+/* =========================
+TABLES
+========================= */
+
+[data-testid="stDataFrame"] {
+
+    border-radius:16px;
+    overflow:hidden;
+}
+
+/* =========================
+HEADINGS
+========================= */
+
+h1,h2,h3 {
+
+    color:white !important;
 }
 
 </style>
@@ -147,39 +242,71 @@ def login(username, password):
 
 if not st.session_state.logged_in:
 
-    st.title("🔐 Smart Finance Tracker Login")
+    st.title("🔐 Bal Yuva Mangal Dal Login")
 
     username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    password = st.text_input(
+        "Password",
+        type="password"
+    )
 
     if st.button("Login"):
 
-        success = login(username, password)
+        success = login(
+            username,
+            password
+        )
 
         if success:
+
             st.success("Login Successful")
             st.rerun()
 
         else:
+
             st.error("Invalid Login")
 
     st.stop()
 
 # =====================================================
-# SIDEBAR
+# PREMIUM SIDEBAR
 # =====================================================
 
 with st.sidebar:
 
     st.image(
-        "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-        width=100
+        "logo.png",
+        width=220
     )
 
-    st.markdown("## 💰 Smart Finance Tracker")
+    st.markdown("""
+
+    <h2 style='
+    text-align:center;
+    color:white;
+    margin-top:-10px;
+    '>
+
+    Bal Yuva Mangal Dal
+
+    </h2>
+
+    <p style='
+    text-align:center;
+    color:#94a3b8;
+    font-size:14px;
+    margin-top:-15px;
+    '>
+
+    SMART FINANCE TRACKER
+
+    </p>
+
+    """, unsafe_allow_html=True)
 
     menu = option_menu(
         menu_title=None,
+
         options=[
             "Dashboard",
             "Customers",
@@ -190,25 +317,78 @@ with st.sidebar:
             "Reports",
             "Users"
         ],
+
         icons=[
-            "house",
-            "people",
+            "house-fill",
+            "people-fill",
             "cash-stack",
-            "bank",
-            "gift",
+            "bank2",
+            "gift-fill",
             "wallet2",
-            "bar-chart",
-            "person"
+            "bar-chart-fill",
+            "person-fill"
         ],
+
         default_index=0,
+
+        styles={
+
+            "container": {
+                "padding":"0!important",
+                "background-color":"transparent"
+            },
+
+            "icon": {
+                "color":"white",
+                "font-size":"18px"
+            },
+
+            "nav-link": {
+
+                "font-size":"16px",
+                "text-align":"left",
+                "margin":"6px",
+                "border-radius":"14px",
+                "color":"#e2e8f0",
+                "padding":"12px",
+            },
+
+            "nav-link-selected": {
+
+                "background":
+                "linear-gradient(90deg,#2563eb,#1d4ed8)",
+
+                "color":"white",
+            },
+        }
     )
 
     st.divider()
 
-    st.write(f"👤 {st.session_state.username}")
-    st.write(f"🔐 {st.session_state.role}")
+    st.markdown(f"""
 
-    if st.button("Logout"):
+    <div style="
+    background:rgba(17,24,39,0.9);
+    padding:15px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,0.08);
+    ">
+
+    <h4 style="color:white;">
+    👤 {st.session_state.username}
+    </h4>
+
+    <p style="color:#94a3b8;">
+    🔐 {st.session_state.role}
+    </p>
+
+    </div>
+
+    """, unsafe_allow_html=True)
+
+    st.write("")
+
+    if st.button("🚪 Logout"):
 
         st.session_state.logged_in = False
         st.rerun()
@@ -219,7 +399,7 @@ with st.sidebar:
 
 if menu == "Dashboard":
 
-    st.title("📊 Finance Dashboard")
+    st.title("📊 Dashboard")
 
     collections_total = sum(
         x["amount"]
@@ -246,7 +426,10 @@ if menu == "Dashboard":
         for x in st.session_state.loans
     )
 
-    remaining_loans = total_loans - returned_loans
+    remaining_loans = (
+        total_loans
+        - returned_loans
+    )
 
     balance = (
         collections_total
@@ -254,29 +437,61 @@ if menu == "Dashboard":
         - expenses_total
     )
 
+    # =========================
+    # METRICS
+    # =========================
+
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("💵 Collections", f"₹ {collections_total:,.0f}")
-    c2.metric("🎁 Donations", f"₹ {donations_total:,.0f}")
-    c3.metric("💸 Expenses", f"₹ {expenses_total:,.0f}")
-    c4.metric("🏦 Loan Pending", f"₹ {remaining_loans:,.0f}")
+    c1.metric(
+        "💵 Collections",
+        f"₹ {collections_total:,.0f}"
+    )
 
-    st.divider()
+    c2.metric(
+        "🎁 Donations",
+        f"₹ {donations_total:,.0f}"
+    )
+
+    c3.metric(
+        "💸 Expenses",
+        f"₹ {expenses_total:,.0f}"
+    )
+
+    c4.metric(
+        "🏦 Loan Pending",
+        f"₹ {remaining_loans:,.0f}"
+    )
+
+    st.write("")
 
     c5, c6 = st.columns(2)
 
-    c5.metric("🪙 Net Balance", f"₹ {balance:,.0f}")
-    c6.metric("👥 Customers", len(st.session_state.customers))
+    c5.metric(
+        "🪙 Net Balance",
+        f"₹ {balance:,.0f}"
+    )
+
+    c6.metric(
+        "👥 Customers",
+        len(st.session_state.customers)
+    )
 
     st.divider()
 
+    # =========================
+    # CHART
+    # =========================
+
     chart_data = pd.DataFrame({
-        "Category": [
+
+        "Category":[
             "Collections",
             "Donations",
             "Expenses"
         ],
-        "Amount": [
+
+        "Amount":[
             collections_total,
             donations_total,
             expenses_total
@@ -284,11 +499,27 @@ if menu == "Dashboard":
     })
 
     fig = px.bar(
+
         chart_data,
+
         x="Category",
+
         y="Amount",
+
         text="Amount",
+
         title="Finance Overview"
+    )
+
+    fig.update_layout(
+
+        paper_bgcolor="#0f172a",
+
+        plot_bgcolor="#0f172a",
+
+        font_color="white",
+
+        title_font_color="white"
     )
 
     st.plotly_chart(
@@ -296,178 +527,47 @@ if menu == "Dashboard":
         use_container_width=True
     )
 
-# =====================================================
-# CUSTOMERS
-# =====================================================
+    st.divider()
 
-elif menu == "Customers":
+    # =========================
+    # QUICK ACTIONS
+    # =========================
 
-    st.title("👥 Customers")
+    st.subheader("⚡ Quick Actions")
 
-    name = st.text_input("Customer Name")
+    q1, q2, q3, q4 = st.columns(4)
 
-    if st.button("Add Customer"):
+    with q1:
+        st.button("➕ Add Customer")
 
-        if name != "":
+    with q2:
+        st.button("💰 Add Collection")
 
-            st.session_state.customers.append(name)
+    with q3:
+        st.button("🏦 Start Loan")
 
-            st.success("Customer Added")
+    with q4:
+        st.button("🎁 Add Donation")
 
-    if st.session_state.customers:
+    st.divider()
 
-        df = pd.DataFrame(
-            st.session_state.customers,
-            columns=["Customer Name"]
-        )
+    # =========================
+    # FOOTER
+    # =========================
 
-        st.dataframe(df, use_container_width=True)
+    st.markdown("""
 
-# =====================================================
-# COLLECTIONS
-# =====================================================
+    <div style="
+    text-align:center;
+    color:#94a3b8;
+    padding:20px;
+    ">
 
-elif menu == "Collections":
+    Made with ❤️ by
+    <span style="color:#fbbf24;">
+    Bal Yuva Mangal Dal
+    </span>
 
-    st.title("💵 Collections")
+    </div>
 
-    if len(st.session_state.customers) == 0:
-
-        st.warning("Please add customers first")
-
-    else:
-
-        customer = st.selectbox(
-            "Customer",
-            st.session_state.customers
-        )
-
-        month = st.text_input(
-            "Month",
-            value=datetime.now().strftime("%B %Y")
-        )
-
-        amount = st.number_input(
-            "Amount",
-            min_value=0.0
-        )
-
-        status = st.selectbox(
-            "Status",
-            ["Paid", "Pending"]
-        )
-
-        payment_date = st.date_input(
-            "Payment Date"
-        )
-
-        if st.button("Save Collection"):
-
-            st.session_state.collections.append({
-                "customer": customer,
-                "month": month,
-                "amount": amount,
-                "status": status,
-                "date": str(payment_date)
-            })
-
-            st.success("Collection Saved")
-
-# =====================================================
-# LOANS
-# =====================================================
-
-elif menu == "Loans":
-
-    st.title("🏦 Loans")
-
-    tab1, tab2 = st.tabs([
-        "Start Loan",
-        "Loan Management"
-    ])
-
-    with tab1:
-
-        if len(st.session_state.customers) == 0:
-
-            st.warning("Please add customers first")
-
-        else:
-
-            customer = st.selectbox(
-                "Select Customer",
-                st.session_state.customers
-            )
-
-            loan_amount = st.number_input(
-                "Loan Amount",
-                min_value=0.0
-            )
-
-            interest_rate = st.number_input(
-                "Interest %",
-                min_value=0.0
-            )
-
-            if st.button("Start Loan"):
-
-                st.session_state.loans.append({
-                    "customer": customer,
-                    "loan_amount": loan_amount,
-                    "returned": 0.0,
-                    "interest_rate": interest_rate
-                })
-
-                st.success("Loan Started")
-
-    with tab2:
-
-        if len(st.session_state.loans) == 0:
-
-            st.info("No loans available")
-
-        else:
-
-            customer_names = [
-                x["customer"]
-                for x in st.session_state.loans
-            ]
-
-            selected_customer = st.selectbox(
-                "Select Customer",
-                customer_names
-            )
-
-            loan = next(
-                x for x in st.session_state.loans
-                if x["customer"] == selected_customer
-            )
-
-            original_loan = loan["loan_amount"]
-            returned = loan["returned"]
-
-            remaining = original_loan - returned
-
-            interest = (
-                remaining
-                * loan["interest_rate"]
-                / 100
-            )
-
-            c1, c2, c3, c4 = st.columns(4)
-
-            c1.metric("🏦 Original Loan", f"₹ {original_loan}")
-            c2.metric("💰 Returned", f"₹ {returned}")
-            c3.metric("📄 Remaining", f"₹ {remaining}")
-            c4.metric("📈 Interest", f"₹ {interest}")
-
-            return_amount = st.number_input(
-                "Return Amount",
-                min_value=0.0
-            )
-
-            if st.button("Save Return"):
-
-                loan["returned"] += return_amount
-
-                st.success("Return Saved")
+    """, unsafe_allow_html=True)
