@@ -347,12 +347,7 @@ if menu == "Dashboard":
     st.markdown("""
     <div style='
 
-    background:
-    linear-gradient(
-    135deg,
-    rgba(15,23,42,0.88),
-    rgba(30,41,59,0.88)
-    );
+    background: linear-gradient(135deg, rgba(15,23,42,0.88), rgba(30,41,59,0.88));
 
     padding:28px;
 
