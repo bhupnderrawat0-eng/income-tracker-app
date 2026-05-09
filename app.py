@@ -81,13 +81,13 @@ div[data-testid="metric-container"]:hover {
 .stButton>button {
 
     width:100%;
-    height:58px;
+    height:50px;
 
     border:none;
 
-    border-radius:18px;
+    border-radius:14px;
 
-    font-size:18px;
+    font-size:16px;
 
     font-weight:600;
 
@@ -99,22 +99,6 @@ div[data-testid="metric-container"]:hover {
     #2563eb,
     #4f46e5
     );
-}
-
-/* INPUTS */
-
-.stTextInput input,
-.stNumberInput input {
-
-    border-radius:14px !important;
-}
-
-/* TABLES */
-
-[data-testid="stDataFrame"] {
-
-    border-radius:20px;
-    overflow:hidden;
 }
 
 h1,h2,h3,h4 {
@@ -190,7 +174,7 @@ def login(username, password):
 
 if not st.session_state.logged_in:
 
-    st.title("🔐 Bal Yuva Mangal Dal Login")
+    st.title("🔐 Login")
 
     username = st.text_input("Username")
 
@@ -229,28 +213,13 @@ with st.sidebar:
     )
 
     st.markdown("""
-
-    <h2 style='
-    text-align:center;
-    color:white;
-    margin-top:-10px;
-    '>
-
+    <h2 style='text-align:center;color:white;'>
     Bal Yuva Mangal Dal
-
     </h2>
 
-    <p style='
-    text-align:center;
-    color:#94a3b8;
-    font-size:14px;
-    margin-top:-15px;
-    '>
-
+    <p style='text-align:center;color:gray;'>
     SMART FINANCE TRACKER
-
     </p>
-
     """, unsafe_allow_html=True)
 
     menu = option_menu(
@@ -296,46 +265,23 @@ with st.sidebar:
 
                 "font-size":"16px",
                 "text-align":"left",
-                "margin":"8px",
-                "border-radius":"14px",
-                "color":"#e2e8f0",
-                "padding":"14px",
+                "margin":"6px",
+                "border-radius":"12px",
+                "color":"white",
             },
 
             "nav-link-selected": {
 
                 "background":
                 "linear-gradient(90deg,#2563eb,#4f46e5)",
-
-                "color":"white",
             },
         }
     )
 
     st.divider()
 
-    st.markdown(f"""
-
-    <div style="
-    background:rgba(15,23,42,0.8);
-    padding:15px;
-    border-radius:18px;
-    border:1px solid rgba(255,255,255,0.08);
-    ">
-
-    <h4 style="color:white;">
-    👤 {st.session_state.username}
-    </h4>
-
-    <p style="color:#94a3b8;">
-    🔐 {st.session_state.role}
-    </p>
-
-    </div>
-
-    """, unsafe_allow_html=True)
-
-    st.write("")
+    st.write(f"👤 {st.session_state.username}")
+    st.write(f"🔐 {st.session_state.role}")
 
     if st.button("🚪 Logout"):
 
@@ -391,28 +337,26 @@ if menu == "Dashboard":
         - expenses_total
     )
 
-    # METRICS
-
     c1, c2, c3, c4 = st.columns(4)
 
     c1.metric(
         "💵 Collections",
-        f"₹ {collections_total:,.0f}"
+        f"₹ {collections_total}"
     )
 
     c2.metric(
         "🎁 Donations",
-        f"₹ {donations_total:,.0f}"
+        f"₹ {donations_total}"
     )
 
     c3.metric(
         "💸 Expenses",
-        f"₹ {expenses_total:,.0f}"
+        f"₹ {expenses_total}"
     )
 
     c4.metric(
         "🏦 Loan Pending",
-        f"₹ {remaining_loans:,.0f}"
+        f"₹ {remaining_loans}"
     )
 
     st.write("")
@@ -421,7 +365,7 @@ if menu == "Dashboard":
 
     c5.metric(
         "🪙 Net Balance",
-        f"₹ {balance:,.0f}"
+        f"₹ {balance}"
     )
 
     c6.metric(
@@ -430,8 +374,6 @@ if menu == "Dashboard":
     )
 
     st.divider()
-
-    # CHART
 
     chart_data = pd.DataFrame({
 
@@ -448,55 +390,23 @@ if menu == "Dashboard":
         ]
     })
 
-    fig = px.line(
+    fig = px.bar(
         chart_data,
         x="Category",
         y="Amount",
-        markers=True
+        text="Amount"
     )
 
     fig.update_layout(
-
         paper_bgcolor="#020617",
-
         plot_bgcolor="#020617",
-
-        font_color="white",
-
-        height=450,
-
-        margin=dict(
-            l=20,
-            r=20,
-            t=40,
-            b=20
-        )
+        font_color="white"
     )
 
     st.plotly_chart(
         fig,
         use_container_width=True
     )
-
-    st.divider()
-
-    # QUICK ACTIONS
-
-    st.subheader("⚡ Quick Actions")
-
-    q1, q2, q3, q4 = st.columns(4)
-
-    with q1:
-        st.button("➕ Add Customer")
-
-    with q2:
-        st.button("💰 Add Collection")
-
-    with q3:
-        st.button("🏦 Start Loan")
-
-    with q4:
-        st.button("🎁 Add Donation")
 
 # =====================================================
 # CUSTOMERS
@@ -614,6 +524,13 @@ elif menu == "Loans":
 
         st.success("Loan Started")
 
+    if st.session_state.loans:
+
+        st.dataframe(
+            pd.DataFrame(st.session_state.loans),
+            use_container_width=True
+        )
+
 # =====================================================
 # DONATIONS
 # =====================================================
@@ -640,6 +557,13 @@ elif menu == "Donations":
         })
 
         st.success("Donation Saved")
+
+    if st.session_state.donations:
+
+        st.dataframe(
+            pd.DataFrame(st.session_state.donations),
+            use_container_width=True
+        )
 
 # =====================================================
 # EXPENSES
@@ -668,6 +592,13 @@ elif menu == "Expenses":
 
         st.success("Expense Saved")
 
+    if st.session_state.expenses:
+
+        st.dataframe(
+            pd.DataFrame(st.session_state.expenses),
+            use_container_width=True
+        )
+
 # =====================================================
 # REPORTS
 # =====================================================
@@ -676,14 +607,21 @@ elif menu == "Reports":
 
     st.title("📊 Reports")
 
-    collections_df = pd.DataFrame(
-        st.session_state.collections
-    )
+    st.subheader("Collections Report")
 
-    if not collections_df.empty:
+    if st.session_state.collections:
 
         st.dataframe(
-            collections_df,
+            pd.DataFrame(st.session_state.collections),
+            use_container_width=True
+        )
+
+    st.subheader("Loans Report")
+
+    if st.session_state.loans:
+
+        st.dataframe(
+            pd.DataFrame(st.session_state.loans),
             use_container_width=True
         )
 
@@ -724,3 +662,12 @@ elif menu == "Users":
             }
 
             st.success("User Created")
+
+        users_df = pd.DataFrame(
+            st.session_state.users
+        ).T
+
+        st.dataframe(
+            users_df,
+            use_container_width=True
+        )
