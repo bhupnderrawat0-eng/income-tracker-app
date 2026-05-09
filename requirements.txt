@@ -3,3 +3,6 @@ uvicorn
 streamlit
 python-multipart
 jinja2
+plotly
+streamlit-option-menu
+streamlit-extras
