@@ -24,90 +24,81 @@ st.markdown("""
 footer {visibility:hidden;}
 header {visibility:hidden;}
 
-.block-container{
-    padding-top:1rem;
+.stApp{
+    background:
+    linear-gradient(
+    135deg,
+    #0f172a,
+    #020617
+    );
 }
 
-/* MAIN APP */
+/* MAIN CONTENT */
 
-.stApp {
-    background:
-    radial-gradient(circle at top,
-    #111827,
-    #020617);
-    color:white;
+.block-container{
+    padding-top:2rem;
+    padding-left:2rem;
+    padding-right:2rem;
 }
 
 /* SIDEBAR */
 
-section[data-testid="stSidebar"] {
-
-    width:320px !important;
-    min-width:320px !important;
+section[data-testid="stSidebar"]{
 
     background:
     linear-gradient(
     180deg,
-    #020617,
+    #111827,
     #0f172a
     );
 
     border-right:
     1px solid rgba(255,255,255,0.08);
 
-    min-height:100vh;
+    width:300px !important;
 }
 
-/* SIDEBAR TEXT */
+/* TEXT */
 
-section[data-testid="stSidebar"] * {
+h1,h2,h3,h4,h5,h6,p,label,span{
     color:white !important;
-}
-
-/* REMOVE WHITE BACKGROUND */
-
-[data-testid="stSidebarNav"],
-[data-testid="stSidebarContent"],
-section[data-testid="stSidebar"] > div {
-    background: transparent !important;
 }
 
 /* METRIC CARDS */
 
-div[data-testid="metric-container"] {
+div[data-testid="metric-container"]{
 
     background:
-    rgba(15,23,42,0.65);
+    rgba(17,24,39,0.85);
 
     border:
     1px solid rgba(255,255,255,0.06);
 
-    border-radius:22px;
+    border-radius:20px;
 
-    padding:20px;
-
-    backdrop-filter:blur(10px);
+    padding:25px;
 
     box-shadow:
-    0 8px 30px rgba(0,0,0,0.35);
+    0 10px 25px rgba(0,0,0,0.35);
 
-    transition:0.3s;
+    backdrop-filter:blur(10px);
 }
 
-/* BUTTON */
+/* BUTTONS */
 
-.stButton>button {
+.stButton>button{
 
     width:100%;
-    height:48px;
 
     border:none;
 
-    border-radius:14px;
+    border-radius:12px;
+
+    height:48px;
 
     font-size:16px;
 
-    font-weight:600;
+    font-weight:700;
 
     color:white;
 
@@ -119,8 +110,24 @@ div[data-testid="metric-container"] {
     );
 }
 
-h1,h2,h3,h4,h5,p {
+/* INPUTS */
+
+.stTextInput input,
+.stNumberInput input,
+.stSelectbox div{
+
+    background:#111827 !important;
+
     color:white !important;
+
+    border-radius:10px !important;
+}
+
+/* DATAFRAME */
+
+[data-testid="stDataFrame"]{
+    border-radius:15px;
+    overflow:hidden;
 }
 
 </style>
@@ -148,9 +155,10 @@ if "expenses" not in st.session_state:
 
 with st.sidebar:
 
-    st.markdown("# 🪔")
-    st.markdown("## Bal Yuva")
-    st.markdown("## Mangal Dal")
+    st.markdown("""
+    # 🪔 Bal Yuva
+    ### Mangal Dal
+    """)
 
     st.caption("SMART FINANCE TRACKER")
 
@@ -171,7 +179,7 @@ with st.sidebar:
         ],
 
         icons=[
-            "house-fill",
+            "grid-fill",
             "people-fill",
             "cash-stack",
             "bank2",
@@ -185,39 +193,42 @@ with st.sidebar:
 
         styles={
 
-            "container": {
-                "padding":"0!important",
+            "container":{
                 "background-color":"transparent",
+                "padding":"0px"
             },
 
-            "icon": {
+            "icon":{
                 "color":"white",
                 "font-size":"18px"
             },
 
-            "nav-link": {
+            "nav-link":{
 
-                "font-size":"15px",
+                "font-size":"16px",
+
                 "text-align":"left",
-                "margin":"8px 0",
-                "border-radius":"12px",
 
-                "background-color":"#111827",
+                "margin":"8px 0",
+
+                "padding":"14px",
+
+                "border-radius":"14px",
+
+                "background-color":"#1e293b",
 
                 "color":"white",
 
-                "padding":"14px",
+                "--hover-color":"#334155",
             },
 
-            "nav-link-selected": {
+            "nav-link-selected":{
 
                 "background":
                 "linear-gradient(90deg,#2563eb,#7c3aed)",
 
-                "color":"white",
-
                 "font-weight":"700",
-            },
+            }
         }
     )
 
