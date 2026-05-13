@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import hashlib
 from streamlit_option_menu import option_menu
 import datetime
 
@@ -10,71 +9,45 @@ import datetime
 st.set_page_config(page_title="Bal Yuva Mangal Dal", page_icon="🚀", layout="wide")
 
 # =====================================
-# CSS (FINAL FIXED UI)
+# CSS
 # =====================================
 st.markdown("""
 <style>
-
 #MainMenu {visibility:hidden;}
 footer {visibility:hidden;}
 header {visibility:hidden;}
 div[data-testid="stToolbar"] {visibility:hidden;}
-div[data-testid="stDecoration"] {visibility:hidden;}
 
 .stApp{
     background: linear-gradient(135deg,#0f172a,#020617);
 }
 
-.block-container{
-    padding-top:1rem;
-    padding-left:2rem;
-    padding-right:2rem;
-}
-
-section[data-testid="stSidebar"]{
-    background: linear-gradient(180deg,#111827,#0f172a);
-    border-right:1px solid rgba(255,255,255,0.08);
-}
-
-h1,h2,h3,h4,h5,h6,p,label,span{
+h1,h2,h3,p,label{
     color:white !important;
-}
-
-.stButton>button{
-    border-radius:10px;
-    height:45px;
-    font-weight:bold;
-    background: linear-gradient(90deg,#2563eb,#7c3aed);
-    color:white;
 }
 
 .stTextInput input,
 .stNumberInput input,
-.stSelectbox div{
+.stSelectbox div,
+.stDateInput input{
     background:#111827 !important;
     color:white !important;
 }
 
+.stButton>button{
+    background: linear-gradient(90deg,#2563eb,#7c3aed);
+    color:white;
+    border-radius:10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # =====================================
 # SESSION STATE
 # =====================================
-if "customers" not in st.session_state:
-    st.session_state.customers = []
-
-if "collections" not in st.session_state:
-    st.session_state.collections = []
-
-if "loans" not in st.session_state:
-    st.session_state.loans = []
-
-if "donations" not in st.session_state:
-    st.session_state.donations = []
-
-if "expenses" not in st.session_state:
-    st.session_state.expenses = []
+for key in ["customers","collections","loans","donations","expenses"]:
+    if key not in st.session_state:
+        st.session_state[key] = []
 
 # =====================================
 # SIDEBAR
@@ -85,8 +58,7 @@ with st.sidebar:
     menu = option_menu(
         None,
         ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports"],
-        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up"],
-        default_index=0
+        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up"]
     )
 
 # =====================================
@@ -99,6 +71,7 @@ if menu == "Dashboard":
     total_col = sum(x["amount"] for x in st.session_state.collections)
     total_don = sum(x["amount"] for x in st.session_state.donations)
     total_exp = sum(x["amount"] for x in st.session_state.expenses)
+
     balance = total_col + total_don - total_exp
 
     c1,c2,c3,c4 = st.columns(4)
@@ -117,13 +90,8 @@ elif menu == "Customers":
 
     st.title("👥 Customers")
 
-    col1,col2 = st.columns(2)
-
-    with col1:
-        name = st.text_input("Name")
-
-    with col2:
-        mobile = st.text_input("Mobile")
+    name = st.text_input("Name")
+    mobile = st.text_input("Mobile")
 
     if st.button("Add Customer"):
         if name and mobile:
@@ -132,8 +100,6 @@ elif menu == "Customers":
                 "mobile": mobile
             })
             st.success("Added")
-        else:
-            st.error("Fill details")
 
     if st.session_state.customers:
         st.dataframe(pd.DataFrame(st.session_state.customers))
@@ -160,29 +126,22 @@ elif menu == "Collections":
             [datetime.datetime.now().strftime("%B %Y")]
         )
 
+        start_date = st.date_input("Collection Start Date")
+
         amount = st.number_input("Amount", min_value=0.0)
 
-        if st.button("Save"):
+        if st.button("Save Collection"):
             st.session_state.collections.append({
                 "name": customer["name"],
                 "mobile": customer["mobile"],
                 "month": month,
+                "start_date": str(start_date),
                 "amount": amount
             })
             st.success("Saved")
 
     if st.session_state.collections:
-        df = pd.DataFrame(st.session_state.collections)
-
-        filter_month = st.selectbox(
-            "Filter",
-            ["All"] + list(df["month"].unique())
-        )
-
-        if filter_month != "All":
-            df = df[df["month"] == filter_month]
-
-        st.dataframe(df)
+        st.dataframe(pd.DataFrame(st.session_state.collections))
 
 # =====================================
 # LOANS
@@ -201,14 +160,17 @@ elif menu == "Loans":
             format_func=lambda x: f"{x['name']} ({x['mobile']})"
         )
 
+        loan_date = st.date_input("Loan Start Date")
         amount = st.number_input("Loan Amount", min_value=0.0)
 
         if st.button("Give Loan"):
             st.session_state.loans.append({
                 "name": customer["name"],
+                "mobile": customer["mobile"],
+                "start_date": str(loan_date),
                 "amount": amount
             })
-            st.success("Loan added")
+            st.success("Loan Saved")
 
     if st.session_state.loans:
         st.dataframe(pd.DataFrame(st.session_state.loans))
@@ -220,11 +182,19 @@ elif menu == "Donations":
 
     st.title("🎁 Donations")
 
+    donor = st.text_input("Donor Name")
     amount = st.number_input("Amount", min_value=0.0)
 
-    if st.button("Save"):
-        st.session_state.donations.append({"amount": amount})
-        st.success("Saved")
+    if st.button("Save Donation"):
+        if donor:
+            st.session_state.donations.append({
+                "name": donor,
+                "amount": amount
+            })
+            st.success("Saved")
+
+    if st.session_state.donations:
+        st.dataframe(pd.DataFrame(st.session_state.donations))
 
 # =====================================
 # EXPENSES
@@ -233,11 +203,19 @@ elif menu == "Expenses":
 
     st.title("💸 Expenses")
 
+    expense_type = st.text_input("Expense Type")
     amount = st.number_input("Amount", min_value=0.0)
 
-    if st.button("Save"):
-        st.session_state.expenses.append({"amount": amount})
-        st.success("Saved")
+    if st.button("Save Expense"):
+        if expense_type:
+            st.session_state.expenses.append({
+                "type": expense_type,
+                "amount": amount
+            })
+            st.success("Saved")
+
+    if st.session_state.expenses:
+        st.dataframe(pd.DataFrame(st.session_state.expenses))
 
 # =====================================
 # REPORTS
