@@ -504,20 +504,20 @@ elif menu == "Collections":
 
     st.title("💵 Collections")
 
-if len(st.session_state.customers) == 0:
+    # No customers case
+    if len(st.session_state.customers) == 0:
         st.warning("Add customers first")
-else:
 
-        # ✅ Customer dropdown
+    else:
+        # Customer dropdown
         customer = st.selectbox(
             "Select Customer",
             st.session_state.customers,
             format_func=lambda x: f"{x['name']} ({x['mobile']})"
         )
 
-        # ✅ Month dropdown
+        # Month dropdown
         import datetime
-
         current_month = datetime.datetime.now().strftime("%B %Y")
 
         month = st.selectbox(
@@ -531,33 +531,28 @@ else:
             ]
         )
 
-        # ✅ Amount
-        amount = st.number_input(
-            "Collection Amount",
-            min_value=0.0
-        )
+        # Amount
+        amount = st.number_input("Collection Amount", min_value=0.0)
 
-        # ✅ Save
+        # Save
         if st.button("Save Collection"):
-
             st.session_state.collections.append({
                 "name": customer["name"],
                 "mobile": customer["mobile"],
                 "month": month,
                 "amount": amount
             })
-
             st.success("Collection Saved Successfully")
 
-# =========================
-# ✅ SHOW COLLECTION TABLE
-# =========================
-if len(st.session_state.collections) > 0:
+# ===== SHOW COLLECTION TABLE =====
+    if len(st.session_state.collections) > 0:
 
+        st.write("")
         st.subheader("📊 Collection Records")
 
         df = pd.DataFrame(st.session_state.collections)
 
+        # Month filter
         selected_month = st.selectbox(
             "Filter by Month",
             ["All"] + list(df["month"].unique())
