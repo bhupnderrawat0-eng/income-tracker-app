@@ -600,45 +600,161 @@ elif menu == "Reports":
 
 elif menu == "Users":
 
-    # User Management
     st.subheader("👥 User Management")
 
+    # =========================
+    # SESSION STATE
+    # =========================
+
     if "users" not in st.session_state:
-        st.session_state.users = []
+        st.session_state.users = [
+            {
+                "name": "admin",
+                "password": "admin123",
+                "role": "Admin"
+            }
+        ]
 
-    col1, col2, col3 = st.columns(3)
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
 
-    with col1:
-        username = st.text_input("User Name")
+    if "current_user" not in st.session_state:
+        st.session_state.current_user = ""
 
-    with col2:
-        password = st.text_input("Password", type="password")
+    if "current_role" not in st.session_state:
+        st.session_state.current_role = ""
 
-    with col3:
-        role = st.selectbox(
-            "Select Role",
-            ["Admin", "Editor", "Viewer"]
+    # =========================
+    # LOGIN SECTION
+    # =========================
+
+    st.markdown("## 🔐 Login")
+
+    login_user = st.text_input("Username")
+
+    login_pass = st.text_input(
+        "Password",
+        type="password"
+    )
+
+    if st.button("Login"):
+
+        found = False
+
+        for user in st.session_state.users:
+
+            if (
+                user["name"] == login_user and
+                user["password"] == login_pass
+            ):
+
+                st.session_state.logged_in = True
+                st.session_state.current_user = user["name"]
+                st.session_state.current_role = user["role"]
+
+                found = True
+
+                st.success("✅ Login Successful!")
+
+                st.rerun()
+
+        if not found:
+            st.error("❌ Invalid Username or Password")
+
+    st.write("---")
+
+    # =========================
+    # LOGGED USER INFO
+    # =========================
+
+    if st.session_state.logged_in:
+
+        st.success(
+            f"Logged in as: "
+            f"{st.session_state.current_user} "
+            f"({st.session_state.current_role})"
         )
 
-    if st.button("Add User"):
+        if st.button("Logout"):
 
-        if username and password:
+            st.session_state.logged_in = False
+            st.session_state.current_user = ""
+            st.session_state.current_role = ""
 
-            st.session_state.users.append({
+            st.success("Logged Out!")
 
-                "name": username,
-                "password": password,
-                "role": role
+            st.rerun()
 
-            })
+        st.write("---")
 
-            st.success("User Added Successfully!")
+        # =========================
+        # ADMIN USER CREATION
+        # =========================
 
-    st.write("")
+        if st.session_state.current_role == "Admin":
 
-    if len(st.session_state.users) > 0:
+            st.markdown("## ➕ Add New User")
 
-        users_df = pd.DataFrame(st.session_state.users)
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                username = st.text_input("New Username")
+
+            with col2:
+                password = st.text_input(
+                    "New Password",
+                    type="password"
+                )
+
+            with col3:
+                role = st.selectbox(
+                    "Select Role",
+                    ["Admin", "Editor", "Viewer"]
+                )
+
+            if st.button("Add User"):
+
+                if username and password:
+
+                    already_exists = False
+
+                    for user in st.session_state.users:
+
+                        if user["name"] == username:
+                            already_exists = True
+
+                    if already_exists:
+
+                        st.error("⚠️ User already exists")
+
+                    else:
+
+                        st.session_state.users.append({
+
+                            "name": username,
+                            "password": password,
+                            "role": role
+
+                        })
+
+                        st.success("✅ User Added Successfully!")
+
+                        st.rerun()
+
+                else:
+                    st.warning("Please fill all fields")
+
+        # =========================
+        # USER LIST
+        # =========================
+
+        st.write("---")
+
+        st.markdown("## 📋 All Users")
+
+        users_df = pd.DataFrame(
+            st.session_state.users
+        )
 
         st.dataframe(
             users_df,
@@ -646,4 +762,16 @@ elif menu == "Users":
         )
 
     else:
-        st.info("No users added yet.")
+
+        st.info("Please login first")
+
+    # =========================
+    # DEFAULT LOGIN INFO
+    # =========================
+
+    st.write("---")
+
+    st.info(
+        "Default Admin Login → "
+        "Username: admin | Password: admin123"
+    )
