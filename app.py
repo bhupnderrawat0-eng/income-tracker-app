@@ -552,15 +552,12 @@ else:
 # =========================
 # ✅ SHOW COLLECTION TABLE
 # =========================
+if len(st.session_state.collections) > 0:
 
-    if len(st.session_state.collections) > 0:
-
-        st.write("")
         st.subheader("📊 Collection Records")
 
         df = pd.DataFrame(st.session_state.collections)
 
-        # Month filter
         selected_month = st.selectbox(
             "Filter by Month",
             ["All"] + list(df["month"].unique())
