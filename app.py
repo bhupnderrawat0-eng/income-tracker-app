@@ -645,7 +645,8 @@ elif menu == "Users":
 
             if (
                 user["name"] == login_user and
-                user["password"] == hashlib.sha256(password.encode()).hexdigest()
+                 user["password"] == hashlib.sha256(login_pass.encode()).hexdigest()
+):
 
                 st.session_state.logged_in = True
                 st.session_state.current_user = user["name"]
