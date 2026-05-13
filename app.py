@@ -610,7 +610,7 @@ elif menu == "Users":
         st.session_state.users = [
             {
                 "name": "admin",
-                "password": "admin123",
+                "password": hashlib.sha256("admin123".encode()).hexdigest(),
                 "role": "Admin"
             }
         ]
