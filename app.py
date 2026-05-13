@@ -11,25 +11,21 @@ import datetime
 conn = sqlite3.connect("finance.db", check_same_thread=False)
 c = conn.cursor()
 
-c.execute('''CREATE TABLE IF NOT EXISTS users
-(name TEXT, password TEXT, role TEXT)''')
-
-c.execute('''CREATE TABLE IF NOT EXISTS customers
-(name TEXT, mobile TEXT)''')
-
-c.execute('''CREATE TABLE IF NOT EXISTS collections
-(name TEXT, mobile TEXT, month TEXT, date TEXT, amount REAL)''')
-
-c.execute('''CREATE TABLE IF NOT EXISTS loans
-(name TEXT, mobile TEXT, date TEXT, amount REAL)''')
-
-c.execute('''CREATE TABLE IF NOT EXISTS donations
-(name TEXT, amount REAL)''')
-
-c.execute('''CREATE TABLE IF NOT EXISTS expenses
-(type TEXT, amount REAL)''')
-
+c.execute("CREATE TABLE IF NOT EXISTS users (name TEXT, password TEXT, role TEXT)")
+c.execute("CREATE TABLE IF NOT EXISTS customers (name TEXT, mobile TEXT)")
+c.execute("CREATE TABLE IF NOT EXISTS collections (name TEXT, mobile TEXT, month TEXT, date TEXT, amount REAL)")
+c.execute("CREATE TABLE IF NOT EXISTS loans (name TEXT, mobile TEXT, date TEXT, amount REAL)")
+c.execute("CREATE TABLE IF NOT EXISTS donations (name TEXT, amount REAL)")
+c.execute("CREATE TABLE IF NOT EXISTS expenses (type TEXT, amount REAL)")
 conn.commit()
+
+# =====================================
+# AUTO ADMIN CREATE
+# =====================================
+if len(c.execute("SELECT * FROM users").fetchall()) == 0:
+    pwd = hashlib.sha256("admin123".encode()).hexdigest()
+    c.execute("INSERT INTO users VALUES (?,?,?)", ("admin", pwd, "Admin"))
+    conn.commit()
 
 # =====================================
 # PAGE CONFIG
@@ -50,9 +46,7 @@ if not st.session_state.login:
     pwd = st.text_input("Password", type="password")
 
     if st.button("Login"):
-
         enc = hashlib.sha256(pwd.encode()).hexdigest()
-
         data = c.execute("SELECT * FROM users WHERE name=? AND password=?", (user, enc)).fetchone()
 
         if data:
@@ -70,12 +64,13 @@ if not st.session_state.login:
 # =====================================
 with st.sidebar:
 
-    st.markdown(f"### 👋 {st.session_state.user}")
+    st.markdown(f"### 👤 {st.session_state.user}")
+    st.markdown(f"*Role:* {st.session_state.role}")
 
     menu = option_menu(
         None,
-        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports"],
-        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up"]
+        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users"],
+        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up","person"]
     )
 
     if st.button("Logout"):
@@ -94,26 +89,27 @@ if menu == "Dashboard":
     st.title("📊 Dashboard")
 
     c1,c2,c3 = st.columns(3)
-    c1.metric("Collections", col_total)
-    c2.metric("Donations", don_total)
-    c3.metric("Expenses", exp_total)
+    c1.metric("Collections", f"₹ {col_total}")
+    c2.metric("Donations", f"₹ {don_total}")
+    c3.metric("Expenses", f"₹ {exp_total}")
 
-    st.metric("Balance", col_total + don_total - exp_total)
+    st.metric("Balance", f"₹ {col_total + don_total - exp_total}")
 
 # =====================================
 # CUSTOMERS
 # =====================================
 elif menu == "Customers":
 
-    st.title("Customers")
+    st.title("👥 Customers")
 
     name = st.text_input("Name")
     mobile = st.text_input("Mobile")
 
     if st.button("Add"):
-        c.execute("INSERT INTO customers VALUES (?,?)",(name,mobile))
-        conn.commit()
-        st.success("Added")
+        if name and mobile:
+            c.execute("INSERT INTO customers VALUES (?,?)",(name,mobile))
+            conn.commit()
+            st.success("Added")
 
     df = pd.read_sql("SELECT * FROM customers", conn)
     st.dataframe(df)
@@ -123,13 +119,12 @@ elif menu == "Customers":
 # =====================================
 elif menu == "Collections":
 
-    st.title("Collections")
+    st.title("💰 Collections")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
-    if len(customers)==0:
+    if customers.empty:
         st.warning("Add customers first")
-
     else:
         cust = st.selectbox("Customer", customers["name"])
         month = st.text_input("Month", datetime.datetime.now().strftime("%B %Y"))
@@ -142,15 +137,14 @@ elif menu == "Collections":
             conn.commit()
             st.success("Saved")
 
-    df = pd.read_sql("SELECT * FROM collections", conn)
-    st.dataframe(df)
+    st.dataframe(pd.read_sql("SELECT * FROM collections", conn))
 
 # =====================================
 # LOANS
 # =====================================
 elif menu == "Loans":
 
-    st.title("Loans")
+    st.title("🏦 Loans")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
@@ -164,15 +158,14 @@ elif menu == "Loans":
         conn.commit()
         st.success("Saved")
 
-    df = pd.read_sql("SELECT * FROM loans", conn)
-    st.dataframe(df)
+    st.dataframe(pd.read_sql("SELECT * FROM loans", conn))
 
 # =====================================
 # DONATIONS
 # =====================================
 elif menu == "Donations":
 
-    st.title("Donations")
+    st.title("🎁 Donations")
 
     name = st.text_input("Donor")
     amount = st.number_input("Amount",0.0)
@@ -182,15 +175,14 @@ elif menu == "Donations":
         conn.commit()
         st.success("Saved")
 
-    df = pd.read_sql("SELECT * FROM donations", conn)
-    st.dataframe(df)
+    st.dataframe(pd.read_sql("SELECT * FROM donations", conn))
 
 # =====================================
 # EXPENSES
 # =====================================
 elif menu == "Expenses":
 
-    st.title("Expenses")
+    st.title("💸 Expenses")
 
     typ = st.text_input("Type")
     amount = st.number_input("Amount",0.0)
@@ -200,27 +192,47 @@ elif menu == "Expenses":
         conn.commit()
         st.success("Saved")
 
-    df = pd.read_sql("SELECT * FROM expenses", conn)
-    st.dataframe(df)
+    st.dataframe(pd.read_sql("SELECT * FROM expenses", conn))
 
 # =====================================
 # REPORTS
 # =====================================
 elif menu == "Reports":
 
-    st.title("Reports")
+    st.title("📊 Reports")
 
     df = pd.read_sql("SELECT * FROM collections", conn)
 
     if not df.empty:
-
         month = st.selectbox("Filter Month", ["All"] + list(df["month"].unique()))
 
         if month != "All":
-            df = df[df["month"]==month]
+            df = df[df["month"] == month]
 
         st.dataframe(df)
 
-        # Export
         csv = df.to_csv(index=False).encode()
         st.download_button("Download CSV", csv, "report.csv")
+
+# =====================================
+# USERS (ADMIN ONLY)
+# =====================================
+elif menu == "Users":
+
+    if st.session_state.role != "Admin":
+        st.warning("Only Admin Access")
+    else:
+        st.title("👥 User Management")
+
+        uname = st.text_input("Username")
+        pwd = st.text_input("Password", type="password")
+        role = st.selectbox("Role", ["Admin","Staff"])
+
+        if st.button("Add User"):
+            if uname and pwd:
+                enc = hashlib.sha256(pwd.encode()).hexdigest()
+                c.execute("INSERT INTO users VALUES (?,?,?)",(uname,enc,role))
+                conn.commit()
+                st.success("User added")
+
+        st.dataframe(pd.read_sql("SELECT name,role FROM users", conn))
