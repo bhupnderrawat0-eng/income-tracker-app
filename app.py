@@ -199,39 +199,37 @@ if "users" not in st.session_state:
 # =========================
 # LOGIN PAGE
 # =========================
-
 if not st.session_state.logged_in:
 
     st.markdown("<h1 style='text-align:center;'>🔐 Login</h1>", unsafe_allow_html=True)
-username = st.text_input("Username")
-password = st.text_input("Password", type="password")
 
-if st.button("Login"):
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
 
-    # 🔐 password hash
-    entered_pass = hashlib.sha256(password.encode()).hexdigest()
+    if st.button("Login"):
 
-    found = False
+        entered_pass = hashlib.sha256(password.encode()).hexdigest()
 
-    # 👇 users list check
-    for user in st.session_state.users:
+        found = False
 
-        if (
-            user["name"] == username and
-            user["password"] == entered_pass
-        ):
-            # ✅ login success
-            st.session_state.logged_in = True
-            st.session_state.current_user = user["name"]
-            st.session_state.current_role = user["role"]
+        for user in st.session_state.users:
 
-            found = True
-            st.success("Login Successful")
-            st.rerun()
+            if (
+                user["name"] == username and
+                user["password"] == entered_pass
+            ):
+                st.session_state.logged_in = True
+                st.session_state.current_user = user["name"]
+                st.session_state.current_role = user["role"]
 
-    # ❗ IMPORTANT: loop ke bahar
-    if not found:
-        st.error("Invalid Username or Password")    
+                found = True
+                st.success("Login Successful")
+                st.rerun()
+
+        if not found:
+            st.error("Invalid Username or Password")
+
+    st.stop()    
 # =====================================================
 # SIDEBAR
 # =====================================================
