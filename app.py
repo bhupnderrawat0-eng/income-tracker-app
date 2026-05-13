@@ -506,8 +506,7 @@ elif menu == "Collections":
 
 if len(st.session_state.customers) == 0:
         st.warning("Add customers first")
-
-    else:
+else:
 
         # ✅ Customer dropdown
         customer = st.selectbox(
