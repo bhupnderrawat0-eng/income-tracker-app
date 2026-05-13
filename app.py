@@ -5,29 +5,52 @@ import hashlib
 import datetime
 
 # =========================
-# PAGE CONFIG
+# CONFIG
 # =========================
-st.set_page_config(page_title="Bal Yuva AI Finance", layout="wide")
+st.set_page_config(
+    page_title="Bal Yuva SaaS",
+    page_icon="🚀",
+    layout="wide"
+)
 
 # =========================
-# DARK UI FIX (NO WHITE)
+# DARK THEME FIX (NO WHITE)
 # =========================
 st.markdown("""
 <style>
-.stApp {background: linear-gradient(135deg,#0f172a,#020617);}
-header, footer {visibility:hidden;}
-h1,h2,h3,h4,h5,h6,p,label,span {color:white !important;}
+.stApp {
+    background: linear-gradient(135deg,#020617,#0f172a);
+}
 
-.stTextInput input,
-.stNumberInput input,
-.stSelectbox div {
+header, footer {visibility:hidden;}
+
+.block-container {
+    padding-top: 1rem;
+}
+
+h1,h2,h3,h4,h5,h6,p,label {
+    color: white !important;
+}
+
+/* INPUT */
+.stTextInput input, .stNumberInput input, .stSelectbox div {
     background:#111827 !important;
     color:white !important;
 }
 
+/* BUTTON */
 .stButton>button {
     background:linear-gradient(90deg,#2563eb,#7c3aed);
     color:white;
+    border-radius:10px;
+    height:45px;
+}
+
+/* CARD */
+.card {
+    background: rgba(30,41,59,0.7);
+    padding:20px;
+    border-radius:15px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -50,27 +73,26 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 # =========================
-# LOGIN SYSTEM
+# LOGIN
 # =========================
 if not st.session_state.logged_in:
 
-    st.title("🔐 Login")
+    st.markdown("## 🔐 Login")
 
-    user = st.text_input("Username")
-    pwd = st.text_input("Password", type="password")
+    u = st.text_input("Username")
+    p = st.text_input("Password", type="password")
 
     if st.button("Login"):
+        hashed = hashlib.sha256(p.encode()).hexdigest()
 
-        hashed = hashlib.sha256(pwd.encode()).hexdigest()
-
-        for u in st.session_state.users:
-            if u["username"] == user and u["password"] == hashed:
+        for user in st.session_state.users:
+            if user["username"] == u and user["password"] == hashed:
                 st.session_state.logged_in = True
-                st.session_state.current_user = user
-                st.session_state.role = u["role"]
+                st.session_state.current_user = u
+                st.session_state.role = user["role"]
                 st.rerun()
 
-        st.error("Wrong credentials")
+        st.error("Invalid Login")
 
     st.stop()
 
@@ -78,12 +100,12 @@ if not st.session_state.logged_in:
 # SIDEBAR
 # =========================
 with st.sidebar:
+    st.markdown("## 🚀 Bal Yuva SaaS")
 
-    st.markdown("## 🚀 Bal Yuva AI")
-
-    menu = option_menu(None,
-        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI Insights"],
-        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up","person","robot"]
+    menu = option_menu(
+        None,
+        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
+        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up","person","cpu"]
     )
 
     st.write("---")
@@ -95,23 +117,36 @@ with st.sidebar:
         st.rerun()
 
 # =========================
+# HEADER (LOGO FIX HERE)
+# =========================
+st.markdown("""
+<div style='
+background:linear-gradient(135deg,rgba(30,41,59,0.6),rgba(15,23,42,0.6));
+padding:20px;
+border-radius:20px;
+margin-bottom:20px;
+'>
+<h1>🚀 Bal Yuva Mangal Dal</h1>
+<p style='color:#94a3b8;'>Smart Finance SaaS System</p>
+</div>
+""", unsafe_allow_html=True)
+
+# =========================
 # DASHBOARD
 # =========================
 if menu == "Dashboard":
 
-    st.title("📊 Dashboard")
+    c1,c2,c3,c4 = st.columns(4)
 
     total_col = sum(x["amount"] for x in st.session_state.collections)
     total_loan = sum(x["amount"] for x in st.session_state.loans)
     total_don = sum(x["amount"] for x in st.session_state.donations)
     total_exp = sum(x["amount"] for x in st.session_state.expenses)
 
-    col1,col2,col3,col4 = st.columns(4)
-
-    col1.metric("Collections", f"₹ {total_col}")
-    col2.metric("Loans", f"₹ {total_loan}")
-    col3.metric("Donations", f"₹ {total_don}")
-    col4.metric("Expenses", f"₹ {total_exp}")
+    c1.metric("Collections", f"₹ {total_col}")
+    c2.metric("Loans", f"₹ {total_loan}")
+    c3.metric("Donations", f"₹ {total_don}")
+    c4.metric("Expenses", f"₹ {total_exp}")
 
     st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
 
@@ -120,7 +155,7 @@ if menu == "Dashboard":
 # =========================
 elif menu == "Customers":
 
-    st.title("Customers")
+    st.subheader("Customers")
 
     name = st.text_input("Name")
     mobile = st.text_input("Mobile")
@@ -128,19 +163,16 @@ elif menu == "Customers":
     if st.button("Add"):
         st.session_state.customers.append({"name":name,"mobile":mobile})
 
-    if st.session_state.customers:
-        st.dataframe(pd.DataFrame(st.session_state.customers))
+    st.dataframe(pd.DataFrame(st.session_state.customers))
 
 # =========================
 # COLLECTIONS
 # =========================
 elif menu == "Collections":
 
-    st.title("Collections")
+    st.subheader("Collections")
 
-    if not st.session_state.customers:
-        st.warning("Add customer first")
-    else:
+    if st.session_state.customers:
         cust = st.selectbox("Customer", st.session_state.customers,
             format_func=lambda x: f"{x['name']} ({x['mobile']})")
 
@@ -159,19 +191,16 @@ elif menu == "Collections":
                 "amount":amt
             })
 
-    if st.session_state.collections:
-        st.dataframe(pd.DataFrame(st.session_state.collections))
+    st.dataframe(pd.DataFrame(st.session_state.collections))
 
 # =========================
 # LOANS
 # =========================
 elif menu == "Loans":
 
-    st.title("Loans")
+    st.subheader("Loans")
 
-    if not st.session_state.customers:
-        st.warning("Add customer first")
-    else:
+    if st.session_state.customers:
         cust = st.selectbox("Customer", st.session_state.customers,
             format_func=lambda x: x["name"])
 
@@ -185,53 +214,44 @@ elif menu == "Loans":
                 "amount":amt
             })
 
-    if st.session_state.loans:
-        st.dataframe(pd.DataFrame(st.session_state.loans))
+    st.dataframe(pd.DataFrame(st.session_state.loans))
 
 # =========================
 # DONATIONS
 # =========================
 elif menu == "Donations":
 
-    st.title("Donations")
-
     donor = st.text_input("Donor Name")
     amt = st.number_input("Amount")
 
-    if st.button("Add Donation"):
+    if st.button("Add"):
         st.session_state.donations.append({
             "donor":donor,
             "amount":amt
         })
 
-    if st.session_state.donations:
-        st.dataframe(pd.DataFrame(st.session_state.donations))
+    st.dataframe(pd.DataFrame(st.session_state.donations))
 
 # =========================
 # EXPENSES
 # =========================
 elif menu == "Expenses":
 
-    st.title("Expenses")
-
     etype = st.text_input("Expense Type")
     amt = st.number_input("Amount")
 
-    if st.button("Add Expense"):
+    if st.button("Add"):
         st.session_state.expenses.append({
             "type":etype,
             "amount":amt
         })
 
-    if st.session_state.expenses:
-        st.dataframe(pd.DataFrame(st.session_state.expenses))
+    st.dataframe(pd.DataFrame(st.session_state.expenses))
 
 # =========================
 # REPORTS
 # =========================
 elif menu == "Reports":
-
-    st.title("Reports")
 
     df = pd.DataFrame({
         "Category":["Collections","Loans","Donations","Expenses"],
@@ -243,7 +263,6 @@ elif menu == "Reports":
         ]
     })
 
-    st.dataframe(df)
     st.bar_chart(df.set_index("Category"))
 
 # =========================
@@ -251,11 +270,8 @@ elif menu == "Reports":
 # =========================
 elif menu == "Users":
 
-    st.title("Users")
+    if st.session_state.role == "Admin":
 
-    if st.session_state.role != "Admin":
-        st.warning("Admin only")
-    else:
         u = st.text_input("Username")
         p = st.text_input("Password", type="password")
         r = st.selectbox("Role",["Admin","Editor","Viewer"])
@@ -266,16 +282,13 @@ elif menu == "Users":
                 "password":hashlib.sha256(p.encode()).hexdigest(),
                 "role":r
             })
-            st.success("Added")
 
     st.dataframe(pd.DataFrame(st.session_state.users))
 
 # =========================
-# AI INSIGHTS
+# AI
 # =========================
-elif menu == "AI Insights":
-
-    st.title("AI Insights")
+elif menu == "AI":
 
     col = sum(x["amount"] for x in st.session_state.collections)
     exp = sum(x["amount"] for x in st.session_state.expenses)
@@ -286,12 +299,5 @@ elif menu == "AI Insights":
 
     if balance > 0:
         st.success("Profit")
-    elif balance < 0:
-        st.error("Loss")
     else:
-        st.info("Neutral")
-
-    if exp > col:
-        st.warning("Reduce expenses")
-    else:
-        st.info("Good control")
+        st.warning("Control expenses")
