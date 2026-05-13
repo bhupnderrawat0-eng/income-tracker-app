@@ -445,33 +445,55 @@ Here's what's happening today.
 # =====================================================
 # CUSTOMERS
 # =====================================================
-
 elif menu == "Customers":
 
     st.title("👥 Customers")
 
-    name = st.text_input("Customer Name")
+    # =========================
+    # ADD CUSTOMER
+    # =========================
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        customer_name = st.text_input("Customer Name")
+
+    with col2:
+        mobile = st.text_input("Mobile Number")
+
+    with col3:
+        meeting_date = st.date_input("Meeting Start Date")
 
     if st.button("Add Customer"):
 
-        if name:
+        if customer_name and mobile:
 
-            st.session_state.customers.append(name)
+            new_customer = {
+                "name": customer_name,
+                "mobile": mobile,
+                "meeting_date": str(meeting_date)
+            }
 
-            st.success("Customer Added Successfully")
+            if "customers" not in st.session_state:
+                st.session_state.customers = []
 
-    if st.session_state.customers:
+            st.session_state.customers.append(new_customer)
 
-        df = pd.DataFrame(
-            st.session_state.customers,
-            columns=["Customer Name"]
-        )
+            st.success("✅ Customer added successfully")
+            st.rerun()
 
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
+        else:
+            st.warning("Please fill all fields")
 
+    # =========================
+    # SHOW CUSTOMERS
+    # =========================
+
+    st.write("---")
+
+    if "customers" in st.session_state and st.session_state.customers:
+        df = pd.DataFrame(st.session_state.customers)
+        st.dataframe(df, use_container_width=True)
 # =====================================================
 # COLLECTIONS
 # =====================================================
