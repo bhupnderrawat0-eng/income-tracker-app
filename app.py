@@ -9,23 +9,33 @@ import datetime
 st.set_page_config(page_title="Bal Yuva Mangal Dal", page_icon="🚀", layout="wide")
 
 # =====================================
-# CSS
+# PREMIUM CSS (UPGRADED)
 # =====================================
 st.markdown("""
 <style>
+
 #MainMenu {visibility:hidden;}
 footer {visibility:hidden;}
 header {visibility:hidden;}
 div[data-testid="stToolbar"] {visibility:hidden;}
 
+/* BACKGROUND */
 .stApp{
     background: linear-gradient(135deg,#0f172a,#020617);
 }
 
+/* SIDEBAR */
+section[data-testid="stSidebar"]{
+    background: linear-gradient(180deg,#111827,#0f172a);
+    padding-top:20px;
+}
+
+/* TEXT */
 h1,h2,h3,p,label{
     color:white !important;
 }
 
+/* INPUTS */
 .stTextInput input,
 .stNumberInput input,
 .stSelectbox div,
@@ -34,11 +44,48 @@ h1,h2,h3,p,label{
     color:white !important;
 }
 
+/* BUTTON */
 .stButton>button{
     background: linear-gradient(90deg,#2563eb,#7c3aed);
     color:white;
     border-radius:10px;
+    height:45px;
 }
+
+/* LOGO CARD */
+.logo-card{
+    background: rgba(255,255,255,0.05);
+    padding:25px;
+    border-radius:20px;
+    text-align:center;
+    margin-bottom:20px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+/* BIG LOGO */
+.logo-icon{
+    font-size:60px;
+    margin-bottom:10px;
+}
+
+.logo-title{
+    font-size:26px;
+    font-weight:bold;
+    color:white;
+}
+
+.logo-sub{
+    font-size:26px;
+    font-weight:bold;
+    color:#38bdf8;
+}
+
+.logo-tag{
+    font-size:10px;
+    letter-spacing:2px;
+    color:#94a3b8;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -50,15 +97,24 @@ for key in ["customers","collections","loans","donations","expenses"]:
         st.session_state[key] = []
 
 # =====================================
-# SIDEBAR
+# SIDEBAR (🔥 NEW LOGO)
 # =====================================
 with st.sidebar:
-    st.markdown("## 🚀 Bal Yuva Mangal Dal")
+
+    st.markdown("""
+    <div class="logo-card">
+        <div class="logo-icon">🚀</div>
+        <div class="logo-title">Bal Yuva</div>
+        <div class="logo-sub">Mangal Dal</div>
+        <div class="logo-tag">SMART FINANCE TRACKER</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     menu = option_menu(
         None,
         ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports"],
-        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up"]
+        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up"],
+        default_index=0
     )
 
 # =====================================
@@ -127,7 +183,6 @@ elif menu == "Collections":
         )
 
         start_date = st.date_input("Collection Start Date")
-
         amount = st.number_input("Amount", min_value=0.0)
 
         if st.button("Save Collection"):
@@ -170,7 +225,7 @@ elif menu == "Loans":
                 "start_date": str(loan_date),
                 "amount": amount
             })
-            st.success("Loan Saved")
+            st.success("Saved")
 
     if st.session_state.loans:
         st.dataframe(pd.DataFrame(st.session_state.loans))
