@@ -448,7 +448,9 @@ Here's what's happening today.
 elif menu == "Customers":
 
     st.title("👥 Customers")
-if "customers" not in st.session_state or isinstance(st.session_state.customers[0], str):
+if "customers" not in st.session_state or (
+    st.session_state.customers and isinstance(st.session_state.customers[0], str)
+):
     st.session_state.customers = []
     # =========================
     # ADD CUSTOMER
