@@ -5,7 +5,7 @@ import hashlib
 import datetime
 
 # ================= CONFIG =================
-st.set_page_config(page_title="Bal Yuva Finance", layout="wide")
+st.set_page_config(page_title="Bal Yuva Smart Finance", layout="wide")
 
 # ================= CSS =================
 st.markdown("""
@@ -13,38 +13,46 @@ st.markdown("""
 header {visibility:hidden;}
 footer {visibility:hidden;}
 
-.block-container{
-    padding-top:0.5rem;
-}
-
 .stApp{
-    background:linear-gradient(135deg,#0f172a,#020617);
+background:linear-gradient(135deg,#0f172a,#020617);
+font-family: 'Segoe UI', sans-serif;
 }
 
-/* TEXT */
-h1,h2,h3,h4,label{
-    color:white !important;
+.block-container{
+padding-top:1rem;
 }
 
-/* INPUT */
+h1,h2,h3{
+color:white !important;
+font-weight:700;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"]{
+background:linear-gradient(180deg,#111827,#020617);
+}
+
+/* Inputs */
 .stTextInput input,.stNumberInput input,.stSelectbox div{
-    background:#111827 !important;
-    color:white !important;
+background:#111827 !important;
+color:white !important;
+border-radius:10px;
 }
 
-/* CARD */
+/* Card */
 .card{
-    background:rgba(255,255,255,0.05);
-    padding:20px;
-    border-radius:20px;
-    border:1px solid rgba(255,255,255,0.08);
-    margin-bottom:15px;
+background:rgba(255,255,255,0.05);
+padding:25px;
+border-radius:20px;
+margin-bottom:15px;
+border:1px solid rgba(255,255,255,0.08);
+box-shadow:0 8px 25px rgba(0,0,0,0.4);
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ================= DB =================
-conn = sqlite3.connect("business.db", check_same_thread=False)
+conn = sqlite3.connect("automation.db", check_same_thread=False)
 c = conn.cursor()
 
 c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
@@ -65,7 +73,7 @@ if "login" not in st.session_state:
 
 if not st.session_state.login:
 
-    st.markdown("<h1 style='text-align:center;'>🔐 Login</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center;'>🔐 Smart Login</h1>", unsafe_allow_html=True)
 
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
@@ -80,14 +88,14 @@ if not st.session_state.login:
             st.session_state.role=res[2]
             st.rerun()
         else:
-            st.error("Wrong login")
+            st.error("Invalid login")
 
     st.stop()
 
 # ================= SIDEBAR =================
-st.sidebar.markdown("## 🚀 Bal Yuva Finance")
+st.sidebar.markdown("## 🚀 Bal Yuva AI")
 menu = st.sidebar.radio("",[
-    "Dashboard","Customers","Collections","Loans","Reports","Users"
+    "Dashboard","Customers","Collections","Loans","Reports","Users","AI Insights"
 ])
 
 st.sidebar.write(f"👤 {st.session_state.user}")
@@ -108,10 +116,10 @@ if menu=="Dashboard":
     loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0] or 0
     cust = c.execute("SELECT COUNT(*) FROM customers").fetchone()[0]
 
-    st.markdown(f"""
+    st.markdown("""
     <div class="card">
     <h2>🚀 Bal Yuva Mangal Dal</h2>
-    <p>Smart Finance Dashboard</p>
+    <p>Smart Automated Finance Dashboard</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -219,3 +227,26 @@ elif menu=="Users":
 
         df = pd.read_sql("SELECT username,role FROM users", conn)
         st.dataframe(df)
+
+# ================= AI INSIGHTS =================
+elif menu=="AI Insights":
+
+    col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
+    loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0] or 0
+
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+
+    st.title("🤖 Smart Insights")
+
+    if col == 0:
+        st.warning("No data yet")
+
+    else:
+        if loan > col:
+            st.error("⚠️ Loan amount is higher than collection")
+        else:
+            st.success("✅ Financial condition is stable")
+
+        st.write(f"💡 Net Strength: ₹ {col - loan}")
+
+    st.markdown('</div>', unsafe_allow_html=True)
