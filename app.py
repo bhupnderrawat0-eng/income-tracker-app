@@ -448,14 +448,16 @@ Here's what's happening today.
 elif menu == "Customers":
 
     st.title("👥 Customers")
-if "customers" not in st.session_state or (
-    st.session_state.customers and isinstance(st.session_state.customers[0], str)
-):
-    st.session_state.customers = []
-    # =========================
-    # ADD CUSTOMER
-    # =========================
 
+    # ✅ session state fix
+    if "customers" not in st.session_state or (
+        st.session_state.customers and isinstance(st.session_state.customers[0], str)
+    ):
+        st.session_state.customers = []
+
+    # =========================
+    # ADD CUSTOMER FORM
+    # =========================
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -467,27 +469,34 @@ if "customers" not in st.session_state or (
     with col3:
         meeting_date = st.date_input("Meeting Start Date")
 
+    # =========================
+    # ADD BUTTON
+    # =========================
     if st.button("Add Customer"):
 
         if customer_name and mobile:
-
             new_customer = {
                 "name": customer_name,
                 "mobile": mobile,
                 "meeting_date": str(meeting_date)
             }
 
-            if "customers" not in st.session_state:
-                st.session_state.customers = []
-
             st.session_state.customers.append(new_customer)
-
-            st.success("✅ Customer added successfully")
-            st.rerun()
+            st.success("Customer Added Successfully")
 
         else:
-            st.warning("Please fill all fields")
+            st.error("Please fill all required fields")
 
+    # =========================
+    # SHOW DATA
+    # =========================
+    if st.session_state.customers:
+
+        import pandas as pd
+
+        df = pd.DataFrame(st.session_state.customers)
+
+        st.dataframe(df, use_container_width=True)
     # =========================
     # SHOW CUSTOMERS
     # =========================
