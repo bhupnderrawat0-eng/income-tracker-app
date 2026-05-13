@@ -504,7 +504,7 @@ elif menu == "Collections":
 
     st.title("💵 Collections")
 
-    if len(st.session_state.customers) == 0:
+if len(st.session_state.customers) == 0:
         st.warning("Add customers first")
 
     else:
