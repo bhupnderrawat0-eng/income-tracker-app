@@ -549,9 +549,9 @@ else:
 
             st.success("Collection Saved Successfully")
 
-    # =========================
-    # ✅ SHOW COLLECTION TABLE
-    # =========================
+# =========================
+# ✅ SHOW COLLECTION TABLE
+# =========================
 
     if len(st.session_state.collections) > 0:
 
