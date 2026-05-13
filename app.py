@@ -1,43 +1,56 @@
 import streamlit as st
 import pandas as pd
+import sqlite3
 import hashlib
 import datetime
-import firebase_admin
-from firebase_admin import credentials, firestore
-
-# ================= FIREBASE =================
-if not firebase_admin._apps:
-    cred = credentials.Certificate("firebase_key.json")
-    firebase_admin.initialize_app(cred)
-
-db = firestore.client()
 
 # ================= CONFIG =================
-st.set_page_config(page_title="Bal Yuva AI", layout="wide")
+st.set_page_config(page_title="Bal Yuva Mangal Dal", layout="wide")
 
-# ================= DARK CSS =================
+# ================= CSS =================
 st.markdown("""
 <style>
 header {visibility:hidden;}
 footer {visibility:hidden;}
-.block-container {padding-top:0rem;}
 
-.stApp{
-background:linear-gradient(135deg,#0f172a,#020617);
+.block-container{
+    padding-top:0rem;
 }
 
-h1,h2,h3,label{color:white !important;}
+.stApp{
+    background:linear-gradient(135deg,#0f172a,#020617);
+}
+
+h1,h2,h3,h4,label{
+    color:white !important;
+}
 
 .stTextInput input,.stNumberInput input,.stSelectbox div{
-background:#111827 !important;
-color:white !important;
+    background:#111827 !important;
+    color:white !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
+# ================= DB =================
+conn = sqlite3.connect("data.db", check_same_thread=False)
+c = conn.cursor()
+
+c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
+c.execute("CREATE TABLE IF NOT EXISTS customers(name TEXT, mobile TEXT)")
+c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, amount REAL, date TEXT)")
+c.execute("CREATE TABLE IF NOT EXISTS loans(name TEXT, amount REAL, date TEXT)")
+conn.commit()
+
+# ================= DEFAULT ADMIN =================
+admin_pass = hashlib.sha256("admin123".encode()).hexdigest()
+if not c.execute("SELECT * FROM users WHERE username='admin'").fetchone():
+    c.execute("INSERT INTO users VALUES(?,?,?)",("admin",admin_pass,"Admin"))
+    conn.commit()
+
 # ================= LOGIN =================
 if "login" not in st.session_state:
-    st.session_state.login=False
+    st.session_state.login = False
 
 if not st.session_state.login:
 
@@ -47,45 +60,41 @@ if not st.session_state.login:
     pwd = st.text_input("Password", type="password")
 
     if st.button("Login"):
-
-        users = db.collection("users").stream()
         enc = hashlib.sha256(pwd.encode()).hexdigest()
+        res = c.execute("SELECT * FROM users WHERE username=? AND password=?", (user,enc)).fetchone()
 
-        for u in users:
-            data = u.to_dict()
-            if data["username"] == user and data["password"] == enc:
-                st.session_state.login=True
-                st.session_state.user=user
-                st.session_state.role=data["role"]
-                st.rerun()
-
-        st.error("Invalid login")
+        if res:
+            st.session_state.login = True
+            st.session_state.user = user
+            st.session_state.role = res[2]
+            st.rerun()
+        else:
+            st.error("Wrong login")
 
     st.stop()
 
 # ================= SIDEBAR =================
 menu = st.sidebar.radio("Menu",[
-    "Dashboard","Customers","Collections","Loans",
-    "Reports","Users"
+    "Dashboard","Customers","Collections","Loans","Reports","Users"
 ])
 
 st.sidebar.write(f"👤 {st.session_state.user}")
 st.sidebar.write(f"Role: {st.session_state.role}")
 
 if st.sidebar.button("Logout"):
-    st.session_state.login=False
+    st.session_state.login = False
     st.rerun()
 
-# ================= MONTH =================
+# ================= MONTH FUNCTION =================
 def get_months():
     return [datetime.date(2026,i,1).strftime("%B %Y") for i in range(1,13)]
 
 # ================= DASHBOARD =================
-if menu=="Dashboard":
+if menu == "Dashboard":
 
-    col = sum([d.to_dict()["amount"] for d in db.collection("collections").stream()])
-    loan = sum([d.to_dict()["amount"] for d in db.collection("loans").stream()])
-    cust = len(list(db.collection("customers").stream()))
+    col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
+    loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0] or 0
+    cust = c.execute("SELECT COUNT(*) FROM customers").fetchone()[0]
 
     c1,c2,c3 = st.columns(3)
     c1.metric("Collections",f"₹ {col}")
@@ -93,77 +102,78 @@ if menu=="Dashboard":
     c3.metric("Customers",cust)
 
 # ================= CUSTOMERS =================
-elif menu=="Customers":
+elif menu == "Customers":
 
     name = st.text_input("Customer Name")
     mobile = st.text_input("Mobile")
 
     if st.button("Add Customer"):
-        db.collection("customers").add({
-            "name":name,
-            "mobile":mobile
-        })
+        c.execute("INSERT INTO customers VALUES(?,?)",(name,mobile))
+        conn.commit()
 
-    data = [d.to_dict() for d in db.collection("customers").stream()]
-    st.dataframe(pd.DataFrame(data))
+    df = pd.read_sql("SELECT * FROM customers", conn)
+    st.dataframe(df)
 
-# ================= COLLECTION =================
-elif menu=="Collections":
+# ================= COLLECTIONS =================
+elif menu == "Collections":
 
-    customers = [d.to_dict() for d in db.collection("customers").stream()]
+    dfc = pd.read_sql("SELECT * FROM customers", conn)
 
-    if customers:
-        cust = st.selectbox(
+    if dfc.empty:
+        st.warning("Add customers first")
+    else:
+        customer = st.selectbox(
             "Customer",
-            customers,
-            format_func=lambda x:f"{x['name']} ({x['mobile']})"
+            dfc.to_dict("records"),
+            format_func=lambda x: f"{x['name']} ({x['mobile']})"
         )
 
         month = st.selectbox("Month", get_months())
         amount = st.number_input("Amount", min_value=0.0)
-        date = st.date_input("Collection Date")
+        date = st.date_input("Collection Start Date")
 
-        if st.button("Save"):
-            db.collection("collections").add({
-                "name":cust["name"],
-                "month":month,
-                "amount":amount,
-                "date":str(date)
-            })
+        if st.button("Save Collection"):
+            c.execute(
+                "INSERT INTO collections VALUES(?,?,?,?)",
+                (customer["name"], month, amount, str(date))
+            )
+            conn.commit()
 
-    data = [d.to_dict() for d in db.collection("collections").stream()]
-    st.dataframe(pd.DataFrame(data))
+    df = pd.read_sql("SELECT * FROM collections", conn)
+    st.dataframe(df)
 
 # ================= LOANS =================
-elif menu=="Loans":
+elif menu == "Loans":
 
-    customers = [d.to_dict() for d in db.collection("customers").stream()]
+    dfc = pd.read_sql("SELECT * FROM customers", conn)
 
-    if customers:
-        cust = st.selectbox(
+    if dfc.empty:
+        st.warning("Add customers first")
+    else:
+        customer = st.selectbox(
             "Customer",
-            customers,
-            format_func=lambda x:f"{x['name']} ({x['mobile']})"
+            dfc.to_dict("records"),
+            format_func=lambda x: f"{x['name']} ({x['mobile']})"
         )
 
         amount = st.number_input("Loan Amount", min_value=0.0)
         date = st.date_input("Loan Start Date")
 
         if st.button("Save Loan"):
-            db.collection("loans").add({
-                "name":cust["name"],
-                "amount":amount,
-                "date":str(date)
-            })
+            c.execute(
+                "INSERT INTO loans VALUES(?,?,?)",
+                (customer["name"], amount, str(date))
+            )
+            conn.commit()
 
-    data = [d.to_dict() for d in db.collection("loans").stream()]
-    st.dataframe(pd.DataFrame(data))
+    df = pd.read_sql("SELECT * FROM loans", conn)
+    st.dataframe(df)
 
 # ================= REPORT =================
-elif menu=="Reports":
+elif menu == "Reports":
 
-    col = sum([d.to_dict()["amount"] for d in db.collection("collections").stream()])
-    loan = sum([d.to_dict()["amount"] for d in db.collection("loans").stream()])
+    col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
+    loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0] or 0
 
     df = pd.DataFrame({
         "Type":["Collections","Loans"],
@@ -173,23 +183,19 @@ elif menu=="Reports":
     st.bar_chart(df.set_index("Type"))
 
 # ================= USERS =================
-elif menu=="Users":
+elif menu == "Users":
 
-    if st.session_state.role!="Admin":
+    if st.session_state.role != "Admin":
         st.warning("Admin only")
     else:
-
         user = st.text_input("Username")
         pwd = st.text_input("Password")
         role = st.selectbox("Role",["Admin","Editor","Viewer"])
 
         if st.button("Add User"):
             enc = hashlib.sha256(pwd.encode()).hexdigest()
-            db.collection("users").add({
-                "username":user,
-                "password":enc,
-                "role":role
-            })
+            c.execute("INSERT INTO users VALUES(?,?,?)",(user,enc,role))
+            conn.commit()
 
-        data = [d.to_dict() for d in db.collection("users").stream()]
-        st.dataframe(pd.DataFrame(data))
+        df = pd.read_sql("SELECT username,role FROM users", conn)
+        st.dataframe(df)
