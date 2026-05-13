@@ -1,132 +1,123 @@
 import streamlit as st
 import pandas as pd
-from streamlit_option_menu import option_menu
 import hashlib
+from streamlit_option_menu import option_menu
 import datetime
 
-# ================= PAGE =================
-st.set_page_config(page_title="Bal Yuva Mangal Dal", layout="wide")
+# =====================================
+# PAGE CONFIG
+# =====================================
+st.set_page_config(page_title="Bal Yuva Mangal Dal", page_icon="🚀", layout="wide")
 
-# ================= PREMIUM CSS =================
+# =====================================
+# CSS (FINAL FIXED UI)
+# =====================================
 st.markdown("""
 <style>
 
-.stApp {
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
+div[data-testid="stToolbar"] {visibility:hidden;}
+div[data-testid="stDecoration"] {visibility:hidden;}
+
+.stApp{
     background: linear-gradient(135deg,#0f172a,#020617);
 }
 
-/* Sidebar */
-section[data-testid="stSidebar"]{
-    background: #111827;
+.block-container{
+    padding-top:1rem;
+    padding-left:2rem;
+    padding-right:2rem;
 }
 
-/* Text */
-h1,h2,h3,h4,h5,h6,p,label {
+section[data-testid="stSidebar"]{
+    background: linear-gradient(180deg,#111827,#0f172a);
+    border-right:1px solid rgba(255,255,255,0.08);
+}
+
+h1,h2,h3,h4,h5,h6,p,label,span{
     color:white !important;
 }
 
-/* Inputs */
-input, textarea {
-    background-color: #1e293b !important;
-    color: white !important;
-    border-radius: 10px !important;
-}
-
-div[data-baseweb="select"] > div {
-    background-color: #1e293b !important;
-    color: white !important;
-}
-
-/* Buttons */
-.stButton>button {
+.stButton>button{
+    border-radius:10px;
+    height:45px;
+    font-weight:bold;
     background: linear-gradient(90deg,#2563eb,#7c3aed);
-    color: white;
-    border-radius: 10px;
-    height: 45px;
-    font-weight: bold;
+    color:white;
 }
 
-/* Tables */
-[data-testid="stDataFrame"] {
-    border-radius: 12px;
+.stTextInput input,
+.stNumberInput input,
+.stSelectbox div{
+    background:#111827 !important;
+    color:white !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ================= SESSION =================
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+# =====================================
+# SESSION STATE
+# =====================================
+if "customers" not in st.session_state:
+    st.session_state.customers = []
 
-if "users" not in st.session_state:
-    st.session_state.users = [
-        {"name":"admin","password":hashlib.sha256("admin123".encode()).hexdigest(),"role":"Admin"}
-    ]
+if "collections" not in st.session_state:
+    st.session_state.collections = []
 
-for key in ["customers","collections","donations","expenses","loans"]:
-    if key not in st.session_state:
-        st.session_state[key] = []
+if "loans" not in st.session_state:
+    st.session_state.loans = []
 
-# ================= LOGIN =================
-if not st.session_state.logged_in:
+if "donations" not in st.session_state:
+    st.session_state.donations = []
 
-    st.title("🔐 Login")
+if "expenses" not in st.session_state:
+    st.session_state.expenses = []
 
-    u = st.text_input("Username")
-    p = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        hp = hashlib.sha256(p.encode()).hexdigest()
-
-        for user in st.session_state.users:
-            if user["name"] == u and user["password"] == hp:
-                st.session_state.logged_in = True
-                st.session_state.current_user = u
-                st.session_state.current_role = user["role"]
-                st.rerun()
-
-        st.error("Wrong credentials")
-
-    st.stop()
-
-# ================= SIDEBAR =================
+# =====================================
+# SIDEBAR
+# =====================================
 with st.sidebar:
-
     st.markdown("## 🚀 Bal Yuva Mangal Dal")
 
     menu = option_menu(
         None,
-        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users"],
-        icons=["house","people","cash","bank","gift","wallet","bar-chart","person"],
+        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports"],
+        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up"],
         default_index=0
     )
 
-# ================= DASHBOARD =================
+# =====================================
+# DASHBOARD
+# =====================================
 if menu == "Dashboard":
 
     st.title("📊 Dashboard")
 
-    tc = sum(x["amount"] for x in st.session_state.collections)
-    td = sum(x["amount"] for x in st.session_state.donations)
-    te = sum(x["amount"] for x in st.session_state.expenses)
-
-    balance = tc + td - te
+    total_col = sum(x["amount"] for x in st.session_state.collections)
+    total_don = sum(x["amount"] for x in st.session_state.donations)
+    total_exp = sum(x["amount"] for x in st.session_state.expenses)
+    balance = total_col + total_don - total_exp
 
     c1,c2,c3,c4 = st.columns(4)
 
-    c1.metric("Collections", f"₹ {tc}")
-    c2.metric("Donations", f"₹ {td}")
-    c3.metric("Expenses", f"₹ {te}")
+    c1.metric("Collections", f"₹ {total_col}")
+    c2.metric("Donations", f"₹ {total_don}")
+    c3.metric("Expenses", f"₹ {total_exp}")
     c4.metric("Customers", len(st.session_state.customers))
 
     st.metric("Net Balance", f"₹ {balance}")
 
-# ================= CUSTOMERS =================
+# =====================================
+# CUSTOMERS
+# =====================================
 elif menu == "Customers":
 
     st.title("👥 Customers")
 
-    col1,col2,col3 = st.columns(3)
+    col1,col2 = st.columns(2)
 
     with col1:
         name = st.text_input("Name")
@@ -134,28 +125,25 @@ elif menu == "Customers":
     with col2:
         mobile = st.text_input("Mobile")
 
-    with col3:
-        date = st.date_input("Meeting Date")
-
     if st.button("Add Customer"):
-
         if name and mobile:
             st.session_state.customers.append({
-                "name":name,
-                "mobile":mobile,
-                "meeting_date":str(date)
+                "name": name,
+                "mobile": mobile
             })
             st.success("Added")
         else:
-            st.error("Fill all fields")
+            st.error("Fill details")
 
     if st.session_state.customers:
         st.dataframe(pd.DataFrame(st.session_state.customers))
 
-# ================= COLLECTIONS =================
+# =====================================
+# COLLECTIONS
+# =====================================
 elif menu == "Collections":
 
-    st.title("💵 Collections")
+    st.title("💰 Collections")
 
     if not st.session_state.customers:
         st.warning("Add customers first")
@@ -164,140 +152,108 @@ elif menu == "Collections":
         customer = st.selectbox(
             "Customer",
             st.session_state.customers,
-            format_func=lambda x:f"{x['name']} ({x['mobile']})"
+            format_func=lambda x: f"{x['name']} ({x['mobile']})"
         )
 
         month = st.selectbox(
             "Month",
-            [datetime.datetime.now().strftime("%B %Y")] + [
-                "January 2026","February 2026","March 2026",
-                "April 2026","May 2026","June 2026",
-                "July 2026","August 2026","September 2026",
-                "October 2026","November 2026","December 2026"
-            ]
+            [datetime.datetime.now().strftime("%B %Y")]
         )
 
         amount = st.number_input("Amount", min_value=0.0)
 
-        if st.button("Save Collection"):
+        if st.button("Save"):
             st.session_state.collections.append({
-                "name":customer["name"],
-                "mobile":customer["mobile"],
-                "month":month,
-                "amount":amount
+                "name": customer["name"],
+                "mobile": customer["mobile"],
+                "month": month,
+                "amount": amount
             })
             st.success("Saved")
 
     if st.session_state.collections:
-
         df = pd.DataFrame(st.session_state.collections)
 
-        m = st.selectbox("Filter Month", ["All"] + list(df["month"].unique()))
+        filter_month = st.selectbox(
+            "Filter",
+            ["All"] + list(df["month"].unique())
+        )
 
-        if m != "All":
-            df = df[df["month"] == m]
+        if filter_month != "All":
+            df = df[df["month"] == filter_month]
 
         st.dataframe(df)
 
-# ================= LOANS =================
+# =====================================
+# LOANS
+# =====================================
 elif menu == "Loans":
 
     st.title("🏦 Loans")
 
-    col1,col2,col3 = st.columns(3)
+    if not st.session_state.customers:
+        st.warning("Add customers first")
 
-    with col1:
-        name = st.text_input("Borrower")
-
-    with col2:
-        amount = st.number_input("Amount", min_value=0.0)
-
-    with col3:
-        interest = st.number_input("Interest %", min_value=0.0)
-
-    duration = st.number_input("Months", min_value=1)
-
-    if st.button("Add Loan"):
-
-        total = amount + (amount * interest * duration / 100)
-
-        st.session_state.loans.append({
-            "name":name,
-            "amount":amount,
-            "interest":interest,
-            "duration":duration,
-            "total":total,
-            "paid":0
-        })
-
-        st.success("Loan Added")
-
-    if st.session_state.loans:
-
-        df = pd.DataFrame(st.session_state.loans)
-
-        df["remaining"] = df["total"] - df["paid"]
-
-        st.dataframe(df)
-
-        loan = st.selectbox(
-            "Repay Loan",
-            st.session_state.loans,
-            format_func=lambda x:f"{x['name']} ₹{x['amount']}"
+    else:
+        customer = st.selectbox(
+            "Customer",
+            st.session_state.customers,
+            format_func=lambda x: f"{x['name']} ({x['mobile']})"
         )
 
-        pay = st.number_input("Pay Amount", min_value=0.0)
+        amount = st.number_input("Loan Amount", min_value=0.0)
 
-        if st.button("Pay"):
-            loan["paid"] += pay
-            st.success("Updated")
+        if st.button("Give Loan"):
+            st.session_state.loans.append({
+                "name": customer["name"],
+                "amount": amount
+            })
+            st.success("Loan added")
 
-# ================= DONATIONS =================
+    if st.session_state.loans:
+        st.dataframe(pd.DataFrame(st.session_state.loans))
+
+# =====================================
+# DONATIONS
+# =====================================
 elif menu == "Donations":
 
     st.title("🎁 Donations")
 
-    amt = st.number_input("Amount", min_value=0.0)
+    amount = st.number_input("Amount", min_value=0.0)
 
     if st.button("Save"):
-        st.session_state.donations.append({"amount":amt})
+        st.session_state.donations.append({"amount": amount})
         st.success("Saved")
 
-# ================= EXPENSES =================
+# =====================================
+# EXPENSES
+# =====================================
 elif menu == "Expenses":
 
     st.title("💸 Expenses")
 
-    amt = st.number_input("Amount", min_value=0.0)
+    amount = st.number_input("Amount", min_value=0.0)
 
     if st.button("Save"):
-        st.session_state.expenses.append({"amount":amt})
+        st.session_state.expenses.append({"amount": amount})
         st.success("Saved")
 
-# ================= REPORTS =================
+# =====================================
+# REPORTS
+# =====================================
 elif menu == "Reports":
 
     st.title("📊 Reports")
 
-    df = pd.DataFrame({
-        "Category":["Collections","Donations","Expenses"],
-        "Amount":[
+    data = pd.DataFrame({
+        "Category": ["Collections","Donations","Expenses"],
+        "Amount": [
             sum(x["amount"] for x in st.session_state.collections),
             sum(x["amount"] for x in st.session_state.donations),
             sum(x["amount"] for x in st.session_state.expenses)
         ]
     })
 
-    st.dataframe(df)
-    st.bar_chart(df.set_index("Category"))
-
-# ================= USERS =================
-elif menu == "Users":
-
-    st.title("👤 Users")
-
-    st.success(f"Logged in: {st.session_state.current_user}")
-
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+    st.dataframe(data)
+    st.bar_chart(data.set_index("Category"))
