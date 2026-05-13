@@ -209,24 +209,26 @@ if not st.session_state.logged_in:
 
     if st.button("Login"):
 
-        found = False
+    entered_pass = hashlib.sha256(password.encode()).hexdigest()
 
-        for user in st.session_state.users_data:
+    found = False
 
-            if (
-                user["username"] == username
-                and user["password"] == password
-            ):
+    for user in st.session_state.users:
 
-                st.session_state.logged_in = True
-                st.session_state.current_user = username
-                st.session_state.current_role = user["role"]
+        if (
+            user["name"] == username and
+            user["password"] == entered_pass
+        ):
+            st.session_state.logged_in = True
+            st.session_state.current_user = user["name"]
+            st.session_state.current_role = user["role"]
 
-                found = True
-                st.rerun()
+            found = True
+            st.success("Login Successful")
+            st.rerun()
 
-        if not found:
-            st.error("Invalid Username or Password")
+    if not found:
+        st.error("Invalid Username or Password")
 
     st.stop()
 # =====================================================
