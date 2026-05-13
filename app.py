@@ -600,178 +600,80 @@ elif menu == "Reports":
 
 elif menu == "Users":
 
-    st.subheader("👥 User Management")
+    st.title("👥 User Management")
 
     # =========================
-    # SESSION STATE
+    # CURRENT USER INFO
     # =========================
 
-    if "users" not in st.session_state:
-        st.session_state.users = [
-            {
-                "name": "admin",
-                "password": hashlib.sha256("admin123".encode()).hexdigest(),
-                "role": "Admin"
-            }
-        ]
-
-    if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False
-
-    if "current_user" not in st.session_state:
-        st.session_state.current_user = ""
-
-    if "current_role" not in st.session_state:
-        st.session_state.current_role = ""
-
-    # =========================
-    # LOGIN SECTION
-    # =========================
-
-    st.markdown("## 🔐 Login")
-
-    login_user = st.text_input("Username")
-
-    login_pass = st.text_input(
-        "Password",
-        type="password"
+    st.success(
+        f"Logged in as: {st.session_state.current_user} "
+        f"({st.session_state.current_role})"
     )
 
-    if st.button("Login"):
+    # =========================
+    # LOGOUT BUTTON
+    # =========================
 
-        found = False
-
-        for user in st.session_state.users:
-
-            if (
-                user["name"] == login_user and
-                 user["password"] == hashlib.sha256(login_pass.encode()).hexdigest()
-):
-
-                st.session_state.logged_in = True
-                st.session_state.current_user = user["name"]
-                st.session_state.current_role = user["role"]
-
-                found = True
-
-                st.success("✅ Login Successful!")
-
-                st.rerun()
-
-        if not found:
-            st.error("❌ Invalid Username or Password")
+    if st.button("🚪 Logout"):
+        st.session_state.logged_in = False
+        st.session_state.current_user = ""
+        st.session_state.current_role = ""
+        st.rerun()
 
     st.write("---")
 
     # =========================
-    # LOGGED USER INFO
+    # ADMIN ONLY ACCESS
     # =========================
 
-    if st.session_state.logged_in:
-
-        st.success(
-            f"Logged in as: "
-            f"{st.session_state.current_user} "
-            f"({st.session_state.current_role})"
-        )
-
-        if st.button("Logout"):
-
-            st.session_state.logged_in = False
-            st.session_state.current_user = ""
-            st.session_state.current_role = ""
-
-            st.success("Logged Out!")
-
-            st.rerun()
-
-        st.write("---")
-
-        # =========================
-        # ADMIN USER CREATION
-        # =========================
-
-        if st.session_state.current_role == "Admin":
-
-            st.markdown("## ➕ Add New User")
-
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                username = st.text_input("New Username")
-
-            with col2:
-                password = st.text_input(
-                    "New Password",
-                    type="password"
-                )
-
-            with col3:
-                role = st.selectbox(
-                    "Select Role",
-                    ["Admin", "Editor", "Viewer"]
-                )
-
-            if st.button("Add User"):
-
-                if username and password:
-
-                    already_exists = False
-
-                    for user in st.session_state.users:
-
-                        if user["name"] == username:
-                            already_exists = True
-
-                    if already_exists:
-
-                        st.error("⚠️ User already exists")
-
-                    else:
-
-                        st.session_state.users.append({
-
-                            "name": username,
-                            "password": password,
-                            "role": role
-
-                        })
-
-                        st.success("✅ User Added Successfully!")
-
-                        st.rerun()
-
-                else:
-                    st.warning("Please fill all fields")
-
-        # =========================
-        # USER LIST
-        # =========================
-
-        st.write("---")
-
-        st.markdown("## 📋 All Users")
-
-        users_df = pd.DataFrame(
-            st.session_state.users
-        )
-
-        st.dataframe(
-            users_df,
-            use_container_width=True
-        )
-
+    if st.session_state.current_role != "Admin":
+        st.warning("Only Admin can manage users")
     else:
 
-        st.info("Please login first")
+        st.subheader("➕ Add User")
 
-    # =========================
-    # DEFAULT LOGIN INFO
-    # =========================
+        col1, col2, col3 = st.columns(3)
 
-    st.write("---")
+        with col1:
+            username = st.text_input("Username")
 
-    st.info(
-        "Default Admin Login → "
-        "Username: admin | Password: admin123"
-    )
+        with col2:
+            password = st.text_input("Password", type="password")
+
+        with col3:
+            role = st.selectbox("Role", ["Admin","Editor","Viewer"])
+
+        if st.button("Add User"):
+
+            if username and password:
+
+                exists = any(
+                    u["name"] == username
+                    for u in st.session_state.users
+                )
+
+                if exists:
+                    st.error("⚠️ User already exists")
+                else:
+                    st.session_state.users.append({
+                        "name": username,
+                        "password": hashlib.sha256(password.encode()).hexdigest(),
+                        "role": role
+                    })
+                    st.success("✅ User added successfully")
+                    st.rerun()
+
+            else:
+                st.warning("Please fill all fields")
+
+        st.write("---")
+
+        st.subheader("📋 All Users")
+
+        df = pd.DataFrame(st.session_state.users)
+
+        # PASSWORD HIDE
+        df = df.drop(columns=["password"], errors="ignore")
+
+        st.dataframe(df, use_container_width=True)
