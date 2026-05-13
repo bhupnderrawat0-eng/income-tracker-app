@@ -4,31 +4,57 @@ from streamlit_option_menu import option_menu
 import hashlib
 import datetime
 
-# ===============================
-# PAGE CONFIG
-# ===============================
+# ================= PAGE =================
 st.set_page_config(page_title="Bal Yuva Mangal Dal", layout="wide")
 
-# ===============================
-# SIMPLE DARK UI
-# ===============================
+# ================= PREMIUM CSS =================
 st.markdown("""
 <style>
+
 .stApp {
     background: linear-gradient(135deg,#0f172a,#020617);
 }
+
+/* Sidebar */
+section[data-testid="stSidebar"]{
+    background: #111827;
+}
+
+/* Text */
 h1,h2,h3,h4,h5,h6,p,label {
     color:white !important;
 }
-section[data-testid="stSidebar"]{
-    background:#111827;
+
+/* Inputs */
+input, textarea {
+    background-color: #1e293b !important;
+    color: white !important;
+    border-radius: 10px !important;
 }
+
+div[data-baseweb="select"] > div {
+    background-color: #1e293b !important;
+    color: white !important;
+}
+
+/* Buttons */
+.stButton>button {
+    background: linear-gradient(90deg,#2563eb,#7c3aed);
+    color: white;
+    border-radius: 10px;
+    height: 45px;
+    font-weight: bold;
+}
+
+/* Tables */
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
-# ===============================
-# SESSION STATE
-# ===============================
+# ================= SESSION =================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -37,49 +63,33 @@ if "users" not in st.session_state:
         {"name":"admin","password":hashlib.sha256("admin123".encode()).hexdigest(),"role":"Admin"}
     ]
 
-if "customers" not in st.session_state:
-    st.session_state.customers = []
+for key in ["customers","collections","donations","expenses","loans"]:
+    if key not in st.session_state:
+        st.session_state[key] = []
 
-if "collections" not in st.session_state:
-    st.session_state.collections = []
-
-if "donations" not in st.session_state:
-    st.session_state.donations = []
-
-if "expenses" not in st.session_state:
-    st.session_state.expenses = []
-
-if "loans" not in st.session_state:
-    st.session_state.loans = []
-
-# ===============================
-# LOGIN
-# ===============================
+# ================= LOGIN =================
 if not st.session_state.logged_in:
 
     st.title("🔐 Login")
 
-    user = st.text_input("Username")
-    pwd = st.text_input("Password", type="password")
+    u = st.text_input("Username")
+    p = st.text_input("Password", type="password")
 
     if st.button("Login"):
+        hp = hashlib.sha256(p.encode()).hexdigest()
 
-        hashed = hashlib.sha256(pwd.encode()).hexdigest()
-
-        for u in st.session_state.users:
-            if u["name"] == user and u["password"] == hashed:
+        for user in st.session_state.users:
+            if user["name"] == u and user["password"] == hp:
                 st.session_state.logged_in = True
-                st.session_state.current_user = u["name"]
-                st.session_state.current_role = u["role"]
+                st.session_state.current_user = u
+                st.session_state.current_role = user["role"]
                 st.rerun()
 
         st.error("Wrong credentials")
 
     st.stop()
 
-# ===============================
-# SIDEBAR
-# ===============================
+# ================= SIDEBAR =================
 with st.sidebar:
 
     st.markdown("## 🚀 Bal Yuva Mangal Dal")
@@ -91,31 +101,27 @@ with st.sidebar:
         default_index=0
     )
 
-# ===============================
-# DASHBOARD
-# ===============================
+# ================= DASHBOARD =================
 if menu == "Dashboard":
 
     st.title("📊 Dashboard")
 
-    total_c = sum(x["amount"] for x in st.session_state.collections)
-    total_d = sum(x["amount"] for x in st.session_state.donations)
-    total_e = sum(x["amount"] for x in st.session_state.expenses)
+    tc = sum(x["amount"] for x in st.session_state.collections)
+    td = sum(x["amount"] for x in st.session_state.donations)
+    te = sum(x["amount"] for x in st.session_state.expenses)
 
-    balance = total_c + total_d - total_e
+    balance = tc + td - te
 
     c1,c2,c3,c4 = st.columns(4)
 
-    c1.metric("Collections", f"₹ {total_c}")
-    c2.metric("Donations", f"₹ {total_d}")
-    c3.metric("Expenses", f"₹ {total_e}")
+    c1.metric("Collections", f"₹ {tc}")
+    c2.metric("Donations", f"₹ {td}")
+    c3.metric("Expenses", f"₹ {te}")
     c4.metric("Customers", len(st.session_state.customers))
 
     st.metric("Net Balance", f"₹ {balance}")
 
-# ===============================
-# CUSTOMERS
-# ===============================
+# ================= CUSTOMERS =================
 elif menu == "Customers":
 
     st.title("👥 Customers")
@@ -146,9 +152,7 @@ elif menu == "Customers":
     if st.session_state.customers:
         st.dataframe(pd.DataFrame(st.session_state.customers))
 
-# ===============================
-# COLLECTIONS
-# ===============================
+# ================= COLLECTIONS =================
 elif menu == "Collections":
 
     st.title("💵 Collections")
@@ -195,9 +199,7 @@ elif menu == "Collections":
 
         st.dataframe(df)
 
-# ===============================
-# LOANS
-# ===============================
+# ================= LOANS =================
 elif menu == "Loans":
 
     st.title("🏦 Loans")
@@ -217,7 +219,7 @@ elif menu == "Loans":
 
     if st.button("Add Loan"):
 
-        total = amount + (amount*interest*duration/100)
+        total = amount + (amount * interest * duration / 100)
 
         st.session_state.loans.append({
             "name":name,
@@ -233,6 +235,9 @@ elif menu == "Loans":
     if st.session_state.loans:
 
         df = pd.DataFrame(st.session_state.loans)
+
+        df["remaining"] = df["total"] - df["paid"]
+
         st.dataframe(df)
 
         loan = st.selectbox(
@@ -247,9 +252,7 @@ elif menu == "Loans":
             loan["paid"] += pay
             st.success("Updated")
 
-# ===============================
-# DONATIONS
-# ===============================
+# ================= DONATIONS =================
 elif menu == "Donations":
 
     st.title("🎁 Donations")
@@ -260,9 +263,7 @@ elif menu == "Donations":
         st.session_state.donations.append({"amount":amt})
         st.success("Saved")
 
-# ===============================
-# EXPENSES
-# ===============================
+# ================= EXPENSES =================
 elif menu == "Expenses":
 
     st.title("💸 Expenses")
@@ -273,9 +274,7 @@ elif menu == "Expenses":
         st.session_state.expenses.append({"amount":amt})
         st.success("Saved")
 
-# ===============================
-# REPORTS
-# ===============================
+# ================= REPORTS =================
 elif menu == "Reports":
 
     st.title("📊 Reports")
@@ -292,9 +291,7 @@ elif menu == "Reports":
     st.dataframe(df)
     st.bar_chart(df.set_index("Category"))
 
-# ===============================
-# USERS
-# ===============================
+# ================= USERS =================
 elif menu == "Users":
 
     st.title("👤 Users")
