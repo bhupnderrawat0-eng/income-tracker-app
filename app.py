@@ -229,8 +229,6 @@ if not st.session_state.logged_in:
 
     if not found:
         st.error("Invalid Username or Password")
-
-    st.stop()
 # =====================================================
 # SIDEBAR
 # =====================================================
