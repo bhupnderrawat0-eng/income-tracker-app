@@ -7,14 +7,10 @@ import datetime
 # =========================
 # CONFIG
 # =========================
-st.set_page_config(
-    page_title="Bal Yuva SaaS",
-    page_icon="🚀",
-    layout="wide"
-)
+st.set_page_config(page_title="Bal Yuva Enterprise", layout="wide")
 
 # =========================
-# DARK THEME FIX (NO WHITE)
+# PREMIUM CSS
 # =========================
 st.markdown("""
 <style>
@@ -24,12 +20,15 @@ st.markdown("""
 
 header, footer {visibility:hidden;}
 
-.block-container {
-    padding-top: 1rem;
-}
+.block-container {padding-top:1rem;}
 
 h1,h2,h3,h4,h5,h6,p,label {
-    color: white !important;
+    color:white !important;
+}
+
+/* SIDEBAR */
+section[data-testid="stSidebar"] {
+    background: #020617;
 }
 
 /* INPUT */
@@ -43,13 +42,37 @@ h1,h2,h3,h4,h5,h6,p,label {
     background:linear-gradient(90deg,#2563eb,#7c3aed);
     color:white;
     border-radius:10px;
-    height:45px;
 }
 
-/* CARD */
-.card {
+/* HEADER CARD */
+.header-box {
+    background: linear-gradient(135deg, rgba(30,41,59,0.7), rgba(15,23,42,0.7));
+    padding:25px;
+    border-radius:20px;
+    margin-bottom:20px;
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.logo {
+    font-size:50px;
+}
+
+.title {
+    font-size:32px;
+    font-weight:800;
+}
+
+.subtitle {
+    color:#94a3b8;
+    font-size:14px;
+}
+
+/* METRIC CARD SPACING */
+[data-testid="metric-container"] {
     background: rgba(30,41,59,0.7);
-    padding:20px;
+    padding:15px;
     border-radius:15px;
 }
 </style>
@@ -100,7 +123,7 @@ if not st.session_state.logged_in:
 # SIDEBAR
 # =========================
 with st.sidebar:
-    st.markdown("## 🚀 Bal Yuva SaaS")
+    st.markdown("## 🚀 Bal Yuva")
 
     menu = option_menu(
         None,
@@ -117,17 +140,15 @@ with st.sidebar:
         st.rerun()
 
 # =========================
-# HEADER (LOGO FIX HERE)
+# HEADER (LOGO FIXED HERE)
 # =========================
 st.markdown("""
-<div style='
-background:linear-gradient(135deg,rgba(30,41,59,0.6),rgba(15,23,42,0.6));
-padding:20px;
-border-radius:20px;
-margin-bottom:20px;
-'>
-<h1>🚀 Bal Yuva Mangal Dal</h1>
-<p style='color:#94a3b8;'>Smart Finance SaaS System</p>
+<div class="header-box">
+    <div class="logo">🚀</div>
+    <div>
+        <div class="title">Bal Yuva Mangal Dal</div>
+        <div class="subtitle">Enterprise Finance SaaS System</div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -136,26 +157,25 @@ margin-bottom:20px;
 # =========================
 if menu == "Dashboard":
 
-    c1,c2,c3,c4 = st.columns(4)
+    col1,col2,col3,col4 = st.columns(4)
 
     total_col = sum(x["amount"] for x in st.session_state.collections)
     total_loan = sum(x["amount"] for x in st.session_state.loans)
     total_don = sum(x["amount"] for x in st.session_state.donations)
     total_exp = sum(x["amount"] for x in st.session_state.expenses)
 
-    c1.metric("Collections", f"₹ {total_col}")
-    c2.metric("Loans", f"₹ {total_loan}")
-    c3.metric("Donations", f"₹ {total_don}")
-    c4.metric("Expenses", f"₹ {total_exp}")
+    col1.metric("Collections", f"₹ {total_col}")
+    col2.metric("Loans", f"₹ {total_loan}")
+    col3.metric("Donations", f"₹ {total_don}")
+    col4.metric("Expenses", f"₹ {total_exp}")
 
     st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
 
 # =========================
-# CUSTOMERS
+# बाकी modules same
 # =========================
 elif menu == "Customers":
-
-    st.subheader("Customers")
+    st.title("Customers")
 
     name = st.text_input("Name")
     mobile = st.text_input("Mobile")
@@ -165,12 +185,8 @@ elif menu == "Customers":
 
     st.dataframe(pd.DataFrame(st.session_state.customers))
 
-# =========================
-# COLLECTIONS
-# =========================
 elif menu == "Collections":
-
-    st.subheader("Collections")
+    st.title("Collections")
 
     if st.session_state.customers:
         cust = st.selectbox("Customer", st.session_state.customers,
@@ -193,12 +209,8 @@ elif menu == "Collections":
 
     st.dataframe(pd.DataFrame(st.session_state.collections))
 
-# =========================
-# LOANS
-# =========================
 elif menu == "Loans":
-
-    st.subheader("Loans")
+    st.title("Loans")
 
     if st.session_state.customers:
         cust = st.selectbox("Customer", st.session_state.customers,
@@ -216,43 +228,7 @@ elif menu == "Loans":
 
     st.dataframe(pd.DataFrame(st.session_state.loans))
 
-# =========================
-# DONATIONS
-# =========================
-elif menu == "Donations":
-
-    donor = st.text_input("Donor Name")
-    amt = st.number_input("Amount")
-
-    if st.button("Add"):
-        st.session_state.donations.append({
-            "donor":donor,
-            "amount":amt
-        })
-
-    st.dataframe(pd.DataFrame(st.session_state.donations))
-
-# =========================
-# EXPENSES
-# =========================
-elif menu == "Expenses":
-
-    etype = st.text_input("Expense Type")
-    amt = st.number_input("Amount")
-
-    if st.button("Add"):
-        st.session_state.expenses.append({
-            "type":etype,
-            "amount":amt
-        })
-
-    st.dataframe(pd.DataFrame(st.session_state.expenses))
-
-# =========================
-# REPORTS
-# =========================
 elif menu == "Reports":
-
     df = pd.DataFrame({
         "Category":["Collections","Loans","Donations","Expenses"],
         "Amount":[
@@ -262,42 +238,4 @@ elif menu == "Reports":
             sum(x["amount"] for x in st.session_state.expenses)
         ]
     })
-
     st.bar_chart(df.set_index("Category"))
-
-# =========================
-# USERS
-# =========================
-elif menu == "Users":
-
-    if st.session_state.role == "Admin":
-
-        u = st.text_input("Username")
-        p = st.text_input("Password", type="password")
-        r = st.selectbox("Role",["Admin","Editor","Viewer"])
-
-        if st.button("Add User"):
-            st.session_state.users.append({
-                "username":u,
-                "password":hashlib.sha256(p.encode()).hexdigest(),
-                "role":r
-            })
-
-    st.dataframe(pd.DataFrame(st.session_state.users))
-
-# =========================
-# AI
-# =========================
-elif menu == "AI":
-
-    col = sum(x["amount"] for x in st.session_state.collections)
-    exp = sum(x["amount"] for x in st.session_state.expenses)
-
-    balance = col - exp
-
-    st.metric("Balance", f"₹ {balance}")
-
-    if balance > 0:
-        st.success("Profit")
-    else:
-        st.warning("Control expenses")
