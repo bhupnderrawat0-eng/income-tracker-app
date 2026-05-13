@@ -490,7 +490,6 @@ elif menu == "Customers":
 # =====================================================
 # COLLECTIONS
 # =====================================================
-
 elif menu == "Collections":
 
     st.title("💵 Collections")
@@ -501,26 +500,47 @@ elif menu == "Collections":
 
     else:
 
+        # ✅ Proper customer dropdown
         customer = st.selectbox(
             "Select Customer",
-            st.session_state.customers
+            st.session_state.customers,
+            format_func=lambda x: f"{x['name']} ({x['mobile']})"
         )
 
+        # ✅ Month dropdown
+        import datetime
+
+        current_month = datetime.datetime.now().strftime("%B %Y")
+
+        month = st.selectbox(
+            "Select Month",
+            [
+                current_month,
+                "January 2026", "February 2026", "March 2026",
+                "April 2026", "May 2026", "June 2026",
+                "July 2026", "August 2026", "September 2026",
+                "October 2026", "November 2026", "December 2026"
+            ]
+        )
+
+        # ✅ Amount input
         amount = st.number_input(
             "Collection Amount",
             min_value=0.0
         )
 
+        # ✅ Save button
         if st.button("Save Collection"):
 
             st.session_state.collections.append({
 
-                "customer": customer,
+                "name": customer["name"],
+                "mobile": customer["mobile"],
+                "month": month,
                 "amount": amount
             })
 
             st.success("Collection Saved Successfully")
-
 # =====================================================
 # LOANS
 # =====================================================
