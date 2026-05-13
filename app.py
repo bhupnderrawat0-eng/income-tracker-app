@@ -505,12 +505,11 @@ elif menu == "Collections":
     st.title("💵 Collections")
 
     if len(st.session_state.customers) == 0:
-
         st.warning("Add customers first")
 
     else:
 
-        # ✅ Proper customer dropdown
+        # ✅ Customer dropdown
         customer = st.selectbox(
             "Select Customer",
             st.session_state.customers,
@@ -533,7 +532,7 @@ elif menu == "Collections":
             ]
         )
 
-        # ✅ Amount input
+        # ✅ Amount
         amount = st.number_input(
             "Collection Amount",
             min_value=0.0
@@ -543,7 +542,6 @@ elif menu == "Collections":
         if st.button("Save Collection"):
 
             st.session_state.collections.append({
-
                 "name": customer["name"],
                 "mobile": customer["mobile"],
                 "month": month,
@@ -551,32 +549,33 @@ elif menu == "Collections":
             })
 
             st.success("Collection Saved Successfully")
-# =========================
-# SHOW COLLECTION LIST
-# =========================
 
-if len(st.session_state.collections) > 0:
+        # =====================================
+        # ✅ SHOW COLLECTION LIST
+        # =====================================
 
-    st.write("")  # spacing
-    st.subheader("📊 Collection Records")
+        if len(st.session_state.collections) > 0:
 
-    df = pd.DataFrame(st.session_state.collections)
+            st.write("")
+            st.subheader("📊 Collection Records")
 
-    # ✅ Month filter
-    if "month" in df.columns:
+            df = pd.DataFrame(st.session_state.collections)
 
-        selected_month = st.selectbox(
-            "Filter by Month",
-            ["All"] + list(df["month"].unique())
-        )
+            # ✅ Month filter
+            if "month" in df.columns:
 
-        if selected_month != "All":
-            df = df[df["month"] == selected_month]
+                selected_month = st.selectbox(
+                    "Filter by Month",
+                    ["All"] + list(df["month"].unique())
+                )
 
-    st.dataframe(df, use_container_width=True)
+                if selected_month != "All":
+                    df = df[df["month"] == selected_month]
 
-else:
-    st.info("No collections added yet")
+            st.dataframe(df, use_container_width=True)
+
+        else:
+            st.info("No collections added yet")
 # =====================================================
 # LOANS
 # =====================================================
