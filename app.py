@@ -1,9 +1,50 @@
 import streamlit as st
 import pandas as pd
-import hashlib
 import datetime
 
-st.set_page_config(page_title="Finance Pro", layout="wide")
+st.set_page_config(page_title="Finance Ultra Pro", layout="wide")
+
+# ================= DARK THEME =================
+st.markdown("""
+<style>
+
+.stApp {
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: white;
+}
+
+h1,h2,h3,h4,h5,h6,p,label {
+    color:white !important;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background: #111827;
+}
+
+/* Inputs */
+input, .stSelectbox, .stNumberInput {
+    background:#111827 !important;
+    color:white !important;
+}
+
+/* Buttons */
+.stButton>button {
+    background: linear-gradient(90deg,#2563eb,#7c3aed);
+    color:white;
+    border:none;
+    border-radius:10px;
+}
+
+/* Cards */
+[data-testid="metric-container"] {
+    background: rgba(30,41,59,0.8);
+    border-radius:15px;
+    padding:20px;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 # ================= SESSION =================
 if "customers" not in st.session_state:
@@ -21,37 +62,24 @@ if "donations" not in st.session_state:
 if "expenses" not in st.session_state:
     st.session_state.expenses = []
 
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-# ================= LOGIN =================
-if not st.session_state.logged_in:
-
-    st.title("🔐 Login")
-
-    user = st.text_input("Username")
-    pwd = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        if user == "admin" and pwd == "admin123":
-            st.session_state.logged_in = True
-            st.rerun()
-        else:
-            st.error("Wrong credentials")
-
-    st.stop()
-
 # ================= SIDEBAR =================
 menu = st.sidebar.radio("Menu", [
     "Dashboard","Customers","Collections","Loans",
     "Donations","Expenses","Reports"
 ])
 
+# ================= MONTH LIST FIX =================
+def get_months():
+    months = []
+    for i in range(1,13):
+        months.append(datetime.date(2026,i,1).strftime("%B %Y"))
+    return months
+
 # ================= DASHBOARD =================
 if menu == "Dashboard":
 
     st.markdown("## 🚀 Bal Yuva Mangal Dal")
-    st.markdown("Smart Finance Management System")
+    st.markdown("Smart Finance System")
 
     total_col = sum(x["amount"] for x in st.session_state.collections)
     total_don = sum(x["amount"] for x in st.session_state.donations)
@@ -71,7 +99,7 @@ elif menu == "Customers":
 
     st.title("Customers")
 
-    search = st.text_input("🔍 Search Customer")
+    search = st.text_input("Search")
 
     name = st.text_input("Name")
     mobile = st.text_input("Mobile")
@@ -107,15 +135,13 @@ elif menu == "Collections":
             format_func=lambda x: f"{x['name']} ({x['mobile']})"
         )
 
-        month = st.selectbox("Month", [
-            datetime.datetime.now().strftime("%B %Y")
-        ])
+        # ✅ FIXED MONTH DROPDOWN
+        month = st.selectbox("Month", get_months())
 
         date = st.date_input("Collection Date")
-
         amt = st.number_input("Amount", min_value=0.0)
 
-        if st.button("Save"):
+        if st.button("Save Collection"):
             st.session_state.collections.append({
                 "name": cust["name"],
                 "month": month,
@@ -126,14 +152,14 @@ elif menu == "Collections":
     if st.session_state.collections:
         df = pd.DataFrame(st.session_state.collections)
 
-        m = st.selectbox("Filter Month", ["All"] + list(df["month"].unique()))
+        m = st.selectbox("Filter", ["All"] + list(df["month"].unique()))
 
         if m != "All":
             df = df[df["month"] == m]
 
         st.dataframe(df)
 
-        st.download_button("⬇️ Export CSV", df.to_csv().encode(), "collections.csv")
+        st.download_button("Export CSV", df.to_csv().encode(), "collections.csv")
 
 # ================= LOANS =================
 elif menu == "Loans":
@@ -152,8 +178,7 @@ elif menu == "Loans":
         })
 
     if st.session_state.loans:
-        df = pd.DataFrame(st.session_state.loans)
-        st.dataframe(df)
+        st.dataframe(pd.DataFrame(st.session_state.loans))
 
 # ================= DONATIONS =================
 elif menu == "Donations":
