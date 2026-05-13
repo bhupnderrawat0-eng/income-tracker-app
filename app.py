@@ -486,7 +486,17 @@ elif menu == "Customers":
 
         else:
             st.error("Please fill all required fields")
+# =========================
+# SHOW CUSTOMER LIST
+# =========================
 
+if len(st.session_state.customers) > 0:
+
+    st.subheader("📋 Customer List")
+
+    df = pd.DataFrame(st.session_state.customers)
+
+    st.dataframe(df, use_container_width=True)
 # =====================================================
 # COLLECTIONS
 # =====================================================
@@ -541,6 +551,17 @@ elif menu == "Collections":
             })
 
             st.success("Collection Saved Successfully")
+# =========================
+# SHOW COLLECTION LIST
+# =========================
+
+if len(st.session_state.collections) > 0:
+
+    st.subheader("📊 Collection Records")
+
+    df = pd.DataFrame(st.session_state.collections)
+
+    st.dataframe(df, use_container_width=True)
 # =====================================================
 # LOANS
 # =====================================================
