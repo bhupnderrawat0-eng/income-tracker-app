@@ -612,6 +612,28 @@ elif menu == "Users":
     st.title("👥 User Management")
 
     # =========================
+    # SESSION STATE INIT (IMPORTANT)
+    # =========================
+
+    if "users" not in st.session_state:
+        st.session_state.users = [
+            {
+                "name": "admin",
+                "password": hashlib.sha256("admin123".encode()).hexdigest(),
+                "role": "Admin"
+            }
+        ]
+
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    if "current_user" not in st.session_state:
+        st.session_state.current_user = ""
+
+    if "current_role" not in st.session_state:
+        st.session_state.current_role = ""
+
+    # =========================
     # CURRENT USER INFO
     # =========================
 
@@ -633,11 +655,12 @@ elif menu == "Users":
     st.write("---")
 
     # =========================
-    # ADMIN ONLY ACCESS
+    # ADMIN ONLY
     # =========================
 
     if st.session_state.current_role != "Admin":
         st.warning("Only Admin can manage users")
+
     else:
 
         st.subheader("➕ Add User")
@@ -651,7 +674,7 @@ elif menu == "Users":
             password = st.text_input("Password", type="password")
 
         with col3:
-            role = st.selectbox("Role", ["Admin","Editor","Viewer"])
+            role = st.selectbox("Role", ["Admin", "Editor", "Viewer"])
 
         if st.button("Add User"):
 
@@ -664,12 +687,14 @@ elif menu == "Users":
 
                 if exists:
                     st.error("⚠️ User already exists")
+
                 else:
                     st.session_state.users.append({
                         "name": username,
                         "password": hashlib.sha256(password.encode()).hexdigest(),
                         "role": role
                     })
+
                     st.success("✅ User added successfully")
                     st.rerun()
 
@@ -678,11 +703,16 @@ elif menu == "Users":
 
         st.write("---")
 
+        # =========================
+        # SHOW USERS
+        # =========================
+
         st.subheader("📋 All Users")
 
         df = pd.DataFrame(st.session_state.users)
 
-        # PASSWORD HIDE
         df = df.drop(columns=["password"], errors="ignore")
+
+        st.dataframe(df, use_container_width=True)
 
         st.dataframe(df, use_container_width=True)
