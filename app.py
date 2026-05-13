@@ -557,11 +557,26 @@ elif menu == "Collections":
 
 if len(st.session_state.collections) > 0:
 
+    st.write("")  # spacing
     st.subheader("📊 Collection Records")
 
     df = pd.DataFrame(st.session_state.collections)
 
+    # ✅ Month filter
+    if "month" in df.columns:
+
+        selected_month = st.selectbox(
+            "Filter by Month",
+            ["All"] + list(df["month"].unique())
+        )
+
+        if selected_month != "All":
+            df = df[df["month"] == selected_month]
+
     st.dataframe(df, use_container_width=True)
+
+else:
+    st.info("No collections added yet")
 # =====================================================
 # LOANS
 # =====================================================
