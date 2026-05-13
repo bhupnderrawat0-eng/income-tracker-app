@@ -1,158 +1,207 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
-from streamlit_option_menu import option_menu
 import hashlib
 import datetime
 
-# =====================================
-# DATABASE
-# =====================================
-conn = sqlite3.connect("finance.db", check_same_thread=False)
-c = conn.cursor()
+st.set_page_config(page_title="Finance Pro", layout="wide")
 
-c.execute("CREATE TABLE IF NOT EXISTS users (name TEXT, password TEXT, role TEXT)")
-c.execute("CREATE TABLE IF NOT EXISTS customers (name TEXT, mobile TEXT)")
-c.execute("CREATE TABLE IF NOT EXISTS collections (name TEXT, mobile TEXT, month TEXT, date TEXT, amount REAL)")
-c.execute("CREATE TABLE IF NOT EXISTS loans (name TEXT, mobile TEXT, date TEXT, amount REAL)")
-c.execute("CREATE TABLE IF NOT EXISTS donations (name TEXT, amount REAL)")
-c.execute("CREATE TABLE IF NOT EXISTS expenses (type TEXT, amount REAL)")
-conn.commit()
+# ================= SESSION =================
+if "customers" not in st.session_state:
+    st.session_state.customers = []
 
-# AUTO ADMIN
-if len(c.execute("SELECT * FROM users").fetchall()) == 0:
-    pwd = hashlib.sha256("admin123".encode()).hexdigest()
-    c.execute("INSERT INTO users VALUES (?,?,?)", ("admin", pwd, "Admin"))
-    conn.commit()
+if "collections" not in st.session_state:
+    st.session_state.collections = []
 
-# =====================================
-# PAGE CONFIG
-# =====================================
-st.set_page_config(page_title="Bal Yuva Mangal Dal", layout="wide")
+if "loans" not in st.session_state:
+    st.session_state.loans = []
 
-# =====================================
-# PREMIUM CSS (ULTIMATE)
-# =====================================
-st.markdown("""
-<style>
-#MainMenu {visibility:hidden;}
-footer {visibility:hidden;}
-header {visibility:hidden;}
+if "donations" not in st.session_state:
+    st.session_state.donations = []
 
-.stApp{
-    background: linear-gradient(135deg,#0f172a,#020617);
-}
+if "expenses" not in st.session_state:
+    st.session_state.expenses = []
 
-h1,h2,h3,h4,p,label{
-    color:white !important;
-}
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-/* HEADER CARD */
-.header-box{
-    background: linear-gradient(135deg,#1e293b,#0f172a);
-    padding:25px;
-    border-radius:20px;
-    margin-bottom:20px;
-    border:1px solid rgba(255,255,255,0.1);
-}
+# ================= LOGIN =================
+if not st.session_state.logged_in:
 
-/* SIDEBAR */
-section[data-testid="stSidebar"]{
-    background: linear-gradient(180deg,#111827,#020617);
-}
-
-/* LOGO */
-.logo{
-    font-size:50px;
-    text-align:center;
-}
-
-/* BUTTON */
-.stButton>button{
-    background: linear-gradient(90deg,#2563eb,#7c3aed);
-    color:white;
-    border-radius:10px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# =====================================
-# LOGIN
-# =====================================
-if "login" not in st.session_state:
-    st.session_state.login = False
-
-if not st.session_state.login:
-
-    st.markdown("<h1 style='text-align:center;'>🔐 Login</h1>", unsafe_allow_html=True)
+    st.title("🔐 Login")
 
     user = st.text_input("Username")
     pwd = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        enc = hashlib.sha256(pwd.encode()).hexdigest()
-        data = c.execute("SELECT * FROM users WHERE name=? AND password=?", (user, enc)).fetchone()
-
-        if data:
-            st.session_state.login = True
-            st.session_state.user = user
-            st.session_state.role = data[2]
+        if user == "admin" and pwd == "admin123":
+            st.session_state.logged_in = True
             st.rerun()
         else:
-            st.error("Invalid login")
+            st.error("Wrong credentials")
 
     st.stop()
 
-# =====================================
-# SIDEBAR
-# =====================================
-with st.sidebar:
+# ================= SIDEBAR =================
+menu = st.sidebar.radio("Menu", [
+    "Dashboard","Customers","Collections","Loans",
+    "Donations","Expenses","Reports"
+])
 
-    st.markdown("""
-    <div style='text-align:center'>
-        <div class='logo'>🚀</div>
-        <h3>Bal Yuva</h3>
-        <h3 style='color:#38bdf8'>Mangal Dal</h3>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown(f"👤 {st.session_state.user}")
-    st.markdown(f"Role: {st.session_state.role}")
-
-    menu = option_menu(
-        None,
-        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users"],
-        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up","person"]
-    )
-
-    if st.button("Logout"):
-        st.session_state.login = False
-        st.rerun()
-
-# =====================================
-# HEADER UI (🔥 FRONT LOGO BACK)
-# =====================================
-st.markdown("""
-<div class='header-box'>
-<h1>🚀 Bal Yuva Mangal Dal</h1>
-<p>Smart Finance Management System</p>
-</div>
-""", unsafe_allow_html=True)
-
-# =====================================
-# DASHBOARD
-# =====================================
+# ================= DASHBOARD =================
 if menu == "Dashboard":
 
-    col_total = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
-    don_total = c.execute("SELECT SUM(amount) FROM donations").fetchone()[0] or 0
-    exp_total = c.execute("SELECT SUM(amount) FROM expenses").fetchone()[0] or 0
+    st.markdown("## 🚀 Bal Yuva Mangal Dal")
+    st.markdown("Smart Finance Management System")
 
-    c1,c2,c3 = st.columns(3)
-    c1.metric("Collections", f"₹ {col_total}")
-    c2.metric("Donations", f"₹ {don_total}")
-    c3.metric("Expenses", f"₹ {exp_total}")
+    total_col = sum(x["amount"] for x in st.session_state.collections)
+    total_don = sum(x["amount"] for x in st.session_state.donations)
+    total_exp = sum(x["amount"] for x in st.session_state.expenses)
 
-    st.metric("Balance", f"₹ {col_total + don_total - exp_total}")
+    c1,c2,c3,c4 = st.columns(4)
 
-# बाकी sections same (Customers, Collections, Loans, Donations, Expenses, Reports, Users)
+    c1.metric("Collections", f"₹ {total_col}")
+    c2.metric("Donations", f"₹ {total_don}")
+    c3.metric("Expenses", f"₹ {total_exp}")
+    c4.metric("Customers", len(st.session_state.customers))
+
+    st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
+
+# ================= CUSTOMERS =================
+elif menu == "Customers":
+
+    st.title("Customers")
+
+    search = st.text_input("🔍 Search Customer")
+
+    name = st.text_input("Name")
+    mobile = st.text_input("Mobile")
+    date = st.date_input("Start Date")
+
+    if st.button("Add Customer"):
+        st.session_state.customers.append({
+            "name": name,
+            "mobile": mobile,
+            "date": str(date)
+        })
+
+    if st.session_state.customers:
+        df = pd.DataFrame(st.session_state.customers)
+
+        if search:
+            df = df[df["name"].str.contains(search, case=False)]
+
+        st.dataframe(df)
+
+# ================= COLLECTIONS =================
+elif menu == "Collections":
+
+    st.title("Collections")
+
+    if not st.session_state.customers:
+        st.warning("Add customer first")
+
+    else:
+        cust = st.selectbox(
+            "Customer",
+            st.session_state.customers,
+            format_func=lambda x: f"{x['name']} ({x['mobile']})"
+        )
+
+        month = st.selectbox("Month", [
+            datetime.datetime.now().strftime("%B %Y")
+        ])
+
+        date = st.date_input("Collection Date")
+
+        amt = st.number_input("Amount", min_value=0.0)
+
+        if st.button("Save"):
+            st.session_state.collections.append({
+                "name": cust["name"],
+                "month": month,
+                "date": str(date),
+                "amount": amt
+            })
+
+    if st.session_state.collections:
+        df = pd.DataFrame(st.session_state.collections)
+
+        m = st.selectbox("Filter Month", ["All"] + list(df["month"].unique()))
+
+        if m != "All":
+            df = df[df["month"] == m]
+
+        st.dataframe(df)
+
+        st.download_button("⬇️ Export CSV", df.to_csv().encode(), "collections.csv")
+
+# ================= LOANS =================
+elif menu == "Loans":
+
+    st.title("Loans")
+
+    name = st.text_input("Customer Name")
+    amt = st.number_input("Loan Amount", min_value=0.0)
+    date = st.date_input("Loan Start Date")
+
+    if st.button("Add Loan"):
+        st.session_state.loans.append({
+            "name": name,
+            "amount": amt,
+            "date": str(date)
+        })
+
+    if st.session_state.loans:
+        df = pd.DataFrame(st.session_state.loans)
+        st.dataframe(df)
+
+# ================= DONATIONS =================
+elif menu == "Donations":
+
+    st.title("Donations")
+
+    name = st.text_input("Donor Name")
+    amt = st.number_input("Amount", min_value=0.0)
+
+    if st.button("Save Donation"):
+        st.session_state.donations.append({
+            "name": name,
+            "amount": amt
+        })
+
+    if st.session_state.donations:
+        st.dataframe(pd.DataFrame(st.session_state.donations))
+
+# ================= EXPENSES =================
+elif menu == "Expenses":
+
+    st.title("Expenses")
+
+    typ = st.text_input("Expense Type")
+    amt = st.number_input("Amount", min_value=0.0)
+
+    if st.button("Save Expense"):
+        st.session_state.expenses.append({
+            "type": typ,
+            "amount": amt
+        })
+
+    if st.session_state.expenses:
+        st.dataframe(pd.DataFrame(st.session_state.expenses))
+
+# ================= REPORTS =================
+elif menu == "Reports":
+
+    st.title("Reports")
+
+    data = pd.DataFrame({
+        "Type":["Collections","Donations","Expenses"],
+        "Amount":[
+            sum(x["amount"] for x in st.session_state.collections),
+            sum(x["amount"] for x in st.session_state.donations),
+            sum(x["amount"] for x in st.session_state.expenses)
+        ]
+    })
+
+    st.dataframe(data)
+    st.bar_chart(data.set_index("Type"))
