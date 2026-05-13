@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
 import hashlib
-if "users" not in st.session_state:
+if "reset_done" not in st.session_state:
     st.session_state.users = [
         {
             "name": "admin",
@@ -10,6 +10,7 @@ if "users" not in st.session_state:
             "role": "Admin"
         }
     ]
+    st.session_state.reset_done = True
 # =====================================================
 # PAGE CONFIG
 # =====================================================
