@@ -621,7 +621,7 @@ elif menu == "Users":
     )
 
     # =========================
-    # LOGOUT BUTTON
+    # LOGOUT
     # =========================
 
     if st.button("🚪 Logout"):
