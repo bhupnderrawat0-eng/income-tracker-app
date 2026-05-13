@@ -203,22 +203,24 @@ if "users" not in st.session_state:
 if not st.session_state.logged_in:
 
     st.markdown("<h1 style='text-align:center;'>🔐 Login</h1>", unsafe_allow_html=True)
+username = st.text_input("Username")
+password = st.text_input("Password", type="password")
 
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+if st.button("Login"):
 
-    if st.button("Login"):
-
+    # 🔐 password hash
     entered_pass = hashlib.sha256(password.encode()).hexdigest()
 
     found = False
 
+    # 👇 users list check
     for user in st.session_state.users:
 
         if (
             user["name"] == username and
             user["password"] == entered_pass
         ):
+            # ✅ login success
             st.session_state.logged_in = True
             st.session_state.current_user = user["name"]
             st.session_state.current_role = user["role"]
@@ -227,8 +229,9 @@ if not st.session_state.logged_in:
             st.success("Login Successful")
             st.rerun()
 
+    # ❗ IMPORTANT: loop ke bahar
     if not found:
-        st.error("Invalid Username or Password")
+        st.error("Invalid Username or Password")    
 # =====================================================
 # SIDEBAR
 # =====================================================
