@@ -2,26 +2,145 @@ import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
 import hashlib
-
 # =====================================================
-# CONFIG
+# PAGE CONFIG
 # =====================================================
 
 st.set_page_config(
     page_title="Bal Yuva Mangal Dal",
     page_icon="🚀",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # =====================================================
-# PASSWORD HASH
+# PREMIUM CSS
 # =====================================================
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+st.markdown("""
+<style>
+
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
+
+/* APP BACKGROUND */
+
+.stApp{
+    background:
+    linear-gradient(
+    135deg,
+    #0f172a,
+    #020617
+    );
+}
+
+/* MAIN CONTENT */
+
+.block-container{
+    padding-top:2rem;
+    padding-left:2rem;
+    padding-right:2rem;
+}
+
+/* SIDEBAR */
+
+section[data-testid="stSidebar"]{
+
+    background:
+    linear-gradient(
+    180deg,
+    #111827,
+    #0f172a
+    );
+
+    border-right:
+    1px solid rgba(255,255,255,0.08);
+
+    width:320px !important;
+}
+
+/* TEXT */
+
+h1,h2,h3,h4,h5,h6,p,label,span{
+    color:white !important;
+}
+
+/* METRIC CARDS */
+
+div[data-testid="metric-container"]{
+
+    background:
+    linear-gradient(
+    135deg,
+    rgba(30,41,59,0.95),
+    rgba(15,23,42,0.95)
+    );
+
+    border:
+    1px solid rgba(96,165,250,0.15);
+
+    border-radius:22px;
+
+    padding:28px;
+
+    box-shadow:
+    0 10px 35px rgba(0,0,0,0.45);
+
+    backdrop-filter:blur(14px);
+}
+
+/* BUTTONS */
+
+.stButton>button{
+
+    width:100%;
+
+    border:none;
+
+    border-radius:12px;
+
+    height:48px;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    color:white;
+
+    background:
+    linear-gradient(
+    90deg,
+    #2563eb,
+    #7c3aed
+    );
+}
+
+/* INPUTS */
+
+.stTextInput input,
+.stNumberInput input,
+.stSelectbox div{
+
+    background:#111827 !important;
+
+    color:white !important;
+
+    border-radius:10px !important;
+}
+
+/* DATAFRAME */
+
+[data-testid="stDataFrame"]{
+    border-radius:15px;
+    overflow:hidden;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 # =====================================================
-# SESSION STATE INIT
+# SESSION STATE
 # =====================================================
 
 if "customers" not in st.session_state:
@@ -35,15 +154,9 @@ if "donations" not in st.session_state:
 
 if "expenses" not in st.session_state:
     st.session_state.expenses = []
-
-if "users" not in st.session_state:
-    st.session_state.users = [
-        {
-            "name": "admin",
-            "password": hash_password("admin123"),
-            "role": "Admin"
-        }
-    ]
+# =====================================
+# LOGIN SYSTEM
+# =====================================
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -54,56 +167,178 @@ if "current_user" not in st.session_state:
 if "current_role" not in st.session_state:
     st.session_state.current_role = ""
 
-# =====================================================
+if "users_data" not in st.session_state:
+    st.session_state.users_data = [
+        {
+            "username": "admin",
+            "password": "admin123",
+            "role": "Admin"
+        }
+    ]
+if "users" not in st.session_state:
+
+    st.session_state.users = [
+
+    {
+        "name": "Admin",
+        "username": "admin",
+        "password": "admin123",
+        "role": "Admin"
+    }
+
+]
+# =========================
 # LOGIN PAGE
-# =====================================================
+# =========================
 
 if not st.session_state.logged_in:
 
-    st.title("🔐 Login")
+    st.markdown("<h1 style='text-align:center;'>🔐 Login</h1>", unsafe_allow_html=True)
 
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
 
-        for user in st.session_state.users:
+        found = False
+
+        for user in st.session_state.users_data:
 
             if (
-                user["name"] == username and
-                user["password"] == hash_password(password)
+                user["username"] == username
+                and user["password"] == password
             ):
+
                 st.session_state.logged_in = True
                 st.session_state.current_user = username
                 st.session_state.current_role = user["role"]
+
+                found = True
                 st.rerun()
 
-        st.error("Invalid Username or Password")
+        if not found:
+            st.error("Invalid Username or Password")
 
     st.stop()
-
 # =====================================================
 # SIDEBAR
 # =====================================================
 
 with st.sidebar:
 
-    st.markdown("## 🚀 Bal Yuva Mangal Dal")
+    st.markdown("""
+    <div style='
+    background:rgba(255,255,255,0.04);
+    padding:22px;
+    border-radius:22px;
+    text-align:center;
+    border:1px solid rgba(255,255,255,0.06);
+    margin-bottom:20px;
+    '>
 
-    st.write(f"👤 {st.session_state.current_user}")
-    st.write(f"🔑 Role: {st.session_state.current_role}")
+    <div style='
+    font-size:60px;
+    margin-bottom:10px;
+    '>
+    🚀
+    </div>
 
-    if st.button("🚪 Logout"):
-        st.session_state.logged_in = False
-        st.session_state.current_user = ""
-        st.session_state.current_role = ""
-        st.rerun()
+    <div style='
+    font-size:30px;
+    font-weight:800;
+    color:white;
+    line-height:1.1;
+    '>
+    Bal Yuva
+    </div>
+
+    <div style='
+    font-size:30px;
+    font-weight:800;
+    color:#38bdf8;
+    line-height:1.1;
+    margin-bottom:10px;
+    '>
+    Mangal Dal
+    </div>
+
+    <div style='
+    font-size:11px;
+    letter-spacing:3px;
+    color:#94a3b8;
+    '>
+    SMART FINANCE TRACKER
+    </div>
+
+    </div>
+    """, unsafe_allow_html=True)
 
     menu = option_menu(
-        None,
-        ["Dashboard","Customers","Collections","Donations","Expenses","Reports","Users"],
-        icons=["grid","people","cash","gift","wallet","bar-chart","person"],
-        default_index=0
+        menu_title=None,
+
+        options=[
+            "Dashboard",
+            "Customers",
+            "Collections",
+            "Loans",
+            "Donations",
+            "Expenses",
+            "Reports",
+            "Users"
+        ],
+
+        icons=[
+            "grid-fill",
+            "people-fill",
+            "cash-stack",
+            "bank2",
+            "gift-fill",
+            "wallet2",
+            "bar-chart-fill",
+            "person-fill"
+        ],
+
+        default_index=0,
+
+        styles={
+
+            "container":{
+                "background-color":"transparent",
+                "padding":"0px"
+            },
+
+            "icon":{
+                "color":"white",
+                "font-size":"18px"
+            },
+
+            "nav-link":{
+
+                "font-size":"16px",
+
+                "text-align":"left",
+
+                "margin":"8px 0",
+
+                "padding":"14px",
+
+                "border-radius":"14px",
+
+                "background-color":"#1e293b",
+
+                "color":"white",
+
+                "--hover-color":"#334155",
+            },
+
+            "nav-link-selected":{
+
+                "background":
+                "linear-gradient(90deg,#2563eb,#7c3aed)",
+
+                "font-weight":"700",
+            }
+        }
     )
 
 # =====================================================
@@ -112,22 +347,90 @@ with st.sidebar:
 
 if menu == "Dashboard":
 
-    st.title("📊 Dashboard")
+    st.markdown("""
+<div style="background:linear-gradient(135deg, rgba(15,23,42,0.88), rgba(30,41,59,0.88)); padding:28px; border-radius:24px; margin-bottom:25px; border:1px solid rgba(96,165,250,0.12); box-shadow:0 8px 30px rgba(0,0,0,0.35);">
 
-    collections_total = sum(x["amount"] for x in st.session_state.collections)
-    donations_total = sum(x["amount"] for x in st.session_state.donations)
-    expenses_total = sum(x["amount"] for x in st.session_state.expenses)
+<div style="
+font-size:52px;
+font-weight:800;
+color:white;
+">
+📊 Dashboard
+</div>
 
-    balance = collections_total + donations_total - expenses_total
+<div style="
+font-size:34px;
+font-weight:700;
+margin-top:10px;
+color:white;
+">
+Welcome back 👋
+</div>
 
-    c1,c2,c3,c4 = st.columns(4)
+<div style="
+font-size:18px;
+color:#94a3b8;
+margin-top:8px;
+">
+Here's what's happening today.
+</div>
 
-    c1.metric("Collections", f"₹ {collections_total}")
-    c2.metric("Donations", f"₹ {donations_total}")
-    c3.metric("Expenses", f"₹ {expenses_total}")
-    c4.metric("Customers", len(st.session_state.customers))
+</div>
+""", unsafe_allow_html=True)
 
-    st.metric("Net Balance", f"₹ {balance}")
+    collections_total = sum(
+        x["amount"]
+        for x in st.session_state.collections
+    )
+
+    donations_total = sum(
+        x["amount"]
+        for x in st.session_state.donations
+    )
+
+    expenses_total = sum(
+        x["amount"]
+        for x in st.session_state.expenses
+    )
+
+    balance = (
+        collections_total
+        + donations_total
+        - expenses_total
+    )
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        st.metric(
+            "💵 Collections",
+            f"₹ {collections_total}"
+        )
+
+    with c2:
+        st.metric(
+            "🎁 Donations",
+            f"₹ {donations_total}"
+        )
+
+    with c3:
+        st.metric(
+            "💸 Expenses",
+            f"₹ {expenses_total}"
+        )
+
+    with c4:
+        st.metric(
+            "👥 Customers",
+            len(st.session_state.customers)
+        )
+
+    st.write("")
+
+    st.metric(
+        "🪙 Net Balance",
+        f"₹ {balance}"
+    )
 
 # =====================================================
 # CUSTOMERS
@@ -135,17 +438,29 @@ if menu == "Dashboard":
 
 elif menu == "Customers":
 
-    st.title("Customers")
+    st.title("👥 Customers")
 
     name = st.text_input("Customer Name")
 
     if st.button("Add Customer"):
 
         if name:
-            st.session_state.customers.append(name)
-            st.success("Added")
 
-    st.dataframe(pd.DataFrame(st.session_state.customers, columns=["Name"]))
+            st.session_state.customers.append(name)
+
+            st.success("Customer Added Successfully")
+
+    if st.session_state.customers:
+
+        df = pd.DataFrame(
+            st.session_state.customers,
+            columns=["Customer Name"]
+        )
+
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
 
 # =====================================================
 # COLLECTIONS
@@ -153,21 +468,43 @@ elif menu == "Customers":
 
 elif menu == "Collections":
 
-    st.title("Collections")
+    st.title("💵 Collections")
 
-    if not st.session_state.customers:
+    if len(st.session_state.customers) == 0:
+
         st.warning("Add customers first")
 
     else:
-        customer = st.selectbox("Customer", st.session_state.customers)
-        amount = st.number_input("Amount", min_value=0.0)
 
-        if st.button("Save"):
+        customer = st.selectbox(
+            "Select Customer",
+            st.session_state.customers
+        )
+
+        amount = st.number_input(
+            "Collection Amount",
+            min_value=0.0
+        )
+
+        if st.button("Save Collection"):
+
             st.session_state.collections.append({
+
                 "customer": customer,
                 "amount": amount
             })
-            st.success("Saved")
+
+            st.success("Collection Saved Successfully")
+
+# =====================================================
+# LOANS
+# =====================================================
+
+elif menu == "Loans":
+
+    st.title("🏦 Loans")
+
+    st.info("Loans Section Ready")
 
 # =====================================================
 # DONATIONS
@@ -175,13 +512,21 @@ elif menu == "Collections":
 
 elif menu == "Donations":
 
-    st.title("Donations")
+    st.title("🎁 Donations")
 
-    amount = st.number_input("Amount", min_value=0.0)
+    amount = st.number_input(
+        "Donation Amount",
+        min_value=0.0
+    )
 
-    if st.button("Save"):
-        st.session_state.donations.append({"amount": amount})
-        st.success("Saved")
+    if st.button("Save Donation"):
+
+        st.session_state.donations.append({
+
+            "amount": amount
+        })
+
+        st.success("Donation Saved Successfully")
 
 # =====================================================
 # EXPENSES
@@ -189,13 +534,21 @@ elif menu == "Donations":
 
 elif menu == "Expenses":
 
-    st.title("Expenses")
+    st.title("💸 Expenses")
 
-    amount = st.number_input("Amount", min_value=0.0)
+    amount = st.number_input(
+        "Expense Amount",
+        min_value=0.0
+    )
 
-    if st.button("Save"):
-        st.session_state.expenses.append({"amount": amount})
-        st.success("Saved")
+    if st.button("Save Expense"):
+
+        st.session_state.expenses.append({
+
+            "amount": amount
+        })
+
+        st.success("Expense Saved Successfully")
 
 # =====================================================
 # REPORTS
@@ -203,62 +556,222 @@ elif menu == "Expenses":
 
 elif menu == "Reports":
 
-    st.title("Reports")
+    st.title("📊 Reports")
 
-    df = pd.DataFrame({
-        "Category": ["Collections","Donations","Expenses"],
+    report_data = pd.DataFrame({
+
+        "Category": [
+            "Collections",
+            "Donations",
+            "Expenses"
+        ],
+
         "Amount": [
-            sum(x["amount"] for x in st.session_state.collections),
-            sum(x["amount"] for x in st.session_state.donations),
-            sum(x["amount"] for x in st.session_state.expenses)
+
+            sum(
+                x["amount"]
+                for x in st.session_state.collections
+            ),
+
+            sum(
+                x["amount"]
+                for x in st.session_state.donations
+            ),
+
+            sum(
+                x["amount"]
+                for x in st.session_state.expenses
+            )
         ]
     })
 
-    st.dataframe(df)
-    st.bar_chart(df.set_index("Category"))
+    st.dataframe(
+        report_data,
+        use_container_width=True
+    )
 
-# =====================================================
+    st.bar_chart(
+        report_data.set_index("Category")
+    )
+
+# =========================================================
 # USERS
-# =====================================================
+# =========================================================
 
 elif menu == "Users":
 
-    st.title("User Management")
+    st.subheader("👥 User Management")
 
-    if st.session_state.current_role != "Admin":
-        st.warning("Only Admin can manage users")
+    # =========================
+    # SESSION STATE
+    # =========================
+
+    if "users" not in st.session_state:
+        st.session_state.users = [
+            {
+                "name": "admin",
+                "password": "admin123",
+                "role": "Admin"
+            }
+        ]
+
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    if "current_user" not in st.session_state:
+        st.session_state.current_user = ""
+
+    if "current_role" not in st.session_state:
+        st.session_state.current_role = ""
+
+    # =========================
+    # LOGIN SECTION
+    # =========================
+
+    st.markdown("## 🔐 Login")
+
+    login_user = st.text_input("Username")
+
+    login_pass = st.text_input(
+        "Password",
+        type="password"
+    )
+
+    if st.button("Login"):
+
+        found = False
+
+        for user in st.session_state.users:
+
+            if (
+                user["name"] == login_user and
+                user["password"] == login_pass
+            ):
+
+                st.session_state.logged_in = True
+                st.session_state.current_user = user["name"]
+                st.session_state.current_role = user["role"]
+
+                found = True
+
+                st.success("✅ Login Successful!")
+
+                st.rerun()
+
+        if not found:
+            st.error("❌ Invalid Username or Password")
+
+    st.write("---")
+
+    # =========================
+    # LOGGED USER INFO
+    # =========================
+
+    if st.session_state.logged_in:
+
+        st.success(
+            f"Logged in as: "
+            f"{st.session_state.current_user} "
+            f"({st.session_state.current_role})"
+        )
+
+        if st.button("Logout"):
+
+            st.session_state.logged_in = False
+            st.session_state.current_user = ""
+            st.session_state.current_role = ""
+
+            st.success("Logged Out!")
+
+            st.rerun()
+
+        st.write("---")
+
+        # =========================
+        # ADMIN USER CREATION
+        # =========================
+
+        if st.session_state.current_role == "Admin":
+
+            st.markdown("## ➕ Add New User")
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                username = st.text_input("New Username")
+
+            with col2:
+                password = st.text_input(
+                    "New Password",
+                    type="password"
+                )
+
+            with col3:
+                role = st.selectbox(
+                    "Select Role",
+                    ["Admin", "Editor", "Viewer"]
+                )
+
+            if st.button("Add User"):
+
+                if username and password:
+
+                    already_exists = False
+
+                    for user in st.session_state.users:
+
+                        if user["name"] == username:
+                            already_exists = True
+
+                    if already_exists:
+
+                        st.error("⚠️ User already exists")
+
+                    else:
+
+                        st.session_state.users.append({
+
+                            "name": username,
+                            "password": password,
+                            "role": role
+
+                        })
+
+                        st.success("✅ User Added Successfully!")
+
+                        st.rerun()
+
+                else:
+                    st.warning("Please fill all fields")
+
+        # =========================
+        # USER LIST
+        # =========================
+
+        st.write("---")
+
+        st.markdown("## 📋 All Users")
+
+        users_df = pd.DataFrame(
+            st.session_state.users
+        )
+
+        st.dataframe(
+            users_df,
+            use_container_width=True
+        )
+
     else:
 
-        st.subheader("Add User")
+        st.info("Please login first")
 
-        col1,col2,col3 = st.columns(3)
+    # =========================
+    # DEFAULT LOGIN INFO
+    # =========================
 
-        with col1:
-            username = st.text_input("Username")
+    st.write("---")
 
-        with col2:
-            password = st.text_input("Password", type="password")
-
-        with col3:
-            role = st.selectbox("Role", ["Admin","Editor","Viewer"])
-
-        if st.button("Add User"):
-
-            if username and password:
-
-                exists = any(u["name"] == username for u in st.session_state.users)
-
-                if exists:
-                    st.error("User exists")
-                else:
-                    st.session_state.users.append({
-                        "name": username,
-                        "password": hash_password(password),
-                        "role": role
-                    })
-                    st.success("User added")
-                    st.rerun()
-
-        st.subheader("All Users")
-
-        st.dataframe(pd.DataFrame(st.session_state.users))
+    st.info(
+        "Default Admin Login → "
+        "Username: admin | Password: admin123"
+    )
