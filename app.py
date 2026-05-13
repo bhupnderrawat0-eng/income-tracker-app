@@ -4,83 +4,51 @@ from streamlit_option_menu import option_menu
 import hashlib
 import datetime
 
-# =========================
-# CONFIG
-# =========================
-st.set_page_config(page_title="Bal Yuva Enterprise", layout="wide")
+# ================= CONFIG =================
+st.set_page_config(page_title="Bal Yuva SaaS", layout="wide")
 
-# =========================
-# PREMIUM CSS
-# =========================
+# ================= CSS =================
 st.markdown("""
 <style>
-.stApp {
-    background: linear-gradient(135deg,#020617,#0f172a);
-}
-
+.stApp {background: linear-gradient(135deg,#020617,#0f172a);}
 header, footer {visibility:hidden;}
 
 .block-container {padding-top:1rem;}
 
-h1,h2,h3,h4,h5,h6,p,label {
-    color:white !important;
-}
+h1,h2,h3,h4,h5,p,label {color:white !important;}
 
-/* SIDEBAR */
-section[data-testid="stSidebar"] {
-    background: #020617;
-}
+section[data-testid="stSidebar"] {background:#020617;}
 
-/* INPUT */
 .stTextInput input, .stNumberInput input, .stSelectbox div {
     background:#111827 !important;
     color:white !important;
 }
 
-/* BUTTON */
 .stButton>button {
     background:linear-gradient(90deg,#2563eb,#7c3aed);
     color:white;
     border-radius:10px;
 }
 
-/* HEADER CARD */
-.header-box {
-    background: linear-gradient(135deg, rgba(30,41,59,0.7), rgba(15,23,42,0.7));
-    padding:25px;
+/* HEADER */
+.header {
+    background: rgba(30,41,59,0.6);
+    padding:20px;
     border-radius:20px;
-    margin-bottom:20px;
-    display:flex;
-    align-items:center;
-    gap:15px;
+    margin-bottom:25px;
 }
 
-.logo {
-    font-size:50px;
-}
-
-.title {
-    font-size:32px;
-    font-weight:800;
-}
-
-.subtitle {
-    color:#94a3b8;
-    font-size:14px;
-}
-
-/* METRIC CARD SPACING */
-[data-testid="metric-container"] {
-    background: rgba(30,41,59,0.7);
-    padding:15px;
+/* SECTION BOX */
+.box {
+    background: rgba(30,41,59,0.6);
+    padding:20px;
     border-radius:15px;
+    margin-top:15px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# =========================
-# SESSION INIT
-# =========================
+# ================= SESSION =================
 for key in ["customers","collections","loans","donations","expenses"]:
     if key not in st.session_state:
         st.session_state[key] = []
@@ -95,12 +63,10 @@ if "users" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# =========================
-# LOGIN
-# =========================
+# ================= LOGIN =================
 if not st.session_state.logged_in:
 
-    st.markdown("## 🔐 Login")
+    st.title("🔐 Login")
 
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
@@ -119,76 +85,66 @@ if not st.session_state.logged_in:
 
     st.stop()
 
-# =========================
-# SIDEBAR
-# =========================
+# ================= SIDEBAR =================
 with st.sidebar:
-    st.markdown("## 🚀 Bal Yuva")
+    st.markdown("## 🚀 Bal Yuva SaaS")
 
     menu = option_menu(
         None,
-        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
-        icons=["bar-chart","people","cash","bank","gift","wallet","graph-up","person","cpu"]
+        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"]
     )
 
     st.write("---")
-    st.write(f"👤 {st.session_state.current_user}")
-    st.write(f"Role: {st.session_state.role}")
+    st.write(st.session_state.current_user)
 
     if st.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
 
-# =========================
-# HEADER (LOGO FIXED HERE)
-# =========================
+# ================= HEADER =================
 st.markdown("""
-<div class="header-box">
-    <div class="logo">🚀</div>
-    <div>
-        <div class="title">Bal Yuva Mangal Dal</div>
-        <div class="subtitle">Enterprise Finance SaaS System</div>
-    </div>
+<div class="header">
+    <h2>🚀 Bal Yuva Mangal Dal</h2>
+    <p>Smart Finance SaaS System</p>
 </div>
 """, unsafe_allow_html=True)
 
-# =========================
-# DASHBOARD
-# =========================
+# ================= DASHBOARD =================
 if menu == "Dashboard":
 
-    col1,col2,col3,col4 = st.columns(4)
+    c1,c2,c3,c4 = st.columns(4)
 
     total_col = sum(x["amount"] for x in st.session_state.collections)
     total_loan = sum(x["amount"] for x in st.session_state.loans)
     total_don = sum(x["amount"] for x in st.session_state.donations)
     total_exp = sum(x["amount"] for x in st.session_state.expenses)
 
-    col1.metric("Collections", f"₹ {total_col}")
-    col2.metric("Loans", f"₹ {total_loan}")
-    col3.metric("Donations", f"₹ {total_don}")
-    col4.metric("Expenses", f"₹ {total_exp}")
+    c1.metric("Collections", f"₹ {total_col}")
+    c2.metric("Loans", f"₹ {total_loan}")
+    c3.metric("Donations", f"₹ {total_don}")
+    c4.metric("Expenses", f"₹ {total_exp}")
 
     st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
 
-# =========================
-# बाकी modules same
-# =========================
+# ================= CUSTOMERS =================
 elif menu == "Customers":
-    st.title("Customers")
+
+    st.subheader("Add Customer")
 
     name = st.text_input("Name")
     mobile = st.text_input("Mobile")
 
-    if st.button("Add"):
+    if st.button("Add Customer"):
         st.session_state.customers.append({"name":name,"mobile":mobile})
 
+    st.markdown("### Customer List")
     st.dataframe(pd.DataFrame(st.session_state.customers))
 
+# ================= COLLECTION =================
 elif menu == "Collections":
-    st.title("Collections")
 
     if st.session_state.customers:
+
         cust = st.selectbox("Customer", st.session_state.customers,
             format_func=lambda x: f"{x['name']} ({x['mobile']})")
 
@@ -199,7 +155,7 @@ elif menu == "Collections":
         date = st.date_input("Start Date")
         amt = st.number_input("Amount")
 
-        if st.button("Save"):
+        if st.button("Save Collection"):
             st.session_state.collections.append({
                 "name":cust["name"],
                 "month":month,
@@ -207,12 +163,14 @@ elif menu == "Collections":
                 "amount":amt
             })
 
+    st.markdown("### Records")
     st.dataframe(pd.DataFrame(st.session_state.collections))
 
+# ================= LOANS =================
 elif menu == "Loans":
-    st.title("Loans")
 
     if st.session_state.customers:
+
         cust = st.selectbox("Customer", st.session_state.customers,
             format_func=lambda x: x["name"])
 
@@ -226,9 +184,46 @@ elif menu == "Loans":
                 "amount":amt
             })
 
+    st.markdown("### Loan Records")
     st.dataframe(pd.DataFrame(st.session_state.loans))
 
+# ================= DONATIONS FIX =================
+elif menu == "Donations":
+
+    st.subheader("Add Donation")
+
+    donor = st.text_input("Donor Name")
+    amt = st.number_input("Amount")
+
+    if st.button("Save Donation"):
+        st.session_state.donations.append({
+            "name": donor,
+            "amount": amt
+        })
+
+    st.markdown("### Donation Records")
+    st.dataframe(pd.DataFrame(st.session_state.donations))
+
+# ================= EXPENSE FIX =================
+elif menu == "Expenses":
+
+    st.subheader("Add Expense")
+
+    exp_type = st.text_input("Expense Type")
+    amt = st.number_input("Amount")
+
+    if st.button("Save Expense"):
+        st.session_state.expenses.append({
+            "type": exp_type,
+            "amount": amt
+        })
+
+    st.markdown("### Expense Records")
+    st.dataframe(pd.DataFrame(st.session_state.expenses))
+
+# ================= REPORT =================
 elif menu == "Reports":
+
     df = pd.DataFrame({
         "Category":["Collections","Loans","Donations","Expenses"],
         "Amount":[
@@ -238,4 +233,5 @@ elif menu == "Reports":
             sum(x["amount"] for x in st.session_state.expenses)
         ]
     })
+
     st.bar_chart(df.set_index("Category"))
