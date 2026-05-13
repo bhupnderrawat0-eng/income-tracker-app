@@ -487,25 +487,6 @@ elif menu == "Customers":
         else:
             st.error("Please fill all required fields")
 
-    # =========================
-    # SHOW DATA
-    # =========================
-    if st.session_state.customers:
-
-        import pandas as pd
-
-        df = pd.DataFrame(st.session_state.customers)
-
-        st.dataframe(df, use_container_width=True)
-    # =========================
-    # SHOW CUSTOMERS
-    # =========================
-
-    st.write("---")
-
-    if "customers" in st.session_state and st.session_state.customers:
-        df = pd.DataFrame(st.session_state.customers)
-        st.dataframe(df, use_container_width=True)
 # =====================================================
 # COLLECTIONS
 # =====================================================
