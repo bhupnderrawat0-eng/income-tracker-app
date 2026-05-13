@@ -538,7 +538,7 @@ elif menu == "Collections":
             min_value=0.0
         )
 
-        # ✅ Save button
+        # ✅ Save
         if st.button("Save Collection"):
 
             st.session_state.collections.append({
@@ -550,32 +550,30 @@ elif menu == "Collections":
 
             st.success("Collection Saved Successfully")
 
-        # =====================================
-        # ✅ SHOW COLLECTION LIST
-        # =====================================
+    # =========================
+    # ✅ SHOW COLLECTION TABLE
+    # =========================
 
-        if len(st.session_state.collections) > 0:
+    if len(st.session_state.collections) > 0:
 
-            st.write("")
-            st.subheader("📊 Collection Records")
+        st.write("")
+        st.subheader("📊 Collection Records")
 
-            df = pd.DataFrame(st.session_state.collections)
+        df = pd.DataFrame(st.session_state.collections)
 
-            # ✅ Month filter
-            if "month" in df.columns:
+        # Month filter
+        selected_month = st.selectbox(
+            "Filter by Month",
+            ["All"] + list(df["month"].unique())
+        )
 
-                selected_month = st.selectbox(
-                    "Filter by Month",
-                    ["All"] + list(df["month"].unique())
-                )
+        if selected_month != "All":
+            df = df[df["month"] == selected_month]
 
-                if selected_month != "All":
-                    df = df[df["month"] == selected_month]
+        st.dataframe(df, use_container_width=True)
 
-            st.dataframe(df, use_container_width=True)
-
-        else:
-            st.info("No collections added yet")
+    else:
+        st.info("No collections added yet")
 # =====================================================
 # LOANS
 # =====================================================
