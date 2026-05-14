@@ -178,15 +178,60 @@ if menu == "Dashboard":
 # ================= CUSTOMERS =================
 elif menu == "Customers":
 
+    st.subheader("👤 Customer Management")
+
+    # -------- ADD CUSTOMER --------
     name = st.text_input("Name")
     mobile = st.text_input("Mobile")
 
     if st.button("Add Customer"):
-        c.execute("INSERT INTO customers VALUES (?,?)",(name,mobile))
-        conn.commit()
+        if name and mobile:
+            c.execute("INSERT INTO customers VALUES (?,?)", (name, mobile))
+            conn.commit()
+            st.success("Customer Added")
+            st.rerun()
+        else:
+            st.warning("Please fill all fields")
 
-    st.dataframe(pd.read_sql("SELECT * FROM customers", conn))
+    # -------- SHOW DATA --------
+    df = pd.read_sql("SELECT rowid as id, * FROM customers", conn)
 
+    st.markdown("### 📋 Customer List")
+    st.dataframe(df)
+
+    # -------- EDIT / DELETE --------
+    st.markdown("### ✏️ Manage Customer")
+
+    if not df.empty:
+
+        selected_id = st.selectbox("Select Customer ID", df["id"])
+
+        row = df[df["id"] == selected_id].iloc[0]
+
+        new_name = st.text_input("Edit Name", row["name"])
+        new_mobile = st.text_input("Edit Mobile", row["mobile"])
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button("Update Customer"):
+                c.execute(
+                    "UPDATE customers SET name=?, mobile=? WHERE rowid=?",
+                    (new_name, new_mobile, selected_id)
+                )
+                conn.commit()
+                st.success("Updated Successfully")
+                st.rerun()
+
+        with col2:
+            if st.button("Delete Customer"):
+                c.execute(
+                    "DELETE FROM customers WHERE rowid=?",
+                    (selected_id,)
+                )
+                conn.commit()
+                st.warning("Deleted Successfully")
+                st.rerun()
 # ================= COLLECTION =================
 elif menu == "Collections":
 
