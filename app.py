@@ -77,21 +77,26 @@ if not st.session_state.logged_in:
             st.error("Invalid Login")
 
     st.stop()
+# ================= TOP MENU (MOBILE FRIENDLY) =================
+st.markdown("### 🚀 Bal Yuva SaaS")
 
-# ================= SIDEBAR =================
-with st.sidebar:
-    st.markdown("## 🚀 Bal Yuva SaaS")
+menu = st.radio(
+    "Navigation",
+    ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
+    horizontal=True
+)
 
-    menu = option_menu(None,
-        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"]
-    )
+col_user, col_logout = st.columns([3,1])
 
-    st.write("---")
-    st.write(st.session_state.current_user)
+with col_user:
+    st.write(f"👤 {st.session_state.current_user}")
 
+with col_logout:
     if st.button("Logout"):
         st.session_state.logged_in = False
         st.rerun()
+
+st.markdown("---")
 
 # ================= HEADER =================
 st.markdown("""
