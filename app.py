@@ -338,8 +338,7 @@ if not pending_list.empty:
     st.dataframe(pending_list)
 else:
     st.success("All customers have paid for this month ✅")
-    else:
-        st.info("No collection data available yet")
+
 # ================= USERS =================
 elif menu == "Users":
 
