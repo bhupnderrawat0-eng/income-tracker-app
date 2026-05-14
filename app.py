@@ -273,7 +273,6 @@ elif menu == "Reports":
 
     st.subheader("📊 Advanced Reports")
 
-    # ================= COLLECTION DATA =================
     df = pd.read_sql("SELECT * FROM collections", conn)
 
     if not df.empty:
@@ -323,12 +322,12 @@ elif menu == "Reports":
         top_users = customer_summary.sort_values(by="amount", ascending=False).head(5)
         st.dataframe(top_users)
 
-        # ================= PENDING SYSTEM =================
+        # ================= PENDING CUSTOMERS =================
         st.markdown("### ⚠️ Pending Customers")
 
         all_customers = pd.read_sql("SELECT * FROM customers", conn)
-
         paid_customers = df_month["name"].unique()
+
         pending_list = all_customers[~all_customers["name"].isin(paid_customers)]
 
         if not pending_list.empty:
@@ -336,6 +335,32 @@ elif menu == "Reports":
             st.dataframe(pending_list)
         else:
             st.success("All customers have paid for this month ✅")
+
+        # ================= PENDING AMOUNT =================
+        st.markdown("### 💰 Pending Amount Report")
+
+        EXPECTED_AMOUNT = 1000
+
+        customer_paid = df_month.groupby("name")["amount"].sum().reset_index()
+        customer_paid.rename(columns={"amount": "paid"}, inplace=True)
+
+        report_df = all_customers.merge(customer_paid, on="name", how="left")
+        report_df["paid"] = report_df["paid"].fillna(0)
+
+        report_df["expected"] = EXPECTED_AMOUNT
+        report_df["pending"] = report_df["expected"] - report_df["paid"]
+
+        pending_amount_df = report_df[report_df["pending"] > 0]
+
+        if not pending_amount_df.empty:
+            st.error("⚠️ Customers with Pending Amount")
+            st.dataframe(pending_amount_df)
+
+            st.markdown("### 🔴 Top Defaulters")
+            top_defaulters = pending_amount_df.sort_values(by="pending", ascending=False).head(5)
+            st.dataframe(top_defaulters)
+        else:
+            st.success("🎉 No Pending Amounts")
 
     else:
         st.info("No collection data available yet")
