@@ -111,7 +111,7 @@ if not st.session_state.logged_in:
 # ================= TOP MENU (MOBILE FRIENDLY) =================
 st.markdown("### 🚀 Bal Yuva SaaS")
 
-menu = st.radio(
+mobile_menu = st.radio(
     "Navigation",
     ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
     horizontal=True
@@ -138,6 +138,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ================= DASHBOARD =================
+try:
+    menu = mobile_menu
+except:
+    pass
 if menu == "Dashboard":
 
     total_col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
