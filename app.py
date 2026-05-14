@@ -217,12 +217,8 @@ if st.button("Save Collection"):
         )
     )
 
-    conn.commit()
+    conn.commit()   # ✅ SAME LEVEL as c.execute
     st.success("Collection Saved")
-    
-            conn.commit()
-            st.success("Collection Saved")
-
     # ================= SHOW DATA =================
     df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
 
