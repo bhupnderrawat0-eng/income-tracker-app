@@ -177,15 +177,25 @@ if menu == "Dashboard":
 # ================= CUSTOMERS =================
 elif menu == "Customers":
 
-    st.subheader("👥 Customer Management")
+    st.subheader("👤 Customer Management")
+
+    # Add column if not exists
+    try:
+        c.execute("ALTER TABLE customers ADD COLUMN start_date TEXT")
+    except:
+        pass
 
     # ===== ADD CUSTOMER =====
     name = st.text_input("Name")
     mobile = st.text_input("Mobile")
+    start_date = st.date_input("Collection Start Date")
 
     if st.button("Add Customer"):
         if name and mobile:
-            c.execute("INSERT INTO customers VALUES (?,?)", (name, mobile))
+            c.execute(
+                "INSERT INTO customers (name, mobile, start_date) VALUES (?,?,?)",
+                (name, mobile, start_date.strftime("%Y-%m-%d"))
+            )
             conn.commit()
             st.success("Customer Added Successfully")
             st.rerun()
@@ -197,16 +207,13 @@ elif menu == "Customers":
     # ===== SHOW DATA =====
     df = pd.read_sql("SELECT rowid as id, * FROM customers", conn)
 
-    st.markdown("### 📋 Customer Records")
+    st.markdown("### 📄 Customer Records")
     st.dataframe(df)
 
     # ===== EDIT / DELETE =====
-    st.markdown("### ✏️ Manage Customer")
-
     if not df.empty:
 
-        selected_id = st.selectbox("Select Customer ID", df["id"])
-
+        selected_id = st.selectbox("Select Customer", df["id"])
         row = df[df["id"] == selected_id].iloc[0]
 
         new_name = st.text_input("Edit Name", value=row["name"])
@@ -214,7 +221,7 @@ elif menu == "Customers":
 
         col1, col2 = st.columns(2)
 
-        # ===== UPDATE =====
+        # UPDATE
         with col1:
             if st.button("Update Customer"):
                 c.execute(
@@ -225,13 +232,10 @@ elif menu == "Customers":
                 st.success("Updated Successfully")
                 st.rerun()
 
-        # ===== DELETE =====
+        # DELETE
         with col2:
             if st.button("Delete Customer"):
-                c.execute(
-                    "DELETE FROM customers WHERE rowid=?",
-                    (selected_id,)
-                )
+                c.execute("DELETE FROM customers WHERE rowid=?", (selected_id,))
                 conn.commit()
                 st.warning("Deleted Successfully")
                 st.rerun()
@@ -240,20 +244,17 @@ elif menu == "Collections":
 
     st.subheader("🔥 Collection Management")
 
-    # ===== FIX COLUMN (IMPORTANT) =====
-    try:
-        c.execute("ALTER TABLE collections ADD COLUMN start_date TEXT")
-    except:
-        pass
-
-    # ===== LOAD CUSTOMERS =====
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
     if customers.empty:
         st.warning("No customers available. Please add customers first.")
     else:
-        # ===== ADD COLLECTION =====
+
         cust = st.selectbox("Customer", customers["name"])
+
+        # Show start date
+        cust_data = customers[customers["name"] == cust].iloc[0]
+        st.info(f"Collection Start: {cust_data['start_date']}")
 
         import datetime
         month = st.selectbox(
@@ -261,18 +262,16 @@ elif menu == "Collections":
             [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
         )
 
-        start_date = st.date_input("Start Date")
         payment_date = st.date_input("Payment Date")
         amt = st.number_input("Amount")
 
         if st.button("Save Collection"):
             if cust and amt > 0:
                 c.execute(
-                    "INSERT INTO collections (name, month, start_date, date, amount) VALUES (?,?,?,?,?)",
+                    "INSERT INTO collections (name, month, date, amount) VALUES (?,?,?,?)",
                     (
                         cust,
                         month,
-                        start_date.strftime("%Y-%m-%d"),
                         payment_date.strftime("%Y-%m-%d"),
                         amt
                     )
@@ -285,30 +284,25 @@ elif menu == "Collections":
 
     st.markdown("---")
 
-    # ===== SHOW DATA =====
+    # SHOW DATA
     df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
 
     st.markdown("### 📄 Collection Records")
     st.dataframe(df)
 
-    # ===== MANAGE COLLECTION =====
+    # MANAGE
     if not df.empty:
 
-        st.markdown("### ✏️ Manage Collection")
-
-        # 👉 SHOW NAME IN DROPDOWN (NOT ID)
         df["display"] = df.apply(lambda x: f"{x['name']} | {x['month']} | ₹{x['amount']}", axis=1)
 
-        selected_display = st.selectbox("Select Entry", df["display"])
-
-        row = df[df["display"] == selected_display].iloc[0]
+        selected = st.selectbox("Select Entry", df["display"])
+        row = df[df["display"] == selected].iloc[0]
         selected_id = row["id"]
 
         new_amount = st.number_input("Edit Amount", value=float(row["amount"]))
 
         col1, col2 = st.columns(2)
 
-        # ===== UPDATE =====
         with col1:
             if st.button("Update Collection"):
                 c.execute(
@@ -316,10 +310,9 @@ elif menu == "Collections":
                     (new_amount, selected_id)
                 )
                 conn.commit()
-                st.success("Updated Successfully ✅")
+                st.success("Updated Successfully")
                 st.rerun()
 
-        # ===== DELETE =====
         with col2:
             if st.button("Delete Collection"):
                 c.execute(
@@ -327,36 +320,52 @@ elif menu == "Collections":
                     (selected_id,)
                 )
                 conn.commit()
-                st.warning("Deleted Successfully ⚠️")
+                st.warning("Deleted Successfully")
                 st.rerun()
 # ================= LOANS =================
 elif menu == "Loans":
+
+    st.subheader("🏦 Loan Management")
+
+    # Add column if not exists
+    try:
+        c.execute("ALTER TABLE loans ADD COLUMN start_date TEXT")
+    except:
+        pass
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
     if customers.empty:
         st.warning("No customers available. Add customers first.")
     else:
+
         cust = st.selectbox("Customer", customers["name"])
 
-        date = st.date_input("Loan Start Date")
-        amt = st.number_input("Amount")
+        loan_start = st.date_input("Loan Start Date")
+        amt = st.number_input("Loan Amount")
 
         if st.button("Add Loan"):
-            c.execute("INSERT INTO loans VALUES (?,?,?)",
-                      (cust, date.strftime("%Y-%m-%d"), amt))
-            conn.commit()
-            st.success("Loan Added")
+            if cust and amt > 0:
+                c.execute(
+                    "INSERT INTO loans (name, start_date, amount) VALUES (?,?,?)",
+                    (
+                        cust,
+                        loan_start.strftime("%Y-%m-%d"),
+                        amt
+                    )
+                )
+                conn.commit()
+                st.success("Loan Added Successfully")
+                st.rerun()
+            else:
+                st.warning("Fill all fields")
 
-    df = pd.read_sql("SELECT * FROM loans", conn)
+    st.markdown("---")
 
-    if not df.empty:
-        if "date" in df.columns:
-            df["date"] = pd.to_datetime(df["date"]).dt.strftime("%d-%m-%Y")
+    df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
 
-        st.dataframe(df)
-    else:
-        st.info("No loan records found")
+    st.markdown("### 📄 Loan Records")
+    st.dataframe(df)
 # ================= DONATIONS =================
 elif menu == "Donations":
 
