@@ -33,21 +33,52 @@ if not c.fetchone():
 st.set_page_config(page_title="Bal Yuva SaaS", layout="wide")
 
 # ================= CSS =================
-st.markdown("""<style>
+st.markdown("""
+<style>
 .stApp {background: linear-gradient(135deg,#020617,#0f172a);}
 header, footer {visibility:hidden;}
+
 .block-container {padding-top:1rem;}
+
 h1,h2,h3,h4,h5,p,label {color:white !important;}
+
 section[data-testid="stSidebar"] {background:#020617;}
+
 .stTextInput input, .stNumberInput input, .stSelectbox div {
-    background:#111827 !important; color:white !important;
+    background:#111827 !important;
+    color:white !important;
 }
+
 .stButton>button {
     background:linear-gradient(90deg,#2563eb,#7c3aed);
-    color:white; border-radius:10px;
+    color:white;
+    border-radius:10px;
 }
-</style>""", unsafe_allow_html=True)
 
+/* HEADER */
+.header {
+    background: rgba(30,41,59,0.6);
+    padding:20px;
+    border-radius:20px;
+    margin-bottom:25px;
+}
+
+/* SECTION BOX */
+.box {
+    background: rgba(30,41,59,0.6);
+    padding:20px;
+    border-radius:15px;
+    margin-top:15px;
+}
+
+/* ✅ MOBILE SCROLL FIX */
+html, body, .stApp {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
+}
+</style>
+""", unsafe_allow_html=True)
 # ================= SESSION =================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
