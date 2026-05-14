@@ -312,20 +312,26 @@ elif menu == "Loans":
 
     st.subheader("💰 Loan Management")
 
+    # ================= LOAD CUSTOMERS =================
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
-    if not customers.empty:
-
+    if customers.empty:
+        st.warning("No customers available. Add customers first.")
+    else:
         cust = st.selectbox("Customer", customers["name"])
-        loan_amt = st.number_input("Loan Amount")
+
+        loan_amt = st.number_input("Loan Amount", min_value=0.0)
+        interest_rate = st.number_input("Interest % per month", min_value=0.0, value=1.0)
         loan_date = st.date_input("Loan Start Date")
 
+        # ================= ADD LOAN =================
         if st.button("Add Loan"):
             c.execute(
-                "INSERT INTO loans (name, total_amount, start_date) VALUES (?,?,?)",
+                "INSERT INTO loans (name, total_amount, interest_rate, start_date) VALUES (?,?,?,?)",
                 (
                     cust,
                     loan_amt,
+                    interest_rate,
                     loan_date.strftime("%Y-%m-%d")
                 )
             )
@@ -333,22 +339,28 @@ elif menu == "Loans":
             st.success("Loan Added ✅")
             st.rerun()
 
-    # ADD PAYMENT
-    st.markdown("### 💸 Loan Payment")
+    # ================= ADD PAYMENT =================
+    st.markdown("---")
+    st.subheader("💸 Loan Payment")
 
-    loans_df = pd.read_sql("SELECT * FROM loans", conn)
+    loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
 
     if not loans_df.empty:
 
-        selected = st.selectbox("Select Loan Customer", loans_df["name"])
+        loans_df["display"] = loans_df["name"] + " | ₹" + loans_df["total_amount"].astype(str)
+
+        selected = st.selectbox("Select Loan", loans_df["display"])
+
+        selected_row = loans_df[loans_df["display"] == selected].iloc[0]
+
+        pay_amt = st.number_input("Payment Amount", min_value=0.0)
         pay_date = st.date_input("Payment Date")
-        pay_amt = st.number_input("Payment Amount")
 
         if st.button("Add Payment"):
             c.execute(
                 "INSERT INTO loan_payments (name, date, amount) VALUES (?,?,?)",
                 (
-                    selected,
+                    selected_row["name"],
                     pay_date.strftime("%Y-%m-%d"),
                     pay_amt
                 )
@@ -357,68 +369,56 @@ elif menu == "Loans":
             st.success("Payment Added ✅")
             st.rerun()
 
-    # SHOW SUMMARY
-from datetime import datetime
-import pandas as pd
+    # ================= SUMMARY =================
+    st.markdown("---")
+    st.subheader("📊 Loan Summary (Simple Interest)")
 
-loans_df = pd.read_sql("SELECT * FROM loans", conn)
-payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
+    loans_df = pd.read_sql("SELECT * FROM loans", conn)
+    payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
-result = []
+    result = []
 
-for _, loan in loans_df.iterrows():
+    for _, loan in loans_df.iterrows():
 
-    name = loan["name"]
-    principal = loan["total_amount"]
-    rate = loan["interest"]  # % per month
-    start_date = datetime.strptime(loan["start_date"], "%Y-%m-%d")
+        name = loan["name"]
+        principal = loan["total_amount"]
+        rate = loan["interest_rate"]
+        start_date = pd.to_datetime(loan["start_date"])
 
-    user_payments = payments_df[payments_df["name"] == name].copy()
+        today = pd.to_datetime(datetime.date.today())
 
-    if not user_payments.empty:
-        user_payments["date"] = pd.to_datetime(user_payments["date"])
-        user_payments = user_payments.sort_values("date")
+        # total months passed
+        months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 
-    balance = principal
-    total_interest = 0
-    last_date = start_date
+        # payments
+        cust_payments = payments_df[payments_df["name"] == name]
 
-    for _, pay in user_payments.iterrows():
+        balance = principal
+        total_paid = cust_payments["amount"].sum()
 
-        current_date = pay["date"]
+        # interest calculation month by month
+        total_interest = 0
 
-        # months difference
-        months = (current_date.year - last_date.year) * 12 + (current_date.month - last_date.month)
+        for m in range(months):
+            interest = balance * (rate / 100)
+            total_interest += interest
 
-        # SIMPLE INTEREST (NO COMPOUND)
-        interest_amt = months * (balance * rate / 100)
-        total_interest += interest_amt
+            # payment adjust
+            if m < len(cust_payments):
+                balance -= cust_payments.iloc[m]["amount"]
 
-        # payment reduce balance
-        balance -= pay["amount"]
+        balance = principal - total_paid
 
-        last_date = current_date
+        result.append({
+            "Name": name,
+            "Principal": principal,
+            "Interest %": rate,
+            "Total Paid": total_paid,
+            "Total Interest": round(total_interest, 2),
+            "Remaining Balance": round(balance, 2)
+        })
 
-    # till today interest
-    today = datetime.today()
-    months = (today.year - last_date.year) * 12 + (today.month - last_date.month)
-
-    interest_amt = months * (balance * rate / 100)
-    total_interest += interest_amt
-
-    total_paid = user_payments["amount"].sum() if not user_payments.empty else 0
-
-    result.append({
-        "Name": name,
-        "Principal": principal,
-        "Interest %": rate,
-        "Total Paid": total_paid,
-        "Total Interest": round(total_interest, 2),
-        "Remaining Balance": round(balance, 2)
-    })
-
-st.markdown("### 📊 Loan Summary (Simple Interest)")
-st.dataframe(pd.DataFrame(result))
+    st.dataframe(pd.DataFrame(result))
 # ================= DONATIONS =================
 elif menu == "Donations":
 
