@@ -272,25 +272,8 @@ elif menu == "Expenses":
 elif menu == "Reports":
 
     st.subheader("📊 Advanced Reports")
-# ================= PENDING SYSTEM =================
-st.markdown("### ⚠️ Pending Customers")
 
-all_customers = pd.read_sql("SELECT * FROM customers", conn)
-collections_df = pd.read_sql("SELECT * FROM collections", conn)
-
-if not collections_df.empty:
-    paid_customers = collections_df["name"].unique()
-else:
-    paid_customers = []
-
-pending_list = all_customers[~all_customers["name"].isin(paid_customers)]
-
-if not pending_list.empty:
-    st.error(f"Total Pending Customers: {len(pending_list)}")
-    st.dataframe(pending_list)
-else:
-    st.success("All customers have paid ✅")
-    # ================= MONTH FILTER =================
+    # ================= COLLECTION DATA =================
     df = pd.read_sql("SELECT * FROM collections", conn)
 
     if not df.empty:
@@ -305,11 +288,11 @@ else:
 
         total_collection = df_month["amount"].sum()
 
-        total_expense = pd.read_sql("SELECT * FROM expenses", conn)
-        total_expense = total_expense["amount"].sum() if not total_expense.empty else 0
+        total_expense_df = pd.read_sql("SELECT * FROM expenses", conn)
+        total_expense = total_expense_df["amount"].sum() if not total_expense_df.empty else 0
 
-        total_donation = pd.read_sql("SELECT * FROM donations", conn)
-        total_donation = total_donation["amount"].sum() if not total_donation.empty else 0
+        total_donation_df = pd.read_sql("SELECT * FROM donations", conn)
+        total_donation = total_donation_df["amount"].sum() if not total_donation_df.empty else 0
 
         balance = total_collection + total_donation - total_expense
 
@@ -332,16 +315,30 @@ else:
         st.markdown("### 👤 Customer-wise Report")
 
         customer_summary = df_month.groupby("name")["amount"].sum().reset_index()
-
         st.dataframe(customer_summary)
 
         # ================= TOP CONTRIBUTORS =================
         st.markdown("### 🏆 Top Contributors")
 
         top_users = customer_summary.sort_values(by="amount", ascending=False).head(5)
-
         st.dataframe(top_users)
 
+        # ================= PENDING SYSTEM =================
+        st.markdown("### ⚠️ Pending Customers")
+
+        all_customers = pd.read_sql("SELECT * FROM customers", conn)
+
+        paid_customers = df_month["name"].unique()
+        pending_list = all_customers[~all_customers["name"].isin(paid_customers)]
+
+        if not pending_list.empty:
+            st.error(f"Total Pending Customers: {len(pending_list)}")
+            st.dataframe(pending_list)
+        else:
+            st.success("All customers have paid for this month ✅")
+
+    else:
+        st.info("No collection data available yet")
 # ================= USERS =================
 if menu == "Users":
 
