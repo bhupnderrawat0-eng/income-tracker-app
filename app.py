@@ -34,6 +34,9 @@ def create_tables():
     c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
 
     conn.commit()
+c.execute("DROP TABLE IF EXISTS loans")
+c.execute("DROP TABLE IF EXISTS loan_payments")
+conn.commit()
 create_tables()
 
 # SAFE column add
