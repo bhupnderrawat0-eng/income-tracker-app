@@ -204,21 +204,22 @@ elif menu == "Collections":
         start_date = st.date_input("Start Date")
         payment_date = st.date_input("Payment Date")
         amt = st.number_input("Amount")
+if st.button("Save Collection"):
 
-        if st.button("Save Collection"):
+    c.execute(
+        "INSERT INTO collections (name, month, start_date, date, amount) VALUES (?,?,?,?,?)",
+        (
+            cust,
+            month,
+            start_date.strftime("%Y-%m-%d"),
+            payment_date.strftime("%Y-%m-%d"),
+            amt
+        )
+    )
 
-            c.execute("""
-                INSERT INTO collections (name, month, start_date, date, amount)
-                VALUES (?,?,?,?,?)
-            """,
-            (
-                cust,
-                month,
-                start_date.strftime("%Y-%m-%d"),
-                payment_date.strftime("%Y-%m-%d"),
-                amt
-            ))
-
+    conn.commit()
+    st.success("Collection Saved")
+    
             conn.commit()
             st.success("Collection Saved")
 
