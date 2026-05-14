@@ -277,6 +277,7 @@ elif menu == "Reports":
 
     if not df.empty:
 
+        # ================= MONTH FILTER =================
         month_list = sorted(df["month"].unique())
         selected_month = st.selectbox("Select Month", month_list)
 
@@ -287,11 +288,11 @@ elif menu == "Reports":
 
         total_collection = df_month["amount"].sum()
 
-        total_expense_df = pd.read_sql("SELECT * FROM expenses", conn)
-        total_expense = total_expense_df["amount"].sum() if not total_expense_df.empty else 0
+        expense_df = pd.read_sql("SELECT * FROM expenses", conn)
+        total_expense = expense_df["amount"].sum() if not expense_df.empty else 0
 
-        total_donation_df = pd.read_sql("SELECT * FROM donations", conn)
-        total_donation = total_donation_df["amount"].sum() if not total_donation_df.empty else 0
+        donation_df = pd.read_sql("SELECT * FROM donations", conn)
+        total_donation = donation_df["amount"].sum() if not donation_df.empty else 0
 
         balance = total_collection + total_donation - total_expense
 
@@ -322,13 +323,16 @@ elif menu == "Reports":
         top_users = customer_summary.sort_values(by="amount", ascending=False).head(5)
         st.dataframe(top_users)
 
-        # ================= PENDING CUSTOMERS =================
+        # ================= PENDING SYSTEM =================
         st.markdown("### ⚠️ Pending Customers")
 
         all_customers = pd.read_sql("SELECT * FROM customers", conn)
+
         paid_customers = df_month["name"].unique()
 
-        pending_list = all_customers[~all_customers["name"].isin(paid_customers)]
+        pending_list = all_customers[
+            ~all_customers["name"].isin(paid_customers)
+        ]
 
         if not pending_list.empty:
             st.error(f"Total Pending Customers: {len(pending_list)}")
@@ -336,55 +340,27 @@ elif menu == "Reports":
         else:
             st.success("All customers have paid for this month ✅")
 
-        # ================= PENDING AMOUNT =================
-        st.markdown("### 💰 Pending Amount Report")
+        # ================= EXPORT TO EXCEL =================
+        st.markdown("### 📥 Download Report")
 
-        EXPECTED_AMOUNT = 1000
+        import io
 
-        customer_paid = df_month.groupby("name")["amount"].sum().reset_index()
-        customer_paid.rename(columns={"amount": "paid"}, inplace=True)
+        report_df = df_month.copy()   # ✅ FIX: अब defined है
 
-        report_df = all_customers.merge(customer_paid, on="name", how="left")
-        report_df["paid"] = report_df["paid"].fillna(0)
+        output = io.BytesIO()
 
-        report_df["expected"] = EXPECTED_AMOUNT
-        report_df["pending"] = report_df["expected"] - report_df["paid"]
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            report_df.to_excel(writer, index=False, sheet_name='Report')
 
-        pending_amount_df = report_df[report_df["pending"] > 0]
-
-        if not pending_amount_df.empty:
-            st.error("⚠️ Customers with Pending Amount")
-            st.dataframe(pending_amount_df)
-
-            st.markdown("### 🔴 Top Defaulters")
-            top_defaulters = pending_amount_df.sort_values(by="pending", ascending=False).head(5)
-            st.dataframe(top_defaulters)
-        else:
-            st.success("🎉 No Pending Amounts")
+        st.download_button(
+            label="📥 Download Excel Report",
+            data=output.getvalue(),
+            file_name="monthly_report.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
     else:
         st.info("No collection data available yet")
-# ================= EXPORT TO EXCEL =================
-st.markdown("### 📥 Download Report")
-
-import io
-
-# combine data
-export_df = report_df.copy()
-
-# create excel in memory
-output = io.BytesIO()
-
-with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-    export_df.to_excel(writer, index=False, sheet_name='Report')
-
-# download button
-st.download_button(
-    label="📥 Download Excel Report",
-    data=output.getvalue(),
-    file_name="monthly_report.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
 # ================= USERS =================
 if menu == "Users":
 
