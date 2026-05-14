@@ -8,8 +8,9 @@ import sqlite3
 # ================= DATABASE =================
 conn = sqlite3.connect("data.db", check_same_thread=False)
 c = conn.cursor()
+
 def create_tables():
-    c.execute("CREATE TABLE IF NOT EXISTS customers(name TEXT, mobile TEXT)")
+    c.execute("CREATE TABLE IF NOT EXISTS customers(name TEXT, mobile TEXT, start_date TEXT)")
     c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
 
     c.execute("""
@@ -34,68 +35,11 @@ def create_tables():
     c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
 
     conn.commit()
-c.execute("DROP TABLE IF EXISTS loans")
-c.execute("DROP TABLE IF EXISTS loan_payments")
-conn.commit()
+
 create_tables()
-
-# SAFE column add
-def safe_add_column(table, column):
-    try:
-        c.execute(f"ALTER TABLE {table} ADD COLUMN {column} TEXT")
-    except:
-        pass
-
-safe_add_column("donations", "date")
-safe_add_column("expenses", "date")
-
-def hash_pass(p):
-    return hashlib.sha256(p.encode()).hexdigest()
-
-# default admin
-c.execute("SELECT * FROM users WHERE username='admin'")
-if not c.fetchone():
-    c.execute("INSERT INTO users VALUES (?,?,?)", ("admin", hash_pass("admin123"), "Admin"))
-    conn.commit()
 
 # ================= CONFIG =================
 st.set_page_config(page_title="Bal Yuva SaaS", layout="wide")
-
-# ================= CSS =================
-st.markdown("""
-<style>
-.stApp {background: linear-gradient(135deg,#020617,#0f172a);}
-header, footer {visibility:hidden;}
-.block-container {padding-top:1rem;}
-h1,h2,h3,h4,h5,p,label {color:white !important;}
-
-section[data-testid="stSidebar"] {background:#020617;}
-
-.stTextInput input, .stNumberInput input, .stSelectbox div {
-    background:#111827 !important;
-    color:white !important;
-}
-
-.stButton>button {
-    background:linear-gradient(90deg,#2563eb,#7c3aed);
-    color:white;
-    border-radius:10px;
-}
-
-/* MOBILE FIX */
-html, body, .stApp {
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-    height:auto !important;
-}
-
-/* mobile scroll menu */
-.stRadio > div {
-    flex-direction: row;
-    overflow-x: auto;
-}
-</style>
-""", unsafe_allow_html=True)
 
 # ================= SESSION =================
 if "logged_in" not in st.session_state:
@@ -103,16 +47,14 @@ if "logged_in" not in st.session_state:
 
 # ================= LOGIN =================
 if not st.session_state.logged_in:
-
     st.title("🔐 Login")
-
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
 
     if st.button("Login"):
         user = c.execute(
             "SELECT * FROM users WHERE username=? AND password=?",
-            (u, hash_pass(p))
+            (u, hashlib.sha256(p.encode()).hexdigest())
         ).fetchone()
 
         if user:
@@ -122,353 +64,158 @@ if not st.session_state.logged_in:
             st.rerun()
         else:
             st.error("Invalid Login")
-
     st.stop()
 
-# ================= DEVICE DETECTION (FINAL FIX) =================
-user_agent = st.context.headers.get("user-agent", "").lower()
-
-if "android" in user_agent or "iphone" in user_agent:
-    is_mobile = True
-else:
-    is_mobile = False
-
 # ================= MENU =================
-if not is_mobile:
-    with st.sidebar:
-        st.markdown("## 🚀 Bal Yuva SaaS")
-
-        menu = option_menu(
-            None,
-            ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
-            icons=["house","people","cash","bank","gift","credit-card","bar-chart","person","robot"],
-            default_index=0,
-        )
-else:
-    st.markdown("### 🚀 Bal Yuva SaaS")
-
-    menu = st.radio(
-        "Navigation",
-        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
-        horizontal=True
+with st.sidebar:
+    menu = option_menu(
+        "Menu",
+        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users"],
+        icons=["house","people","cash","bank","gift","credit-card","bar-chart","person"],
+        default_index=0,
     )
-
-# ================= USER BAR =================
-col_user, col_logout = st.columns([3,1])
-
-with col_user:
-    st.write(f"👤 {st.session_state.current_user}")
-
-with col_logout:
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
-
-st.markdown("---")
-
-# ================= HEADER =================
-st.markdown("""
-<div style="background:rgba(0,0,0,0.4);padding:15px;border-radius:12px;margin-bottom:20px;">
-<h2 style='color:white;'>🚀 Bal Yuva Mangal Dal</h2>
-<p style='color:lightgray;'>Smart Finance SaaS System</p>
-</div>
-""", unsafe_allow_html=True)
 
 # ================= DASHBOARD =================
 if menu == "Dashboard":
-
     total_col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
     total_loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0] or 0
     total_don = c.execute("SELECT SUM(amount) FROM donations").fetchone()[0] or 0
     total_exp = c.execute("SELECT SUM(amount) FROM expenses").fetchone()[0] or 0
 
-    c1,c2,c3,c4 = st.columns(4)
-
-    c1.metric("Collections", f"₹ {total_col}")
-    c2.metric("Loans", f"₹ {total_loan}")
-    c3.metric("Donations", f"₹ {total_don}")
-    c4.metric("Expenses", f"₹ {total_exp}")
-
     st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
-# ========================= CUSTOMERS =========================
+
+# ================= CUSTOMERS =================
 elif menu == "Customers":
-
-    st.subheader("👤 Customer Management")
-
-    name = st.text_input("Customer Name")
+    name = st.text_input("Name")
     mobile = st.text_input("Mobile")
     start_date = st.date_input("Start Date")
 
     if st.button("Add Customer"):
-        c.execute(
-            "INSERT INTO customers (name, mobile, start_date) VALUES (?,?,?)",
-            (name, mobile, start_date.strftime("%Y-%m-%d"))
-        )
+        c.execute("INSERT INTO customers VALUES (?,?,?)",
+                  (name, mobile, start_date.strftime("%Y-%m-%d")))
         conn.commit()
-        st.success("Customer Added ✅")
-        st.rerun()
 
-    df = pd.read_sql("SELECT rowid as id, * FROM customers", conn)
-    st.dataframe(df)
+    st.dataframe(pd.read_sql("SELECT * FROM customers", conn))
 
-    if not df.empty:
-        selected_id = st.selectbox("Select Customer", df["id"])
-        row = df[df["id"] == selected_id].iloc[0]
-
-        new_name = st.text_input("Edit Name", value=row["name"])
-        new_mobile = st.text_input("Edit Mobile", value=row["mobile"])
-        new_start = st.date_input(
-            "Edit Start Date",
-            value=pd.to_datetime(row["start_date"])
-        )
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            if st.button("Update Customer"):
-                c.execute(
-                    "UPDATE customers SET name=?, mobile=?, start_date=? WHERE rowid=?",
-                    (
-                        new_name,
-                        new_mobile,
-                        new_start.strftime("%Y-%m-%d"),
-                        selected_id
-                    )
-                )
-                conn.commit()
-                st.success("Updated ✅")
-                st.rerun()
-
-        with col2:
-            if st.button("Delete Customer"):
-                c.execute("DELETE FROM customers WHERE rowid=?", (selected_id,))
-                conn.commit()
-                st.warning("Deleted ⚠️")
-                st.rerun()
-
-# ========================= COLLECTION =========================
+# ================= COLLECTIONS =================
 elif menu == "Collections":
-
-    st.subheader("🔥 Collection Management")
-
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
-    if customers.empty:
-        st.warning("No customers available")
-    else:
+    if not customers.empty:
         cust = st.selectbox("Customer", customers["name"])
-
-        month = st.selectbox(
-            "Month",
-            [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
-        )
-
-        payment_date = st.date_input("Payment Date")
+        month = st.selectbox("Month", [datetime.date(2026,m,1).strftime("%B %Y") for m in range(1,13)])
+        date = st.date_input("Payment Date")
         amt = st.number_input("Amount")
 
         if st.button("Save Collection"):
+            start = customers[customers["name"] == cust]["start_date"].values[0]
 
-            start_date = customers[customers["name"] == cust]["start_date"].values[0]
-
-            c.execute(
-                "INSERT INTO collections (name, month, start_date, date, amount) VALUES (?,?,?,?,?)",
-                (
-                    cust,
-                    month,
-                    start_date,
-                    payment_date.strftime("%Y-%m-%d"),
-                    amt
-                )
-            )
+            c.execute("INSERT INTO collections VALUES (?,?,?,?,?)",
+                      (cust, month, start, date.strftime("%Y-%m-%d"), amt))
             conn.commit()
-            st.success("Collection Saved ✅")
-            st.rerun()
 
-        # SHOW DATA
-        df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
-        st.dataframe(df)
+    st.dataframe(pd.read_sql("SELECT * FROM collections", conn))
 
-        # MANAGE
-        if not df.empty:
-            df["label"] = df["name"] + " | " + df["month"] + " | ₹" + df["amount"].astype(str)
-
-            selected = st.selectbox("Select Entry", df["label"])
-            row = df[df["label"] == selected].iloc[0]
-
-            new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-                if st.button("Update Collection"):
-                    c.execute(
-                        "UPDATE collections SET amount=? WHERE rowid=?",
-                        (new_amt, row["id"])
-                    )
-                    conn.commit()
-                    st.success("Updated ✅")
-                    st.rerun()
-
-            with col2:
-                if st.button("Delete Collection"):
-                    c.execute("DELETE FROM collections WHERE rowid=?", (row["id"],))
-                    conn.commit()
-                    st.warning("Deleted ⚠️")
-                    st.rerun()
-
-            # DELETE ALL
-            if st.button("Delete All Collections of This Customer"):
-                c.execute("DELETE FROM collections WHERE name=?", (row["name"],))
-                conn.commit()
-                st.error("All Deleted ❌")
-                st.rerun()
-
-# ========================= LOANS =========================
+# ================= LOANS =================
 elif menu == "Loans":
 
     st.subheader("💰 Loan Management")
 
-    # ================= LOAD CUSTOMERS =================
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
-    if customers.empty:
-        st.warning("No customers available. Add customers first.")
-    else:
+    if not customers.empty:
         cust = st.selectbox("Customer", customers["name"])
+        amt = st.number_input("Loan Amount")
+        rate = st.number_input("Interest % per month", value=1.0)
+        date = st.date_input("Start Date")
 
-        loan_amt = st.number_input("Loan Amount", min_value=0.0)
-        interest_rate = st.number_input("Interest % per month", min_value=0.0, value=1.0)
-        loan_date = st.date_input("Loan Start Date")
-
-        # ================= ADD LOAN =================
         if st.button("Add Loan"):
             c.execute(
                 "INSERT INTO loans (name, amount, interest_rate, start_date) VALUES (?,?,?,?)",
-                (
-                    cust,
-                    loan_amt,
-                    interest_rate,
-                    loan_date.strftime("%Y-%m-%d")
-                )
+                (cust, amt, rate, date.strftime("%Y-%m-%d"))
             )
             conn.commit()
-            st.success("Loan Added ✅")
-            st.rerun()
+            st.success("Loan Added")
 
-    # ================= LOAD LOANS =================
-    loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
-
-    if not loans_df.empty:
-
-        # 🔥 FIX: dynamic column detect
-        amount_col = "amount" if "amount" in loans_df.columns else "total_amount"
-
-        loans_df["display"] = loans_df["name"] + " | ₹" + loans_df[amount_col].astype(str)
-
-        # ================= PAYMENT =================
-        st.markdown("---")
-        st.subheader("💸 Loan Payment")
-
-        selected = st.selectbox("Select Loan", loans_df["display"])
-        selected_row = loans_df[loans_df["display"] == selected].iloc[0]
-
-        pay_amt = st.number_input("Payment Amount", min_value=0.0)
-        pay_date = st.date_input("Payment Date")
-
-        if st.button("Add Payment"):
-            c.execute(
-                "INSERT INTO loan_payments (name, date, amount) VALUES (?,?,?)",
-                (
-                    selected_row["name"],
-                    pay_date.strftime("%Y-%m-%d"),
-                    pay_amt
-                )
-            )
-            conn.commit()
-            st.success("Payment Added ✅")
-            st.rerun()
-
-        # ================= DELETE LOAN =================
-        if st.button("Delete Loan"):
-            c.execute("DELETE FROM loans WHERE rowid=?", (selected_row["id"],))
-            conn.commit()
-            st.warning("Loan Deleted ❌")
-            st.rerun()
-
-    # ================= SUMMARY =================
     st.markdown("---")
-    st.subheader("📊 Loan Summary (Simple Interest)")
 
     loans_df = pd.read_sql("SELECT * FROM loans", conn)
     payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
+    if not loans_df.empty:
+
+        st.subheader("💸 Loan Payment")
+
+        loans_df["label"] = loans_df["name"] + " | ₹" + loans_df["amount"].astype(str)
+        selected = st.selectbox("Select Loan", loans_df["label"])
+
+        pay_amt = st.number_input("Payment Amount")
+        pay_date = st.date_input("Payment Date")
+
+        if st.button("Add Payment"):
+            name = selected.split(" | ")[0]
+
+            c.execute("INSERT INTO loan_payments VALUES (?,?,?)",
+                      (name, pay_date.strftime("%Y-%m-%d"), pay_amt))
+            conn.commit()
+            st.success("Payment Added")
+
+    st.markdown("---")
+
+    st.subheader("📊 Loan Summary")
+
     result = []
 
     for _, loan in loans_df.iterrows():
-
         name = loan["name"]
-        amount_col = "amount" if "amount" in loan else "total_amount"
-
-        principal = loan[amount_col]
+        principal = loan["amount"]
         rate = loan["interest_rate"]
-        start_date = pd.to_datetime(loan["start_date"])
+
+        start = pd.to_datetime(loan["start_date"])
         today = pd.to_datetime(datetime.date.today())
 
-        months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
+        months = max(1, (today.year - start.year)*12 + (today.month - start.month))
 
-        cust_payments = payments_df[payments_df["name"] == name]
+        paid = payments_df[payments_df["name"] == name]["amount"].sum()
 
-        balance = principal
-        total_paid = cust_payments["amount"].sum()
-
-        total_interest = 0
-
-        for m in range(months):
-            interest = balance * (rate / 100)
-            total_interest += interest
-
-            if m < len(cust_payments):
-                balance -= cust_payments.iloc[m]["amount"]
-
-        balance = principal - total_paid
+        interest = principal * (rate/100) * months
+        total = principal + interest
+        balance = total - paid
 
         result.append({
             "Name": name,
-            "Principal": principal,
+            "Loan": principal,
             "Interest %": rate,
-            "Total Paid": total_paid,
-            "Total Interest": round(total_interest, 2),
-            "Remaining Balance": round(balance, 2)
+            "Months": months,
+            "Interest": round(interest,2),
+            "Paid": paid,
+            "Balance": round(balance,2)
         })
 
-    if result:
-        st.dataframe(pd.DataFrame(result))
-    else:
-        st.info("No loan data available")
+    st.dataframe(pd.DataFrame(result))
+
 # ================= DONATIONS =================
 elif menu == "Donations":
-
-    donor = st.text_input("Donor Name")
+    name = st.text_input("Donor")
     date = st.date_input("Date")
     amt = st.number_input("Amount")
 
-    if st.button("Save Donation"):
+    if st.button("Save"):
         c.execute("INSERT INTO donations VALUES (?,?,?)",
-                  (donor, amt, date.strftime("%Y-%m-%d")))
+                  (name, amt, date.strftime("%Y-%m-%d")))
         conn.commit()
 
     st.dataframe(pd.read_sql("SELECT * FROM donations", conn))
 
 # ================= EXPENSES =================
 elif menu == "Expenses":
-
-    exp = st.text_input("Expense Type")
+    typ = st.text_input("Type")
     date = st.date_input("Date")
     amt = st.number_input("Amount")
 
-    if st.button("Save Expense"):
+    if st.button("Save"):
         c.execute("INSERT INTO expenses VALUES (?,?,?)",
-                  (exp, amt, date.strftime("%Y-%m-%d")))
+                  (typ, amt, date.strftime("%Y-%m-%d")))
         conn.commit()
 
     st.dataframe(pd.read_sql("SELECT * FROM expenses", conn))
