@@ -238,10 +238,15 @@ elif menu == "Customers":
 # ================= COLLECTION =================
 elif menu == "Collections":
 
+    st.subheader("💰 Collection Management")
+
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
-    if not customers.empty:
+    if customers.empty:
+        st.warning("No customers available. Please add customers first.")
 
+    else:
+        # ===== ADD COLLECTION =====
         cust = st.selectbox("Customer", customers["name"])
 
         month = st.selectbox(
@@ -252,59 +257,72 @@ elif menu == "Collections":
         start_date = st.date_input("Start Date")
         payment_date = st.date_input("Payment Date")
         amt = st.number_input("Amount")
-if st.button("Save Collection"):
 
-    c.execute(
-        "INSERT INTO collections (name, month, start_date, date, amount) VALUES (?,?,?,?,?)",
-        (
-            cust,
-            month,
-            start_date.strftime("%Y-%m-%d"),
-            payment_date.strftime("%Y-%m-%d"),
-            amt
-        )
-    )
+        if st.button("Save Collection"):
 
-    conn.commit()
-    st.success("Collection Saved")
-    # ================= SHOW DATA =================
-    df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
-
-    st.markdown("### 📋 Collection Records")
-    st.dataframe(df)
-
-    # ================= EDIT / DELETE =================
-    st.markdown("### ✏️ Manage Collection")
-
-    if not df.empty:
-
-        selected_id = st.selectbox("Select Entry ID", df["id"])
-
-        row = df[df["id"] == selected_id].iloc[0]
-
-        new_amount = st.number_input("Edit Amount", value=float(row["amount"]))
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            if st.button("Update Collection"):
+            if cust and amt > 0:
                 c.execute(
-                    "UPDATE collections SET amount=? WHERE rowid=?",
-                    (new_amount, selected_id)
+                    "INSERT INTO collections (name, month, start_date, date, amount) VALUES (?,?,?,?,?)",
+                    (
+                        cust,
+                        month,
+                        start_date.strftime("%Y-%m-%d"),
+                        payment_date.strftime("%Y-%m-%d"),
+                        amt
+                    )
                 )
-                conn.commit()
-                st.success("Updated Successfully")
-                st.rerun()
 
-        with col2:
-            if st.button("Delete Collection"):
-                c.execute(
-                    "DELETE FROM collections WHERE rowid=?",
-                    (selected_id,)
-                )
                 conn.commit()
-                st.warning("Deleted Successfully")
+                st.success("Collection Saved Successfully ✅")
                 st.rerun()
+            else:
+                st.warning("Please fill all fields")
+
+        st.markdown("---")
+
+        # ===== SHOW DATA =====
+        df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
+
+        st.markdown("### 📋 Collection Records")
+        st.dataframe(df)
+
+        # ===== EDIT / DELETE =====
+        st.markdown("### ✏️ Manage Collection")
+
+        if not df.empty:
+
+            selected_id = st.selectbox("Select Entry ID", df["id"])
+
+            row = df[df["id"] == selected_id].iloc[0]
+
+            new_amount = st.number_input(
+                "Edit Amount",
+                value=float(row["amount"])
+            )
+
+            col1, col2 = st.columns(2)
+
+            # ===== UPDATE =====
+            with col1:
+                if st.button("Update Collection"):
+                    c.execute(
+                        "UPDATE collections SET amount=? WHERE rowid=?",
+                        (new_amount, selected_id)
+                    )
+                    conn.commit()
+                    st.success("Updated Successfully ✅")
+                    st.rerun()
+
+            # ===== DELETE =====
+            with col2:
+                if st.button("Delete Collection"):
+                    c.execute(
+                        "DELETE FROM collections WHERE rowid=?",
+                        (selected_id,)
+                    )
+                    conn.commit()
+                    st.warning("Deleted Successfully ⚠️")
+                    st.rerun()
 # ================= LOANS =================
 elif menu == "Loans":
 
