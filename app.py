@@ -103,12 +103,18 @@ with st.sidebar:
 
 # ================= HEADER =================
 st.markdown("""
-<div class="header">
-    <h2>🚀 Bal Yuva Mangal Dal</h2>
-    <p>Smart Finance SaaS System</p>
-</div>
+    <div style="
+        background: rgba(0,0,0,0.4);
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    ">
+        <h2 style='color:white;'>🚀 Bal Yuva Mangal Dal</h2>
+        <p style='color:lightgray;'>Smart Finance SaaS System</p>
+    </div>
 """, unsafe_allow_html=True)
 
+st.markdown("<br>", unsafe_allow_html=True)
 # ================= DASHBOARD =================
 if menu == "Dashboard":
 
