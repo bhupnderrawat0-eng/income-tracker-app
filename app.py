@@ -340,7 +340,7 @@ else:
     st.success("All customers have paid for this month ✅")
 
 # ================= USERS =================
-elif menu == "Users":
+if menu == "Users":
 
     if st.session_state.role != "Admin":
         st.warning("Only Admin Access")
