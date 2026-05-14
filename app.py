@@ -244,34 +244,62 @@ elif menu == "Expenses":
 # ================= REPORT =================
 elif menu == "Reports":
 
-    st.subheader("📊 Summary")
+    st.subheader("📊 Advanced Reports")
 
-    col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
-    loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0] or 0
-    don = c.execute("SELECT SUM(amount) FROM donations").fetchone()[0] or 0
-    exp = c.execute("SELECT SUM(amount) FROM expenses").fetchone()[0] or 0
-
-    df_summary = pd.DataFrame({
-        "Category": ["Collections","Loans","Donations","Expenses"],
-        "Amount": [col, loan, don, exp]
-    })
-
-    st.bar_chart(df_summary.set_index("Category"))
-
+    # ================= MONTH FILTER =================
     df = pd.read_sql("SELECT * FROM collections", conn)
 
     if not df.empty:
 
-        month_filter = st.selectbox("Select Month", sorted(df["month"].unique()))
-        df_month = df[df["month"] == month_filter]
+        month_list = sorted(df["month"].unique())
+        selected_month = st.selectbox("Select Month", month_list)
 
-        st.metric("Monthly Collection", f"₹ {df_month['amount'].sum()}")
+        df_month = df[df["month"] == selected_month]
 
-        st.bar_chart(df_month.set_index("date")["amount"])
+        # ================= SUMMARY =================
+        st.markdown("### 📅 Monthly Summary")
 
-        cust_filter = st.selectbox("Select Customer", df_month["name"].unique())
-        st.dataframe(df_month[df_month["name"] == cust_filter])
+        total_collection = df_month["amount"].sum()
 
+        total_expense = pd.read_sql("SELECT * FROM expenses", conn)
+        total_expense = total_expense["amount"].sum() if not total_expense.empty else 0
+
+        total_donation = pd.read_sql("SELECT * FROM donations", conn)
+        total_donation = total_donation["amount"].sum() if not total_donation.empty else 0
+
+        balance = total_collection + total_donation - total_expense
+
+        c1, c2, c3, c4 = st.columns(4)
+
+        c1.metric("Collection", f"₹ {total_collection}")
+        c2.metric("Donations", f"₹ {total_donation}")
+        c3.metric("Expenses", f"₹ {total_expense}")
+        c4.metric("Balance", f"₹ {balance}")
+
+        # ================= CHART =================
+        st.markdown("### 📊 Collection Chart")
+
+        chart_df = df_month.copy()
+        chart_df["date"] = pd.to_datetime(chart_df["date"])
+
+        st.bar_chart(chart_df.set_index("date")["amount"])
+
+        # ================= CUSTOMER REPORT =================
+        st.markdown("### 👤 Customer-wise Report")
+
+        customer_summary = df_month.groupby("name")["amount"].sum().reset_index()
+
+        st.dataframe(customer_summary)
+
+        # ================= TOP CONTRIBUTORS =================
+        st.markdown("### 🏆 Top Contributors")
+
+        top_users = customer_summary.sort_values(by="amount", ascending=False).head(5)
+
+        st.dataframe(top_users)
+
+    else:
+        st.info("No collection data available yet")
 # ================= USERS =================
 elif menu == "Users":
 
