@@ -14,7 +14,7 @@ def create_tables():
     c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
     c.execute("CREATE TABLE IF NOT EXISTS loans(name TEXT, date TEXT, amount REAL)")
 
-    # ✅ UPDATED (with date)
+    # UPDATED
     c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL, date TEXT)")
     c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL, date TEXT)")
 
@@ -23,7 +23,7 @@ def create_tables():
 
 create_tables()
 
-# ✅ AUTO FIX OLD TABLES (safe)
+# SAFE column add
 def safe_add_column(table, column):
     try:
         c.execute(f"ALTER TABLE {table} ADD COLUMN {column} TEXT")
@@ -52,6 +52,7 @@ st.markdown("""
 header, footer {visibility:hidden;}
 .block-container {padding-top:1rem;}
 h1,h2,h3,h4,h5,p,label {color:white !important;}
+
 section[data-testid="stSidebar"] {background:#020617;}
 
 .stTextInput input, .stNumberInput input, .stSelectbox div {
@@ -71,6 +72,12 @@ html, body, .stApp {
     overflow-x:hidden !important;
     height:auto !important;
 }
+
+/* mobile scroll menu */
+.stRadio > div {
+    flex-direction: row;
+    overflow-x: auto;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -87,7 +94,6 @@ if not st.session_state.logged_in:
     p = st.text_input("Password", type="password")
 
     if st.button("Login"):
-
         user = c.execute(
             "SELECT * FROM users WHERE username=? AND password=?",
             (u, hash_pass(p))
@@ -103,13 +109,15 @@ if not st.session_state.logged_in:
 
     st.stop()
 
-# ================= DEVICE BASED MENU =================
-try:
-    is_mobile = st.query_params.get("mobile") == "1"
-except:
+# ================= DEVICE DETECTION (FINAL FIX) =================
+user_agent = st.context.headers.get("user-agent", "").lower()
+
+if "android" in user_agent or "iphone" in user_agent:
+    is_mobile = True
+else:
     is_mobile = False
 
-# 👉 Desktop Sidebar
+# ================= MENU =================
 if not is_mobile:
     with st.sidebar:
         st.markdown("## 🚀 Bal Yuva SaaS")
@@ -120,8 +128,6 @@ if not is_mobile:
             icons=["house","people","cash","bank","gift","credit-card","bar-chart","person","robot"],
             default_index=0,
         )
-
-# 👉 Mobile Top Menu
 else:
     st.markdown("### 🚀 Bal Yuva SaaS")
 
