@@ -364,6 +364,27 @@ elif menu == "Reports":
 
     else:
         st.info("No collection data available yet")
+# ================= EXPORT TO EXCEL =================
+st.markdown("### 📥 Download Report")
+
+import io
+
+# combine data
+export_df = report_df.copy()
+
+# create excel in memory
+output = io.BytesIO()
+
+with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    export_df.to_excel(writer, index=False, sheet_name='Report')
+
+# download button
+st.download_button(
+    label="📥 Download Excel Report",
+    data=output.getvalue(),
+    file_name="monthly_report.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
 # ================= USERS =================
 if menu == "Users":
 
