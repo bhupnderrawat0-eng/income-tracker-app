@@ -138,10 +138,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ================= DASHBOARD =================
-try:
+if "mobile_menu" in locals():
     menu = mobile_menu
-except:
-    pass
 if menu == "Dashboard":
 
     total_col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
