@@ -37,11 +37,8 @@ st.markdown("""
 <style>
 .stApp {background: linear-gradient(135deg,#020617,#0f172a);}
 header, footer {visibility:hidden;}
-
 .block-container {padding-top:1rem;}
-
 h1,h2,h3,h4,h5,p,label {color:white !important;}
-
 section[data-testid="stSidebar"] {background:#020617;}
 
 .stTextInput input, .stNumberInput input, .stSelectbox div {
@@ -71,7 +68,7 @@ section[data-testid="stSidebar"] {background:#020617;}
     margin-top:15px;
 }
 
-/* ✅ MOBILE SCROLL FIX */
+/* MOBILE SCROLL FIX */
 html, body, .stApp {
     overflow-y: auto !important;
     overflow-x: hidden !important;
@@ -79,6 +76,7 @@ html, body, .stApp {
 }
 </style>
 """, unsafe_allow_html=True)
+
 # ================= SESSION =================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -97,7 +95,10 @@ if not st.session_state.logged_in:
             st.warning("Enter username & password")
             st.stop()
 
-        user = c.execute("SELECT * FROM users WHERE username=? AND password=?", (u, hash_pass(p))).fetchone()
+        user = c.execute(
+            "SELECT * FROM users WHERE username=? AND password=?",
+            (u, hash_pass(p))
+        ).fetchone()
 
         if user:
             st.session_state.logged_in = True
@@ -108,7 +109,8 @@ if not st.session_state.logged_in:
             st.error("Invalid Login")
 
     st.stop()
-# ================= TOP MENU (MOBILE FRIENDLY) =================
+
+# ================= TOP MENU =================
 st.markdown("### 🚀 Bal Yuva SaaS")
 
 mobile_menu = st.radio(
@@ -116,6 +118,9 @@ mobile_menu = st.radio(
     ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
     horizontal=True
 )
+
+# ✅ FIXED (main issue)
+menu = mobile_menu
 
 col_user, col_logout = st.columns([3,1])
 
@@ -138,8 +143,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ================= DASHBOARD =================
-if "mobile_menu" in locals():
-    menu = mobile_menu
 if menu == "Dashboard":
 
     total_col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
