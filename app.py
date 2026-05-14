@@ -327,7 +327,7 @@ elif menu == "Loans":
         # ================= ADD LOAN =================
         if st.button("Add Loan"):
             c.execute(
-                "INSERT INTO loans (name, total_amount, interest_rate, start_date) VALUES (?,?,?,?)",
+                "INSERT INTO loans (name, amount, interest_rate, start_date) VALUES (?,?,?,?)",
                 (
                     cust,
                     loan_amt,
@@ -339,18 +339,21 @@ elif menu == "Loans":
             st.success("Loan Added ✅")
             st.rerun()
 
-    # ================= ADD PAYMENT =================
-    st.markdown("---")
-    st.subheader("💸 Loan Payment")
-
+    # ================= LOAD LOANS =================
     loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
 
     if not loans_df.empty:
 
-        loans_df["display"] = loans_df["name"] + " | ₹" + loans_df["total_amount"].astype(str)
+        # 🔥 FIX: dynamic column detect
+        amount_col = "amount" if "amount" in loans_df.columns else "total_amount"
+
+        loans_df["display"] = loans_df["name"] + " | ₹" + loans_df[amount_col].astype(str)
+
+        # ================= PAYMENT =================
+        st.markdown("---")
+        st.subheader("💸 Loan Payment")
 
         selected = st.selectbox("Select Loan", loans_df["display"])
-
         selected_row = loans_df[loans_df["display"] == selected].iloc[0]
 
         pay_amt = st.number_input("Payment Amount", min_value=0.0)
@@ -369,6 +372,13 @@ elif menu == "Loans":
             st.success("Payment Added ✅")
             st.rerun()
 
+        # ================= DELETE LOAN =================
+        if st.button("Delete Loan"):
+            c.execute("DELETE FROM loans WHERE rowid=?", (selected_row["id"],))
+            conn.commit()
+            st.warning("Loan Deleted ❌")
+            st.rerun()
+
     # ================= SUMMARY =================
     st.markdown("---")
     st.subheader("📊 Loan Summary (Simple Interest)")
@@ -381,29 +391,26 @@ elif menu == "Loans":
     for _, loan in loans_df.iterrows():
 
         name = loan["name"]
-        principal = loan["total_amount"]
+        amount_col = "amount" if "amount" in loan else "total_amount"
+
+        principal = loan[amount_col]
         rate = loan["interest_rate"]
         start_date = pd.to_datetime(loan["start_date"])
-
         today = pd.to_datetime(datetime.date.today())
 
-        # total months passed
         months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 
-        # payments
         cust_payments = payments_df[payments_df["name"] == name]
 
         balance = principal
         total_paid = cust_payments["amount"].sum()
 
-        # interest calculation month by month
         total_interest = 0
 
         for m in range(months):
             interest = balance * (rate / 100)
             total_interest += interest
 
-            # payment adjust
             if m < len(cust_payments):
                 balance -= cust_payments.iloc[m]["amount"]
 
@@ -418,7 +425,10 @@ elif menu == "Loans":
             "Remaining Balance": round(balance, 2)
         })
 
-    st.dataframe(pd.DataFrame(result))
+    if result:
+        st.dataframe(pd.DataFrame(result))
+    else:
+        st.info("No loan data available")
 # ================= DONATIONS =================
 elif menu == "Donations":
 
