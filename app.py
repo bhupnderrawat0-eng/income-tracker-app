@@ -241,3 +241,37 @@ elif menu == "Reports":
     })
 
     st.bar_chart(df.set_index("Category"))
+# ================= USERS =================
+elif menu == "Users":
+
+    st.subheader("👤 User Management")
+
+    if st.session_state.role != "Admin":
+        st.warning("Only Admin can access this page")
+    else:
+        if "users" not in st.session_state:
+            st.session_state.users = [
+                {"username": "admin", "password": "admin123", "role": "Admin"}
+            ]
+
+        st.markdown("### ➕ Add User")
+
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        role = st.selectbox("Role", ["Admin", "Editor", "Viewer"])
+
+        if st.button("Create User"):
+            if username and password:
+                st.session_state.users.append({
+                    "username": username,
+                    "password": password,
+                    "role": role
+                })
+                st.success("User Created ✅")
+            else:
+                st.error("Fill all fields")
+
+        st.markdown("### 📋 Users List")
+
+        for user in st.session_state.users:
+            st.write(f"{user['username']} - {user['role']}")
