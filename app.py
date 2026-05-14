@@ -8,38 +8,32 @@ import sqlite3
 # ================= DATABASE =================
 conn = sqlite3.connect("data.db", check_same_thread=False)
 c = conn.cursor()
-
 def create_tables():
     c.execute("CREATE TABLE IF NOT EXISTS customers(name TEXT, mobile TEXT)")
+    c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
 
-c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS loans (
+        name TEXT,
+        amount REAL,
+        interest_rate REAL,
+        start_date TEXT
+    )
+    """)
 
-# ✅ LOANS TABLE
-c.execute("""
-CREATE TABLE IF NOT EXISTS loans (
-    name TEXT,
-    amount REAL,
-    interest_rate REAL,
-    start_date TEXT
-)
-""")
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS loan_payments (
+        name TEXT,
+        date TEXT,
+        amount REAL
+    )
+    """)
 
-# ✅ LOAN PAYMENTS TABLE
-c.execute("""
-CREATE TABLE IF NOT EXISTS loan_payments (
-    name TEXT,
-    date TEXT,
-    amount REAL
-)
-""")
-
-    # UPDATED
     c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL, date TEXT)")
     c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL, date TEXT)")
-
     c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
-    conn.commit()
 
+    conn.commit()
 create_tables()
 
 # SAFE column add
