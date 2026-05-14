@@ -11,7 +11,7 @@ c = conn.cursor()
 
 def create_tables():
     c.execute("CREATE TABLE IF NOT EXISTS customers(name TEXT, mobile TEXT)")
-    c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, date TEXT, amount REAL)")
+    c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
     c.execute("CREATE TABLE IF NOT EXISTS loans(name TEXT, date TEXT, amount REAL)")
     c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL)")
     c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL)")
@@ -143,17 +143,26 @@ elif menu == "Collections":
             [datetime.date(2026,m,1).strftime("%B %Y") for m in range(1,13)]
         )
 
-        date = st.date_input("Date")
+        start_date = st.date_input("Start Date")
+        payment_date = st.date_input("Payment Date")
         amt = st.number_input("Amount")
 
         if st.button("Save Collection"):
-            c.execute("INSERT INTO collections VALUES (?,?,?,?)",
-                      (cust,month,date.strftime("%Y-%m-%d"),amt))
+            c.execute("INSERT INTO collections VALUES (?,?,?,?,?)",
+                      (cust,month,
+                       start_date.strftime("%Y-%m-%d"),
+                       payment_date.strftime("%Y-%m-%d"),
+                       amt))
             conn.commit()
 
     df = pd.read_sql("SELECT * FROM collections", conn)
+
     if "date" in df.columns:
         df["date"] = pd.to_datetime(df["date"]).dt.strftime("%d-%m-%Y")
+
+    if "start_date" in df.columns:
+        df["start_date"] = pd.to_datetime(df["start_date"]).dt.strftime("%d-%m-%Y")
+
     st.dataframe(df)
 
 # ================= LOANS =================
@@ -164,7 +173,7 @@ elif menu == "Loans":
     if not customers.empty:
 
         cust = st.selectbox("Customer", customers["name"])
-        date = st.date_input("Date")
+        date = st.date_input("Loan Start Date")
         amt = st.number_input("Amount")
 
         if st.button("Add Loan"):
@@ -204,23 +213,33 @@ elif menu == "Expenses":
 # ================= REPORT =================
 elif menu == "Reports":
 
+    st.subheader("📊 Summary")
+
     col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
     loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0] or 0
     don = c.execute("SELECT SUM(amount) FROM donations").fetchone()[0] or 0
     exp = c.execute("SELECT SUM(amount) FROM expenses").fetchone()[0] or 0
 
-    df = pd.DataFrame({
+    df_summary = pd.DataFrame({
         "Category": ["Collections","Loans","Donations","Expenses"],
         "Amount": [col, loan, don, exp]
     })
 
-    st.bar_chart(df.set_index("Category"))
+    st.bar_chart(df_summary.set_index("Category"))
 
-    df2 = pd.read_sql("SELECT * FROM collections", conn)
-    if not df2.empty:
-        month_filter = st.selectbox("Select Month", df2["month"].unique())
-        filtered = df2[df2["month"] == month_filter]
-        st.dataframe(filtered)
+    df = pd.read_sql("SELECT * FROM collections", conn)
+
+    if not df.empty:
+
+        month_filter = st.selectbox("Select Month", sorted(df["month"].unique()))
+        df_month = df[df["month"] == month_filter]
+
+        st.metric("Monthly Collection", f"₹ {df_month['amount'].sum()}")
+
+        st.bar_chart(df_month.set_index("date")["amount"])
+
+        cust_filter = st.selectbox("Select Customer", df_month["name"].unique())
+        st.dataframe(df_month[df_month["name"] == cust_filter])
 
 # ================= USERS =================
 elif menu == "Users":
