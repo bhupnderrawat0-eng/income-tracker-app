@@ -83,7 +83,7 @@ with st.sidebar:
     st.markdown("## 🚀 Bal Yuva SaaS")
 
     menu = option_menu(None,
-        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users"]
+        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"]
     )
 
     st.write("---")
@@ -147,10 +147,14 @@ elif menu == "Collections":
         amt = st.number_input("Amount")
 
         if st.button("Save Collection"):
-            c.execute("INSERT INTO collections VALUES (?,?,?,?)",(cust,month,str(date),amt))
+            c.execute("INSERT INTO collections VALUES (?,?,?,?)",
+                      (cust,month,date.strftime("%Y-%m-%d"),amt))
             conn.commit()
 
-    st.dataframe(pd.read_sql("SELECT * FROM collections", conn))
+    df = pd.read_sql("SELECT * FROM collections", conn)
+    if "date" in df.columns:
+        df["date"] = pd.to_datetime(df["date"]).dt.strftime("%d-%m-%Y")
+    st.dataframe(df)
 
 # ================= LOANS =================
 elif menu == "Loans":
@@ -164,10 +168,14 @@ elif menu == "Loans":
         amt = st.number_input("Amount")
 
         if st.button("Add Loan"):
-            c.execute("INSERT INTO loans VALUES (?,?,?)",(cust,str(date),amt))
+            c.execute("INSERT INTO loans VALUES (?,?,?)",
+                      (cust,date.strftime("%Y-%m-%d"),amt))
             conn.commit()
 
-    st.dataframe(pd.read_sql("SELECT * FROM loans", conn))
+    df = pd.read_sql("SELECT * FROM loans", conn)
+    if "date" in df.columns:
+        df["date"] = pd.to_datetime(df["date"]).dt.strftime("%d-%m-%Y")
+    st.dataframe(df)
 
 # ================= DONATIONS =================
 elif menu == "Donations":
@@ -196,17 +204,23 @@ elif menu == "Expenses":
 # ================= REPORT =================
 elif menu == "Reports":
 
-    df = pd.read_sql("SELECT * FROM collections", conn)
+    col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0] or 0
+    loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0] or 0
+    don = c.execute("SELECT SUM(amount) FROM donations").fetchone()[0] or 0
+    exp = c.execute("SELECT SUM(amount) FROM expenses").fetchone()[0] or 0
 
-    if not df.empty:
-        month_filter = st.selectbox("Select Month", df["month"].unique())
+    df = pd.DataFrame({
+        "Category": ["Collections","Loans","Donations","Expenses"],
+        "Amount": [col, loan, don, exp]
+    })
 
-        filtered = df[df["month"] == month_filter]
+    st.bar_chart(df.set_index("Category"))
 
-        total = filtered["amount"].sum()
-
-        st.metric("Total Collection", f"₹ {total}")
-        st.bar_chart(filtered.set_index("date")["amount"])
+    df2 = pd.read_sql("SELECT * FROM collections", conn)
+    if not df2.empty:
+        month_filter = st.selectbox("Select Month", df2["month"].unique())
+        filtered = df2[df2["month"] == month_filter]
+        st.dataframe(filtered)
 
 # ================= USERS =================
 elif menu == "Users":
@@ -224,3 +238,8 @@ elif menu == "Users":
             st.success("User Created")
 
         st.dataframe(pd.read_sql("SELECT username, role FROM users", conn))
+
+# ================= AI =================
+elif menu == "AI":
+    st.subheader("🤖 AI Insights (Coming Soon)")
+    st.info("Future AI features yaha add honge")
