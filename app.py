@@ -174,72 +174,63 @@ if menu == "Dashboard":
     c4.metric("Expenses", f"₹ {total_exp}")
 
     st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
-# ================= CUSTOMERS =================
+# ========================= CUSTOMERS =========================
 elif menu == "Customers":
 
     st.subheader("👤 Customer Management")
 
-    # Add column if not exists
-    try:
-        c.execute("ALTER TABLE customers ADD COLUMN start_date TEXT")
-    except:
-        pass
-
-    # ===== ADD CUSTOMER =====
-    name = st.text_input("Name")
+    name = st.text_input("Customer Name")
     mobile = st.text_input("Mobile")
-    start_date = st.date_input("Collection Start Date")
+    start_date = st.date_input("Start Date")
 
     if st.button("Add Customer"):
-        if name and mobile:
-            c.execute(
-                "INSERT INTO customers (name, mobile, start_date) VALUES (?,?,?)",
-                (name, mobile, start_date.strftime("%Y-%m-%d"))
-            )
-            conn.commit()
-            st.success("Customer Added Successfully")
-            st.rerun()
-        else:
-            st.warning("Please fill all fields")
+        c.execute(
+            "INSERT INTO customers (name, mobile, start_date) VALUES (?,?,?)",
+            (name, mobile, start_date.strftime("%Y-%m-%d"))
+        )
+        conn.commit()
+        st.success("Customer Added ✅")
+        st.rerun()
 
-    st.markdown("---")
-
-    # ===== SHOW DATA =====
     df = pd.read_sql("SELECT rowid as id, * FROM customers", conn)
-
-    st.markdown("### 📄 Customer Records")
     st.dataframe(df)
 
-    # ===== EDIT / DELETE =====
     if not df.empty:
-
         selected_id = st.selectbox("Select Customer", df["id"])
         row = df[df["id"] == selected_id].iloc[0]
 
         new_name = st.text_input("Edit Name", value=row["name"])
         new_mobile = st.text_input("Edit Mobile", value=row["mobile"])
+        new_start = st.date_input(
+            "Edit Start Date",
+            value=pd.to_datetime(row["start_date"])
+        )
 
         col1, col2 = st.columns(2)
 
-        # UPDATE
         with col1:
             if st.button("Update Customer"):
                 c.execute(
-                    "UPDATE customers SET name=?, mobile=? WHERE rowid=?",
-                    (new_name, new_mobile, selected_id)
+                    "UPDATE customers SET name=?, mobile=?, start_date=? WHERE rowid=?",
+                    (
+                        new_name,
+                        new_mobile,
+                        new_start.strftime("%Y-%m-%d"),
+                        selected_id
+                    )
                 )
                 conn.commit()
-                st.success("Updated Successfully")
+                st.success("Updated ✅")
                 st.rerun()
 
-        # DELETE
         with col2:
             if st.button("Delete Customer"):
                 c.execute("DELETE FROM customers WHERE rowid=?", (selected_id,))
                 conn.commit()
-                st.warning("Deleted Successfully")
+                st.warning("Deleted ⚠️")
                 st.rerun()
-# ================= COLLECTION =================
+
+# ========================= COLLECTION =========================
 elif menu == "Collections":
 
     st.subheader("🔥 Collection Management")
@@ -247,16 +238,10 @@ elif menu == "Collections":
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
     if customers.empty:
-        st.warning("No customers available. Please add customers first.")
+        st.warning("No customers available")
     else:
-
         cust = st.selectbox("Customer", customers["name"])
 
-        # Show start date
-        cust_data = customers[customers["name"] == cust].iloc[0]
-        st.info(f"Collection Start: {cust_data['start_date']}")
-
-        import datetime
         month = st.selectbox(
             "Month",
             [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
@@ -266,106 +251,133 @@ elif menu == "Collections":
         amt = st.number_input("Amount")
 
         if st.button("Save Collection"):
-            if cust and amt > 0:
-                c.execute(
-                    "INSERT INTO collections (name, month, date, amount) VALUES (?,?,?,?)",
-                    (
-                        cust,
-                        month,
-                        payment_date.strftime("%Y-%m-%d"),
-                        amt
+
+            start_date = customers[customers["name"] == cust]["start_date"].values[0]
+
+            c.execute(
+                "INSERT INTO collections (name, month, start_date, date, amount) VALUES (?,?,?,?,?)",
+                (
+                    cust,
+                    month,
+                    start_date,
+                    payment_date.strftime("%Y-%m-%d"),
+                    amt
+                )
+            )
+            conn.commit()
+            st.success("Collection Saved ✅")
+            st.rerun()
+
+        # SHOW DATA
+        df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
+        st.dataframe(df)
+
+        # MANAGE
+        if not df.empty:
+            df["label"] = df["name"] + " | " + df["month"] + " | ₹" + df["amount"].astype(str)
+
+            selected = st.selectbox("Select Entry", df["label"])
+            row = df[df["label"] == selected].iloc[0]
+
+            new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                if st.button("Update Collection"):
+                    c.execute(
+                        "UPDATE collections SET amount=? WHERE rowid=?",
+                        (new_amt, row["id"])
                     )
-                )
+                    conn.commit()
+                    st.success("Updated ✅")
+                    st.rerun()
+
+            with col2:
+                if st.button("Delete Collection"):
+                    c.execute("DELETE FROM collections WHERE rowid=?", (row["id"],))
+                    conn.commit()
+                    st.warning("Deleted ⚠️")
+                    st.rerun()
+
+            # DELETE ALL
+            if st.button("Delete All Collections of This Customer"):
+                c.execute("DELETE FROM collections WHERE name=?", (row["name"],))
                 conn.commit()
-                st.success("Collection Saved Successfully ✅")
-                st.rerun()
-            else:
-                st.warning("Please fill all fields")
-
-    st.markdown("---")
-
-    # SHOW DATA
-    df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
-
-    st.markdown("### 📄 Collection Records")
-    st.dataframe(df)
-
-    # MANAGE
-    if not df.empty:
-
-        df["display"] = df.apply(lambda x: f"{x['name']} | {x['month']} | ₹{x['amount']}", axis=1)
-
-        selected = st.selectbox("Select Entry", df["display"])
-        row = df[df["display"] == selected].iloc[0]
-        selected_id = row["id"]
-
-        new_amount = st.number_input("Edit Amount", value=float(row["amount"]))
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            if st.button("Update Collection"):
-                c.execute(
-                    "UPDATE collections SET amount=? WHERE rowid=?",
-                    (new_amount, selected_id)
-                )
-                conn.commit()
-                st.success("Updated Successfully")
+                st.error("All Deleted ❌")
                 st.rerun()
 
-        with col2:
-            if st.button("Delete Collection"):
-                c.execute(
-                    "DELETE FROM collections WHERE rowid=?",
-                    (selected_id,)
-                )
-                conn.commit()
-                st.warning("Deleted Successfully")
-                st.rerun()
-# ================= LOANS =================
+# ========================= LOANS =========================
 elif menu == "Loans":
 
-    st.subheader("🏦 Loan Management")
-
-    # Add column if not exists
-    try:
-        c.execute("ALTER TABLE loans ADD COLUMN start_date TEXT")
-    except:
-        pass
+    st.subheader("💰 Loan Management")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
-    if customers.empty:
-        st.warning("No customers available. Add customers first.")
-    else:
+    if not customers.empty:
 
         cust = st.selectbox("Customer", customers["name"])
-
-        loan_start = st.date_input("Loan Start Date")
-        amt = st.number_input("Loan Amount")
+        loan_amt = st.number_input("Loan Amount")
+        loan_date = st.date_input("Loan Start Date")
 
         if st.button("Add Loan"):
-            if cust and amt > 0:
-                c.execute(
-                    "INSERT INTO loans (name, start_date, amount) VALUES (?,?,?)",
-                    (
-                        cust,
-                        loan_start.strftime("%Y-%m-%d"),
-                        amt
-                    )
+            c.execute(
+                "INSERT INTO loans (name, total_amount, start_date) VALUES (?,?,?)",
+                (
+                    cust,
+                    loan_amt,
+                    loan_date.strftime("%Y-%m-%d")
                 )
-                conn.commit()
-                st.success("Loan Added Successfully")
-                st.rerun()
-            else:
-                st.warning("Fill all fields")
+            )
+            conn.commit()
+            st.success("Loan Added ✅")
+            st.rerun()
 
-    st.markdown("---")
+    # ADD PAYMENT
+    st.markdown("### 💸 Loan Payment")
 
-    df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
+    loans_df = pd.read_sql("SELECT * FROM loans", conn)
 
-    st.markdown("### 📄 Loan Records")
-    st.dataframe(df)
+    if not loans_df.empty:
+
+        selected = st.selectbox("Select Loan Customer", loans_df["name"])
+        pay_date = st.date_input("Payment Date")
+        pay_amt = st.number_input("Payment Amount")
+
+        if st.button("Add Payment"):
+            c.execute(
+                "INSERT INTO loan_payments (name, date, amount) VALUES (?,?,?)",
+                (
+                    selected,
+                    pay_date.strftime("%Y-%m-%d"),
+                    pay_amt
+                )
+            )
+            conn.commit()
+            st.success("Payment Added ✅")
+            st.rerun()
+
+    # SHOW SUMMARY
+    payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
+
+    result = []
+
+    for _, loan in loans_df.iterrows():
+        name = loan["name"]
+        total = loan["total_amount"]
+
+        paid = payments_df[payments_df["name"] == name]["amount"].sum()
+        balance = total - paid
+
+        result.append({
+            "name": name,
+            "loan": total,
+            "paid": paid,
+            "balance": balance
+        })
+
+    st.markdown("### 📊 Loan Summary")
+    st.dataframe(pd.DataFrame(result))
 # ================= DONATIONS =================
 elif menu == "Donations":
 
