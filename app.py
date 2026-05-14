@@ -174,13 +174,12 @@ if menu == "Dashboard":
     c4.metric("Expenses", f"₹ {total_exp}")
 
     st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
-
 # ================= CUSTOMERS =================
 elif menu == "Customers":
 
-    st.subheader("👤 Customer Management")
+    st.subheader("👥 Customer Management")
 
-    # -------- ADD CUSTOMER --------
+    # ===== ADD CUSTOMER =====
     name = st.text_input("Name")
     mobile = st.text_input("Mobile")
 
@@ -188,18 +187,20 @@ elif menu == "Customers":
         if name and mobile:
             c.execute("INSERT INTO customers VALUES (?,?)", (name, mobile))
             conn.commit()
-            st.success("Customer Added")
+            st.success("Customer Added Successfully")
             st.rerun()
         else:
             st.warning("Please fill all fields")
 
-    # -------- SHOW DATA --------
+    st.markdown("---")
+
+    # ===== SHOW DATA =====
     df = pd.read_sql("SELECT rowid as id, * FROM customers", conn)
 
-    st.markdown("### 📋 Customer List")
+    st.markdown("### 📋 Customer Records")
     st.dataframe(df)
 
-    # -------- EDIT / DELETE --------
+    # ===== EDIT / DELETE =====
     st.markdown("### ✏️ Manage Customer")
 
     if not df.empty:
@@ -208,11 +209,12 @@ elif menu == "Customers":
 
         row = df[df["id"] == selected_id].iloc[0]
 
-        new_name = st.text_input("Edit Name", row["name"])
-        new_mobile = st.text_input("Edit Mobile", row["mobile"])
+        new_name = st.text_input("Edit Name", value=row["name"])
+        new_mobile = st.text_input("Edit Mobile", value=row["mobile"])
 
         col1, col2 = st.columns(2)
 
+        # ===== UPDATE =====
         with col1:
             if st.button("Update Customer"):
                 c.execute(
@@ -223,6 +225,7 @@ elif menu == "Customers":
                 st.success("Updated Successfully")
                 st.rerun()
 
+        # ===== DELETE =====
         with col2:
             if st.button("Delete Customer"):
                 c.execute(
