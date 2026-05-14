@@ -324,7 +324,20 @@ elif menu == "Reports":
         top_users = customer_summary.sort_values(by="amount", ascending=False).head(5)
 
         st.dataframe(top_users)
+# ================= PENDING SYSTEM =================
+st.markdown("### ⚠️ Pending Customers")
 
+all_customers = pd.read_sql("SELECT * FROM customers", conn)
+
+paid_customers = df_month["name"].unique()
+
+pending_list = all_customers[~all_customers["name"].isin(paid_customers)]
+
+if not pending_list.empty:
+    st.error(f"Total Pending Customers: {len(pending_list)}")
+    st.dataframe(pending_list)
+else:
+    st.success("All customers have paid for this month ✅")
     else:
         st.info("No collection data available yet")
 # ================= USERS =================
