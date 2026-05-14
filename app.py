@@ -12,7 +12,22 @@ c = conn.cursor()
 def create_tables():
     c.execute("CREATE TABLE IF NOT EXISTS customers(name TEXT, mobile TEXT)")
     c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
-    c.execute("CREATE TABLE IF NOT EXISTS loans(name TEXT, date TEXT, amount REAL)")
+    c.execute("""
+CREATE TABLE IF NOT EXISTS loans (
+    name TEXT,
+    amount REAL,
+    interest_rate REAL,
+    start_date TEXT
+)
+""")
+
+c.execute("""
+CREATE TABLE IF NOT EXISTS loan_payments (
+    name TEXT,
+    date TEXT,
+    amount REAL
+)
+""")
 
     # UPDATED
     c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL, date TEXT)")
