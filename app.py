@@ -240,12 +240,13 @@ elif menu == "Collections":
 
     st.subheader("🔥 Collection Management")
 
-    # Fix column (IMPORTANT)
+    # ===== FIX COLUMN (IMPORTANT) =====
     try:
         c.execute("ALTER TABLE collections ADD COLUMN start_date TEXT")
     except:
         pass
 
+    # ===== LOAD CUSTOMERS =====
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
     if customers.empty:
@@ -290,19 +291,24 @@ elif menu == "Collections":
     st.markdown("### 📄 Collection Records")
     st.dataframe(df)
 
-    # ===== EDIT / DELETE =====
+    # ===== MANAGE COLLECTION =====
     if not df.empty:
 
         st.markdown("### ✏️ Manage Collection")
 
-        selected_id = st.selectbox("Select Entry ID", df["id"])
-        row = df[df["id"] == selected_id].iloc[0]
+        # 👉 SHOW NAME IN DROPDOWN (NOT ID)
+        df["display"] = df.apply(lambda x: f"{x['name']} | {x['month']} | ₹{x['amount']}", axis=1)
+
+        selected_display = st.selectbox("Select Entry", df["display"])
+
+        row = df[df["display"] == selected_display].iloc[0]
+        selected_id = row["id"]
 
         new_amount = st.number_input("Edit Amount", value=float(row["amount"]))
 
         col1, col2 = st.columns(2)
 
-        # UPDATE
+        # ===== UPDATE =====
         with col1:
             if st.button("Update Collection"):
                 c.execute(
@@ -311,7 +317,18 @@ elif menu == "Collections":
                 )
                 conn.commit()
                 st.success("Updated Successfully ✅")
-                st.rerun
+                st.rerun()
+
+        # ===== DELETE =====
+        with col2:
+            if st.button("Delete Collection"):
+                c.execute(
+                    "DELETE FROM collections WHERE rowid=?",
+                    (selected_id,)
+                )
+                conn.commit()
+                st.warning("Deleted Successfully ⚠️")
+                st.rerun()
 # ================= LOANS =================
 elif menu == "Loans":
 
