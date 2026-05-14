@@ -328,8 +328,12 @@ elif menu == "Reports":
 st.markdown("### ⚠️ Pending Customers")
 
 all_customers = pd.read_sql("SELECT * FROM customers", conn)
+collections_df = pd.read_sql("SELECT * FROM collections", conn)
 
-paid_customers = df_month["name"].unique()
+if not collections_df.empty:
+    paid_customers = collections_df["name"].unique()
+else:
+    paid_customers = []
 
 pending_list = all_customers[~all_customers["name"].isin(paid_customers)]
 
@@ -337,8 +341,7 @@ if not pending_list.empty:
     st.error(f"Total Pending Customers: {len(pending_list)}")
     st.dataframe(pending_list)
 else:
-    st.success("All customers have paid for this month ✅")
-
+    st.success("All customers have paid ✅")
 # ================= USERS =================
 if menu == "Users":
 
