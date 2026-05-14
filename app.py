@@ -323,8 +323,8 @@ elif menu == "Reports":
         top_users = customer_summary.sort_values(by="amount", ascending=False).head(5)
         st.dataframe(top_users)
 
-        # ================= PENDING SYSTEM =================
-        st.markdown("### ⚠️ Pending Customers")
+        # ================= 🔔 SMART REMINDER SYSTEM =================
+        st.markdown("### 🔔 Smart Reminder System")
 
         all_customers = pd.read_sql("SELECT * FROM customers", conn)
 
@@ -335,17 +335,48 @@ elif menu == "Reports":
         ]
 
         if not pending_list.empty:
-            st.error(f"Total Pending Customers: {len(pending_list)}")
-            st.dataframe(pending_list)
-        else:
-            st.success("All customers have paid for this month ✅")
 
-        # ================= EXPORT TO EXCEL =================
+            total_pending = len(pending_list)
+
+            if total_pending >= 5:
+                st.error(f"🚨 High Pending: {total_pending} customers")
+            elif total_pending >= 2:
+                st.warning(f"⚠️ Medium Pending: {total_pending} customers")
+            else:
+                st.info(f"ℹ️ Low Pending: {total_pending} customers")
+
+            st.dataframe(pending_list)
+
+            # ================= WHATSAPP REMINDER =================
+            st.markdown("### 📱 Send Reminder")
+
+            selected_customer = st.selectbox(
+                "Select Customer",
+                pending_list["name"]
+            )
+
+            mobile = pending_list[
+                pending_list["name"] == selected_customer
+            ]["mobile"].values[0]
+
+            message = f"Hello {selected_customer}, aapka payment pending hai. Kripya jaldi jama karein."
+
+            whatsapp_url = f"https://wa.me/{mobile}?text={message}"
+
+            st.markdown(
+                f"[👉 Send WhatsApp Reminder]({whatsapp_url})",
+                unsafe_allow_html=True
+            )
+
+        else:
+            st.success("✅ All customers have paid for this month")
+
+        # ================= 📥 EXPORT TO EXCEL =================
         st.markdown("### 📥 Download Report")
 
         import io
 
-        report_df = df_month.copy()   # ✅ FIX: अब defined है
+        report_df = df_month.copy()   # ✅ FIXED
 
         output = io.BytesIO()
 
