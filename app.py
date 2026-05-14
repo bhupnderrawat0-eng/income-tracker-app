@@ -205,12 +205,15 @@ elif menu == "Collections":
         amt = st.number_input("Amount")
 
         if st.button("Save Collection"):
-            c.execute("INSERT INTO collections VALUES (?,?,?,?,?)",
-                      (cust,month,
-                       start_date.strftime("%Y-%m-%d"),
-                       payment_date.strftime("%Y-%m-%d"),
-                       amt))
-            conn.commit()
+            c.execute("""
+INSERT INTO collections (name, month, start_date, date, amount)
+VALUES (?,?,?,?,?)
+""",
+    (cust, month,
+     start_date.strftime("%Y-%m-%d"),
+     payment_date.strftime("%Y-%m-%d"),
+     amt))
+        conn.commit()
 
 # ================= SHOW DATA =================
 df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
