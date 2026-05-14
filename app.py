@@ -213,7 +213,34 @@ elif menu == "Collections":
             conn.commit()
 
     st.dataframe(pd.read_sql("SELECT * FROM collections", conn))
+# ================= LOANS =================
+elif menu == "Loans":
 
+    customers = pd.read_sql("SELECT * FROM customers", conn)
+
+    if customers.empty:
+        st.warning("No customers available. Add customers first.")
+    else:
+        cust = st.selectbox("Customer", customers["name"])
+
+        date = st.date_input("Loan Start Date")
+        amt = st.number_input("Amount")
+
+        if st.button("Add Loan"):
+            c.execute("INSERT INTO loans VALUES (?,?,?)",
+                      (cust, date.strftime("%Y-%m-%d"), amt))
+            conn.commit()
+            st.success("Loan Added")
+
+    df = pd.read_sql("SELECT * FROM loans", conn)
+
+    if not df.empty:
+        if "date" in df.columns:
+            df["date"] = pd.to_datetime(df["date"]).dt.strftime("%d-%m-%Y")
+
+        st.dataframe(df)
+    else:
+        st.info("No loan records found")
 # ================= DONATIONS =================
 elif menu == "Donations":
 
