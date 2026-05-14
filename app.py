@@ -272,7 +272,24 @@ elif menu == "Expenses":
 elif menu == "Reports":
 
     st.subheader("📊 Advanced Reports")
+# ================= PENDING SYSTEM =================
+st.markdown("### ⚠️ Pending Customers")
 
+all_customers = pd.read_sql("SELECT * FROM customers", conn)
+collections_df = pd.read_sql("SELECT * FROM collections", conn)
+
+if not collections_df.empty:
+    paid_customers = collections_df["name"].unique()
+else:
+    paid_customers = []
+
+pending_list = all_customers[~all_customers["name"].isin(paid_customers)]
+
+if not pending_list.empty:
+    st.error(f"Total Pending Customers: {len(pending_list)}")
+    st.dataframe(pending_list)
+else:
+    st.success("All customers have paid ✅")
     # ================= MONTH FILTER =================
     df = pd.read_sql("SELECT * FROM collections", conn)
 
@@ -324,24 +341,7 @@ elif menu == "Reports":
         top_users = customer_summary.sort_values(by="amount", ascending=False).head(5)
 
         st.dataframe(top_users)
-# ================= PENDING SYSTEM =================
-st.markdown("### ⚠️ Pending Customers")
 
-all_customers = pd.read_sql("SELECT * FROM customers", conn)
-collections_df = pd.read_sql("SELECT * FROM collections", conn)
-
-if not collections_df.empty:
-    paid_customers = collections_df["name"].unique()
-else:
-    paid_customers = []
-
-pending_list = all_customers[~all_customers["name"].isin(paid_customers)]
-
-if not pending_list.empty:
-    st.error(f"Total Pending Customers: {len(pending_list)}")
-    st.dataframe(pending_list)
-else:
-    st.success("All customers have paid ✅")
 # ================= USERS =================
 if menu == "Users":
 
