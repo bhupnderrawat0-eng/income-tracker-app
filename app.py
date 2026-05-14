@@ -13,12 +13,25 @@ def create_tables():
     c.execute("CREATE TABLE IF NOT EXISTS customers(name TEXT, mobile TEXT)")
     c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
     c.execute("CREATE TABLE IF NOT EXISTS loans(name TEXT, date TEXT, amount REAL)")
-    c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL)")
-    c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL)")
+
+    # ✅ UPDATED (with date)
+    c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL, date TEXT)")
+    c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL, date TEXT)")
+
     c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
     conn.commit()
 
 create_tables()
+
+# ✅ AUTO FIX OLD TABLES (safe)
+def safe_add_column(table, column):
+    try:
+        c.execute(f"ALTER TABLE {table} ADD COLUMN {column} TEXT")
+    except:
+        pass
+
+safe_add_column("donations", "date")
+safe_add_column("expenses", "date")
 
 def hash_pass(p):
     return hashlib.sha256(p.encode()).hexdigest()
@@ -52,27 +65,11 @@ section[data-testid="stSidebar"] {background:#020617;}
     border-radius:10px;
 }
 
-/* HEADER */
-.header {
-    background: rgba(30,41,59,0.6);
-    padding:20px;
-    border-radius:20px;
-    margin-bottom:25px;
-}
-
-/* SECTION BOX */
-.box {
-    background: rgba(30,41,59,0.6);
-    padding:20px;
-    border-radius:15px;
-    margin-top:15px;
-}
-
-/* MOBILE SCROLL FIX */
+/* MOBILE FIX */
 html, body, .stApp {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    height: auto !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    height:auto !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -91,10 +88,6 @@ if not st.session_state.logged_in:
 
     if st.button("Login"):
 
-        if not u or not p:
-            st.warning("Enter username & password")
-            st.stop()
-
         user = c.execute(
             "SELECT * FROM users WHERE username=? AND password=?",
             (u, hash_pass(p))
@@ -110,18 +103,35 @@ if not st.session_state.logged_in:
 
     st.stop()
 
-# ================= TOP MENU =================
-st.markdown("### 🚀 Bal Yuva SaaS")
+# ================= DEVICE BASED MENU =================
+try:
+    is_mobile = st.query_params.get("mobile") == "1"
+except:
+    is_mobile = False
 
-mobile_menu = st.radio(
-    "Navigation",
-    ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
-    horizontal=True
-)
+# 👉 Desktop Sidebar
+if not is_mobile:
+    with st.sidebar:
+        st.markdown("## 🚀 Bal Yuva SaaS")
 
-# ✅ FIXED (main issue)
-menu = mobile_menu
+        menu = option_menu(
+            None,
+            ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
+            icons=["house","people","cash","bank","gift","credit-card","bar-chart","person","robot"],
+            default_index=0,
+        )
 
+# 👉 Mobile Top Menu
+else:
+    st.markdown("### 🚀 Bal Yuva SaaS")
+
+    menu = st.radio(
+        "Navigation",
+        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
+        horizontal=True
+    )
+
+# ================= USER BAR =================
 col_user, col_logout = st.columns([3,1])
 
 with col_user:
@@ -196,45 +206,18 @@ elif menu == "Collections":
                        amt))
             conn.commit()
 
-    df = pd.read_sql("SELECT * FROM collections", conn)
-
-    if "date" in df.columns:
-        df["date"] = pd.to_datetime(df["date"]).dt.strftime("%d-%m-%Y")
-
-    if "start_date" in df.columns:
-        df["start_date"] = pd.to_datetime(df["start_date"]).dt.strftime("%d-%m-%Y")
-
-    st.dataframe(df)
-
-# ================= LOANS =================
-elif menu == "Loans":
-
-    customers = pd.read_sql("SELECT * FROM customers", conn)
-
-    if not customers.empty:
-
-        cust = st.selectbox("Customer", customers["name"])
-        date = st.date_input("Loan Start Date")
-        amt = st.number_input("Amount")
-
-        if st.button("Add Loan"):
-            c.execute("INSERT INTO loans VALUES (?,?,?)",
-                      (cust,date.strftime("%Y-%m-%d"),amt))
-            conn.commit()
-
-    df = pd.read_sql("SELECT * FROM loans", conn)
-    if "date" in df.columns:
-        df["date"] = pd.to_datetime(df["date"]).dt.strftime("%d-%m-%Y")
-    st.dataframe(df)
+    st.dataframe(pd.read_sql("SELECT * FROM collections", conn))
 
 # ================= DONATIONS =================
 elif menu == "Donations":
 
     donor = st.text_input("Donor Name")
+    date = st.date_input("Date")
     amt = st.number_input("Amount")
 
     if st.button("Save Donation"):
-        c.execute("INSERT INTO donations VALUES (?,?)",(donor,amt))
+        c.execute("INSERT INTO donations VALUES (?,?,?)",
+                  (donor, amt, date.strftime("%Y-%m-%d")))
         conn.commit()
 
     st.dataframe(pd.read_sql("SELECT * FROM donations", conn))
@@ -243,14 +226,15 @@ elif menu == "Donations":
 elif menu == "Expenses":
 
     exp = st.text_input("Expense Type")
+    date = st.date_input("Date")
     amt = st.number_input("Amount")
 
     if st.button("Save Expense"):
-        c.execute("INSERT INTO expenses VALUES (?,?)",(exp,amt))
+        c.execute("INSERT INTO expenses VALUES (?,?,?)",
+                  (exp, amt, date.strftime("%Y-%m-%d")))
         conn.commit()
 
     st.dataframe(pd.read_sql("SELECT * FROM expenses", conn))
-
 # ================= REPORT =================
 elif menu == "Reports":
 
