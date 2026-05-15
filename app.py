@@ -357,13 +357,11 @@ elif menu == "Loans":
 
     # ================= LOAD LOANS =================
     loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
+    payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
     if not loans_df.empty:
 
-        # 🔥 FIX: dynamic column detect
-        amount_col = "amount" if "amount" in loans_df.columns else "total_amount"
-
-        loans_df["display"] = loans_df["name"] + " | ₹" + loans_df[amount_col].astype(str)
+        loans_df["display"] = loans_df["name"] + " | ₹" + loans_df["amount"].astype(str)
 
         # ================= PAYMENT =================
         st.markdown("---")
@@ -397,9 +395,9 @@ elif menu == "Loans":
 
     # ================= SUMMARY =================
     st.markdown("---")
-    st.subheader("📊 Loan Summary (Simple Interest)")
+    st.subheader("📊 Loan Summary (Simple Interest - No Compound)")
 
-    loans_df = pd.read_sql("SELECT * FROM loans", conn)
+    loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
     payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
     result = []
@@ -407,30 +405,40 @@ elif menu == "Loans":
     for _, loan in loans_df.iterrows():
 
         name = loan["name"]
-        amount_col = "amount" if "amount" in loan else "total_amount"
-
-        principal = loan[amount_col]
+        principal = loan["amount"]
         rate = loan["interest_rate"]
         start_date = pd.to_datetime(loan["start_date"])
         today = pd.to_datetime(datetime.date.today())
 
+        # total months
         months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 
-        cust_payments = payments_df[payments_df["name"] == name]
+        # payments
+        cust_payments = payments_df[payments_df["name"] == name].sort_values("date")
 
-        balance = principal
+        remaining_principal = principal
         total_paid = cust_payments["amount"].sum()
-
         total_interest = 0
 
+        current_date = start_date
+
         for m in range(months):
-            interest = balance * (rate / 100)
+
+            # month interest on CURRENT PRINCIPAL (NO COMPOUND)
+            interest = remaining_principal * (rate / 100)
             total_interest += interest
 
-            if m < len(cust_payments):
-                balance -= cust_payments.iloc[m]["amount"]
+            # check payment in this month
+            for _, pay in cust_payments.iterrows():
+                pay_date = pd.to_datetime(pay["date"])
 
-        balance = principal - total_paid
+                if pay_date.year == current_date.year and pay_date.month == current_date.month:
+                    remaining_principal -= pay["amount"]
+
+            # move next month
+            current_date += pd.DateOffset(months=1)
+
+        remaining_balance = remaining_principal + total_interest
 
         result.append({
             "Name": name,
@@ -438,7 +446,8 @@ elif menu == "Loans":
             "Interest %": rate,
             "Total Paid": total_paid,
             "Total Interest": round(total_interest, 2),
-            "Remaining Balance": round(balance, 2)
+            "Remaining Principal": round(remaining_principal, 2),
+            "Total Balance": round(remaining_balance, 2)
         })
 
     if result:
