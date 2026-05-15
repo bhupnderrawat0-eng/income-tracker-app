@@ -404,30 +404,32 @@ elif menu == "Loans":
 
     for m in range(months):
 
-        # interest on current principal
-        interest = remaining_principal * (rate / 100)
-        total_interest += interest
+    # 🔹 STEP 1: Apply payments FIRST
+    for _, pay in cust_payments.iterrows():
+        pay_date = pd.to_datetime(pay["date"])
 
-        timeline.append([
-            (current_date + pd.offsets.MonthEnd(0)).date(),
-            "Interest",
-            round(interest, 2),
-            round(remaining_principal, 2)
-        ])
+        if pay_date.year == current_date.year and pay_date.month == current_date.month:
+            remaining_principal -= pay["amount"]
 
-        # apply payments in this month
-        for _, pay in cust_payments.iterrows():
-            pay_date = pd.to_datetime(pay["date"])
+            timeline.append([
+                pay_date.date(),
+                "Payment",
+                -pay["amount"],
+                round(remaining_principal, 2)
+            ])
 
-            if pay_date.year == current_date.year and pay_date.month == current_date.month:
-                remaining_principal -= pay["amount"]
+    # 🔹 STEP 2: Interest AFTER payment
+    interest = remaining_principal * (rate / 100)
+    total_interest += interest
 
-                timeline.append([
-                    pay_date.date(),
-                    "Payment",
-                    -pay["amount"],
-                    round(remaining_principal, 2)
-                ])
+    timeline.append([
+        (current_date + pd.offsets.MonthEnd(0)).date(),
+        "Interest",
+        round(interest, 2),
+        round(remaining_principal, 2)
+    ])
+
+    current_date += pd.DateOffset(months=1)
 
         current_date += pd.DateOffset(months=1)
 
