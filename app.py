@@ -328,6 +328,7 @@ elif menu == "Collections":
                 st.rerun()
 # ========================= LOANS =========================
 elif menu == "Loans":
+
     st.subheader("💰 Loan Management (Pro)")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
@@ -364,8 +365,8 @@ elif menu == "Loans":
     selected = st.selectbox("Select Loan", loans_df["display"])
     loan = loans_df[loans_df["display"] == selected].iloc[0]
 
-    # ================= ADD PAYMENT =================
-    st.subheader("💸 Add Payment")
+    # ---------------- ADD PAYMENT ----------------
+    st.subheader("➕ Add Payment")
 
     pay_amt = st.number_input("Payment Amount", min_value=0.0)
     pay_date = st.date_input("Payment Date")
@@ -379,7 +380,7 @@ elif menu == "Loans":
         st.success("Payment Added")
         st.rerun()
 
-    # ================= CALCULATION =================
+    # ---------------- CALCULATION ----------------
     st.markdown("---")
     st.subheader("📊 Loan Summary")
 
@@ -390,46 +391,44 @@ elif menu == "Loans":
 
     months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 
-    cust_payments = payments_df[payments_df["name"] == loan["name"]].sort_values("date")
-
     remaining_principal = principal
     total_interest = 0
 
     timeline = []
-
     timeline.append([start_date.date(), "Loan", principal, remaining_principal])
-current_date = start_date
-today = pd.to_datetime(datetime.date.today())
-months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 
-for m in range(months):
-    # STEP 1: Apply payments FIRST
-    for _, pay in payments_df.iterrows():
-        pay_date = pd.to_datetime(pay["date"])
+    current_date = start_date
 
-        if pay_date.year == current_date.year and pay_date.month == current_date.month:
-            remaining_principal -= pay["amount"]
+    for m in range(months):
 
-            timeline.append([
-                pay_date.date(),
-                "Payment",
-                -pay["amount"],
-                round(remaining_principal, 2)
-            ])
+        # 👉 Apply payments first
+        for _, pay in payments_df.iterrows():
+            pay_date = pd.to_datetime(pay["date"])
 
-    # STEP 2: Interest AFTER payment
-    interest = remaining_principal * (rate / 100)
-    total_interest += interest
+            if pay["name"] == loan["name"] and pay_date.year == current_date.year and pay_date.month == current_date.month:
+                remaining_principal -= pay["amount"]
 
-    timeline.append([
-        (current_date + pd.offsets.MonthEnd(0)).date(),
-        "Interest",
-        round(interest, 2),
-        round(remaining_principal, 2)
-    ])
+                timeline.append([
+                    pay_date.date(),
+                    "Payment",
+                    -pay["amount"],
+                    round(remaining_principal, 2)
+                ])
 
-    current_date += pd.DateOffset(months=1)
-    total_paid = cust_payments["amount"].sum()
+        # 👉 Then apply interest
+        interest = remaining_principal * (rate / 100)
+        total_interest += interest
+
+        timeline.append([
+            (current_date + pd.DateOffset(months=1)).date(),
+            "Interest",
+            round(interest, 2),
+            round(remaining_principal, 2)
+        ])
+
+        current_date += pd.DateOffset(months=1)
+
+    total_paid = payments_df[payments_df["name"] == loan["name"]]["amount"].sum()
     total_balance = remaining_principal + total_interest
 
     st.metric("Principal", f"₹{principal}")
@@ -438,17 +437,17 @@ for m in range(months):
     st.metric("Remaining Principal", f"₹{round(remaining_principal,2)}")
     st.metric("Total Balance", f"₹{round(total_balance,2)}")
 
-    # ================= LEDGER =================
+    # ---------------- LEDGER ----------------
     st.markdown("---")
-    st.subheader("📜 Loan Ledger")
+    st.subheader("📄 Loan Ledger")
 
     ledger_df = pd.DataFrame(timeline, columns=["Date", "Type", "Amount", "Balance"])
     st.dataframe(ledger_df)
 
-    # ================= DELETE =================
+    # ---------------- DELETE ----------------
     st.markdown("---")
 
-if st.button("Delete Loan"):
+    if st.button("Delete Loan"):
         c.execute("DELETE FROM loans WHERE rowid=?", (loan["id"],))
         c.execute("DELETE FROM loan_payments WHERE name=?", (loan["name"],))
         conn.commit()
