@@ -400,7 +400,7 @@ elif menu == "Loans":
     timeline.append([start_date.date(), "Loan", principal, remaining_principal])
 
     current_date = start_date
-
+months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 for m in range(months):
 
     # STEP 1: Apply payments FIRST
