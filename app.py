@@ -327,7 +327,7 @@ elif menu == "Collections":
                 st.error("All Deleted ❌")
                 st.rerun()
 # ========================= LOANS =========================
-elif menu == "Loans":
+if menu == "Loans":
 
     st.subheader("💰 Loan Management (Pro)")
 
