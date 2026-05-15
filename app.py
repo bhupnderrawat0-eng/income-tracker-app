@@ -398,12 +398,11 @@ elif menu == "Loans":
     timeline = []
 
     timeline.append([start_date.date(), "Loan", principal, remaining_principal])
+current_date = start_date
+today = pd.to_datetime(datetime.date.today())
+months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 
-    current_date = start_date 
-    today = pd.to_datetime(datetime.date.today())
-    months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 for m in range(months):
-
     # STEP 1: Apply payments FIRST
     for _, pay in payments_df.iterrows():
         pay_date = pd.to_datetime(pay["date"])
