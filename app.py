@@ -322,53 +322,51 @@ elif menu == "Collections":
                 conn.commit()
                 st.error("All Deleted ❌")
                 st.rerun()
-
 # ========================= LOANS =========================
 elif menu == "Loans":
 
     st.subheader("💰 Loan Management")
 
-    # ================= LOAD CUSTOMERS =================
     customers = pd.read_sql("SELECT * FROM customers", conn)
 
     if customers.empty:
         st.warning("No customers available. Add customers first.")
-    else:
-        cust = st.selectbox("Customer", customers["name"])
+        st.stop()
 
-        loan_amt = st.number_input("Loan Amount", min_value=0.0)
-        interest_rate = st.number_input("Interest % per month", min_value=0.0, value=1.0)
-        loan_date = st.date_input("Loan Start Date")
+    cust = st.selectbox("Customer", customers["name"])
 
-        # ================= ADD LOAN =================
-        if st.button("Add Loan"):
-            c.execute(
-                "INSERT INTO loans (name, amount, interest_rate, start_date) VALUES (?,?,?,?)",
-                (
-                    cust,
-                    loan_amt,
-                    interest_rate,
-                    loan_date.strftime("%Y-%m-%d")
-                )
+    loan_amt = st.number_input("Loan Amount", min_value=0.0)
+    interest_rate = st.number_input("Interest % per month", min_value=0.0, value=1.0)
+    loan_date = st.date_input("Loan Start Date")
+
+    if st.button("Add Loan"):
+        c.execute(
+            "INSERT INTO loans (name, amount, interest_rate, start_date) VALUES (?,?,?,?)",
+            (
+                cust,
+                loan_amt,
+                interest_rate,
+                loan_date.strftime("%Y-%m-%d")
             )
-            conn.commit()
-            st.success("Loan Added ✅")
-            st.rerun()
+        )
+        conn.commit()
+        st.success("Loan Added ✅")
+        st.rerun()
 
-    # ================= LOAD LOANS =================
+    # ================= LOAD DATA =================
     loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
-    payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
+    payments_df = pd.read_sql("SELECT rowid as pid, * FROM loan_payments", conn)
 
     if not loans_df.empty:
 
         loans_df["display"] = loans_df["name"] + " | ₹" + loans_df["amount"].astype(str)
 
-        # ================= PAYMENT =================
-        st.markdown("---")
-        st.subheader("💸 Loan Payment")
-
         selected = st.selectbox("Select Loan", loans_df["display"])
         selected_row = loans_df[loans_df["display"] == selected].iloc[0]
+
+        # ================= PAYMENT ADD =================
+        st.markdown("---")
+        st.subheader("💸 Add Payment")
 
         pay_amt = st.number_input("Payment Amount", min_value=0.0)
         pay_date = st.date_input("Payment Date")
@@ -386,18 +384,84 @@ elif menu == "Loans":
             st.success("Payment Added ✅")
             st.rerun()
 
-        # ================= DELETE LOAN =================
-        if st.button("Delete Loan"):
-            c.execute("DELETE FROM loans WHERE rowid=?", (selected_row["id"],))
-            conn.commit()
-            st.warning("Loan Deleted ❌")
-            st.rerun()
+        # ================= MANAGE LOAN =================
+        st.markdown("---")
+        st.subheader("✏️ Manage Loan")
+
+        edit_amt = st.number_input("Edit Loan Amount", value=float(selected_row["amount"]))
+        edit_rate = st.number_input("Edit Interest %", value=float(selected_row["interest_rate"]))
+        edit_date = st.date_input("Edit Start Date", value=pd.to_datetime(selected_row["start_date"]))
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button("Update Loan"):
+                c.execute(
+                    "UPDATE loans SET amount=?, interest_rate=?, start_date=? WHERE rowid=?",
+                    (
+                        edit_amt,
+                        edit_rate,
+                        edit_date.strftime("%Y-%m-%d"),
+                        selected_row["id"]
+                    )
+                )
+                conn.commit()
+                st.success("Loan Updated ✅")
+                st.rerun()
+
+        with col2:
+            if st.button("Delete Loan"):
+                c.execute("DELETE FROM loans WHERE rowid=?", (selected_row["id"],))
+                c.execute("DELETE FROM loan_payments WHERE name=?", (selected_row["name"],))
+                conn.commit()
+                st.warning("Loan Deleted ❌")
+                st.rerun()
+
+        # ================= MANAGE PAYMENTS =================
+        st.markdown("---")
+        st.subheader("💸 Manage Payments")
+
+        cust_payments = payments_df[payments_df["name"] == selected_row["name"]]
+
+        if not cust_payments.empty:
+
+            cust_payments["label"] = cust_payments["date"] + " | ₹" + cust_payments["amount"].astype(str)
+
+            selected_payment = st.selectbox("Select Payment", cust_payments["label"])
+            pay_row = cust_payments[cust_payments["label"] == selected_payment].iloc[0]
+
+            new_pay_amt = st.number_input("Edit Payment Amount", value=float(pay_row["amount"]))
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                if st.button("Update Payment"):
+                    c.execute(
+                        "UPDATE loan_payments SET amount=? WHERE rowid=?",
+                        (new_pay_amt, pay_row["pid"])
+                    )
+                    conn.commit()
+                    st.success("Payment Updated ✅")
+                    st.rerun()
+
+            with col2:
+                if st.button("Delete Payment"):
+                    c.execute(
+                        "DELETE FROM loan_payments WHERE rowid=?",
+                        (pay_row["pid"],)
+                    )
+                    conn.commit()
+                    st.warning("Payment Deleted ❌")
+                    st.rerun()
+
+        else:
+            st.info("No payments found")
 
     # ================= SUMMARY =================
     st.markdown("---")
     st.subheader("📊 Loan Summary (Simple Interest - No Compound)")
 
-    loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
+    loans_df = pd.read_sql("SELECT * FROM loans", conn)
     payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
     result = []
@@ -410,10 +474,8 @@ elif menu == "Loans":
         start_date = pd.to_datetime(loan["start_date"])
         today = pd.to_datetime(datetime.date.today())
 
-        # total months
         months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 
-        # payments
         cust_payments = payments_df[payments_df["name"] == name].sort_values("date")
 
         remaining_principal = principal
@@ -424,18 +486,17 @@ elif menu == "Loans":
 
         for m in range(months):
 
-            # month interest on CURRENT PRINCIPAL (NO COMPOUND)
+            # interest on CURRENT PRINCIPAL (NO COMPOUND)
             interest = remaining_principal * (rate / 100)
             total_interest += interest
 
-            # check payment in this month
+            # apply payments in that month
             for _, pay in cust_payments.iterrows():
                 pay_date = pd.to_datetime(pay["date"])
 
                 if pay_date.year == current_date.year and pay_date.month == current_date.month:
                     remaining_principal -= pay["amount"]
 
-            # move next month
             current_date += pd.DateOffset(months=1)
 
         remaining_balance = remaining_principal + total_interest
