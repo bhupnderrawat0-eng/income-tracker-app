@@ -401,21 +401,7 @@ elif menu == "Loans":
 
     for m in range(months):
 
-        # 👉 Apply payments first
-        for _, pay in payments_df.iterrows():
-            pay_date = pd.to_datetime(pay["date"])
-
-            if pay["name"] == loan["name"] and pay_date.year == current_date.year and pay_date.month == current_date.month:
-                remaining_principal -= pay["amount"]
-
-                timeline.append([
-                    pay_date.date(),
-                    "Payment",
-                    -pay["amount"],
-                    round(remaining_principal, 2)
-                ])
-
-        # 👉 Then apply interest
+        # 👉 INTEREST FIRST
         interest = remaining_principal * (rate / 100)
         total_interest += interest
 
@@ -425,6 +411,13 @@ elif menu == "Loans":
             round(interest, 2),
             round(remaining_principal, 2)
         ])
+
+        # 👉 APPLY ALL PAYMENTS UPTO THIS MONTH
+        for _, pay in payments_df.iterrows():
+            pay_date = pd.to_datetime(pay["date"])
+
+            if pay["name"] == loan["name"] and pay_date <= (current_date + pd.DateOffset(months=1)):
+                remaining_principal -= pay["amount"]
 
         current_date += pd.DateOffset(months=1)
 
@@ -441,7 +434,15 @@ elif menu == "Loans":
     st.markdown("---")
     st.subheader("📄 Loan Ledger")
 
-    ledger_df = pd.DataFrame(timeline, columns=["Date", "Type", "Amount", "Balance"])
+    ledger = []
+    temp_balance = principal
+
+    for _, pay in payments_df.iterrows():
+        if pay["name"] == loan["name"]:
+            temp_balance -= pay["amount"]
+            ledger.append([pay["date"], "Payment", -pay["amount"], temp_balance])
+
+    ledger_df = pd.DataFrame(ledger, columns=["Date", "Type", "Amount", "Balance"])
     st.dataframe(ledger_df)
 
     # ---------------- DELETE ----------------
