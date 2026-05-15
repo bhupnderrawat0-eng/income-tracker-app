@@ -381,54 +381,37 @@ elif menu == "Loans":
         st.rerun()
 
     # ---------------- CALCULATION ----------------
-    st.markdown("---")
-    st.subheader("📊 Loan Summary")
 
-    principal = loan["amount"]
-    rate = loan["interest_rate"]
-    start_date = pd.to_datetime(loan["start_date"])
-    today = pd.to_datetime(datetime.date.today())
+st.markdown("---")
+st.subheader("📊 Loan Summary")
 
-    months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
+principal = loan["amount"]
+rate = loan["interest_rate"]
+start_date = pd.to_datetime(loan["start_date"])
+today = pd.to_datetime(datetime.date.today())
 
-    remaining_principal = principal
-    total_interest = 0
+# 👉 ALL PAYMENTS OF THIS LOAN
+cust_payments = payments_df[payments_df["name"] == loan["name"]]
 
-    timeline = []
-    timeline.append([start_date.date(), "Loan", principal, remaining_principal])
+total_paid = cust_payments["amount"].sum()
 
-    current_date = start_date
+# 👉 CORRECT PRINCIPAL
+remaining_principal = principal - total_paid
 
-    for m in range(months):
+# 👉 MONTH CALCULATION
+months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 
-        # 👉 INTEREST FIRST
-        interest = remaining_principal * (rate / 100)
-        total_interest += interest
+# 👉 INTEREST ONLY ON REMAINING
+total_interest = remaining_principal * (rate / 100) * months
 
-        timeline.append([
-            (current_date + pd.DateOffset(months=1)).date(),
-            "Interest",
-            round(interest, 2),
-            round(remaining_principal, 2)
-        ])
+total_balance = remaining_principal + total_interest
 
-        # 👉 APPLY ALL PAYMENTS UPTO THIS MONTH
-        for _, pay in payments_df.iterrows():
-            pay_date = pd.to_datetime(pay["date"])
-
-            if pay["name"] == loan["name"] and pay_date <= (current_date + pd.DateOffset(months=1)):
-                remaining_principal -= pay["amount"]
-
-        current_date += pd.DateOffset(months=1)
-
-    total_paid = payments_df[payments_df["name"] == loan["name"]]["amount"].sum()
-    total_balance = remaining_principal + total_interest
-
-    st.metric("Principal", f"₹{principal}")
-    st.metric("Total Paid", f"₹{total_paid}")
-    st.metric("Total Interest", f"₹{round(total_interest,2)}")
-    st.metric("Remaining Principal", f"₹{round(remaining_principal,2)}")
-    st.metric("Total Balance", f"₹{round(total_balance,2)}")
+# DISPLAY
+st.metric("Principal", f"₹{principal}")
+st.metric("Total Paid", f"₹{total_paid}")
+st.metric("Total Interest", f"₹{round(total_interest,2)}")
+st.metric("Remaining Principal", f"₹{round(remaining_principal,2)}")
+st.metric("Total Balance", f"₹{round(total_balance,2)}")
 
     # ---------------- LEDGER ----------------
     st.markdown("---")
