@@ -402,9 +402,9 @@ elif menu == "Loans":
 
     current_date = start_date
 
-    for m in range(months):
+for m in range(months):
 
-    # 🔹 STEP 1: Apply payments FIRST
+    # STEP 1: Apply payments FIRST
     for _, pay in cust_payments.iterrows():
         pay_date = pd.to_datetime(pay["date"])
 
@@ -418,7 +418,7 @@ elif menu == "Loans":
                 round(remaining_principal, 2)
             ])
 
-    # 🔹 STEP 2: Interest AFTER payment
+    # STEP 2: Interest AFTER payment
     interest = remaining_principal * (rate / 100)
     total_interest += interest
 
@@ -430,9 +430,6 @@ elif menu == "Loans":
     ])
 
     current_date += pd.DateOffset(months=1)
-
-        current_date += pd.DateOffset(months=1)
-
     total_paid = cust_payments["amount"].sum()
     total_balance = remaining_principal + total_interest
 
