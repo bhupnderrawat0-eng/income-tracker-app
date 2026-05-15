@@ -414,8 +414,8 @@ st.metric("Remaining Principal", f"₹{round(remaining_principal,2)}")
 st.metric("Total Balance", f"₹{round(total_balance,2)}")
 
     # ---------------- LEDGER ----------------
-    st.markdown("---")
-    st.subheader("📄 Loan Ledger")
+st.markdown("---")
+st.subheader("📄 Loan Ledger")
 
     ledger = []
     temp_balance = principal
