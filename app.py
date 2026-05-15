@@ -448,7 +448,7 @@ for m in range(months):
     # ================= DELETE =================
     st.markdown("---")
 
-    if st.button("Delete Loan"):
+if st.button("Delete Loan"):
         c.execute("DELETE FROM loans WHERE rowid=?", (loan["id"],))
         c.execute("DELETE FROM loan_payments WHERE name=?", (loan["name"],))
         conn.commit()
