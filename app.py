@@ -328,7 +328,6 @@ elif menu == "Collections":
                 st.rerun()
 # ========================= LOANS =========================
 elif menu == "Loans":
-
     st.subheader("💰 Loan Management (Pro)")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
