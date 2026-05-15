@@ -35,9 +35,6 @@ def create_tables():
 
     conn.commit()
 create_tables()
-c.execute("DROP TABLE IF EXISTS loans")
-c.execute("DROP TABLE IF EXISTS loan_payments")
-conn.commit()
 # FIX customer table
 def safe_add_customer_start_date():
     try:
