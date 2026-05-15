@@ -381,9 +381,8 @@ elif menu == "Loans":
         st.rerun()
 
     # ---------------- CALCULATION ----------------
-
-st.markdown("---")
-st.subheader("📊 Loan Summary")
+ st.markdown("---")
+ st.subheader("📊 Loan Summary")
 
 principal = loan["amount"]
 rate = loan["interest_rate"]
@@ -414,7 +413,7 @@ st.metric("Remaining Principal", f"₹{round(remaining_principal,2)}")
 st.metric("Total Balance", f"₹{round(total_balance,2)}")
 
     # ---------------- LEDGER ----------------
-st.markdown("---")
+ st.markdown("---")
  st.subheader("📄 Loan Ledger")
 
     ledger = []
