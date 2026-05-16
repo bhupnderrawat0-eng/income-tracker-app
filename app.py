@@ -35,68 +35,10 @@ def create_tables():
 
     conn.commit()
 create_tables()
-# ================= LOAN SYSTEM FIX =================
-def fix_loan_system():
+c.execute("DROP TABLE IF EXISTS loans")
+c.execute("DROP TABLE IF EXISTS loan_payments")
+conn.commit()
 
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS loans_new (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        amount REAL,
-        interest_rate REAL,
-        start_date TEXT
-    )
-    """)
-
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS loan_payments_new (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        loan_id INTEGER,
-        date TEXT,
-        amount REAL
-    )
-    """)
-
-    old_loans = c.execute("SELECT rowid, * FROM loans").fetchall()
-
-    if old_loans:
-        for loan in old_loans:
-            rowid = loan[0]
-            name = loan[1]
-            amount = loan[2]
-            rate = loan[3]
-            start = loan[4]
-
-            c.execute(
-                "INSERT INTO loans_new (name, amount, interest_rate, start_date) VALUES (?,?,?,?)",
-                (name, amount, rate, start)
-            )
-
-            new_id = c.lastrowid
-
-            old_payments = c.execute(
-                "SELECT * FROM loan_payments WHERE name=?",
-                (name,)
-            ).fetchall()
-
-            for p in old_payments:
-                _, date, amt = p
-                c.execute(
-                    "INSERT INTO loan_payments_new (loan_id, date, amount) VALUES (?,?,?)",
-                    (new_id, date, amt)
-                )
-
-        conn.commit()
-
-        c.execute("DROP TABLE loans")
-        c.execute("DROP TABLE loan_payments")
-
-        c.execute("ALTER TABLE loans_new RENAME TO loans")
-        c.execute("ALTER TABLE loan_payments_new RENAME TO loan_payments")
-
-        conn.commit()
-
-fix_loan_system()
 # FIX customer table
 def safe_add_customer_start_date():
     try:
