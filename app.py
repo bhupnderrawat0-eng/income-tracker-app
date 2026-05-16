@@ -402,8 +402,7 @@ if loan_row.empty:
 
     # ===== SUMMARY =====
 from datetime import datetime
-selected_loan = st.selectbox("Select Loan", loans_df["label"])
-loan_id = int(selected_loan.split("|")[0].strip())
+
 # GET selected loan data
 loan = loans_df[loans_df["id"] == loan_id].iloc[0]
 
