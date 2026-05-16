@@ -380,7 +380,7 @@ if loans_df.empty:
         st.info("No loans available")
         st.stop()
 
-    loans_df["label"] = loans_df.apply(
+loans_df["label"] = loans_df.apply(
         lambda x: f"{x['customer_name']} | Loan #{int(x['id'])} | ₹{x['amount']}",
         axis=1
     )
