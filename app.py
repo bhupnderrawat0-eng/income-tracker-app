@@ -367,7 +367,7 @@ if not is_viewer:
             st.success("Loan Added ✅")
             st.rerun()
 
-    st.markdown("---")
+        st.markdown("---")
 
     # ===== SHOW EXISTING LOANS =====
     if not loans_df.empty:
