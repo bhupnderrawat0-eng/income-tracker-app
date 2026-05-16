@@ -367,7 +367,7 @@ elif menu == "Loans":
         st.stop()
 
     loans_df["label"] = loans_df.apply(
-    lambda x: f"{int(x['id'])} | {x['customer_name']} | ₹{x['amount']}"
+    lambda x: f"{int(x['id'])} | {x['customer_name']} | ₹{x['amount']}",
     axis=1
 )
 
