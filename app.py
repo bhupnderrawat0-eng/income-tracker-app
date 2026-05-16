@@ -34,7 +34,7 @@ c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL, date TEX
 c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL, date TEXT)")
 c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
 
-    conn.commit()
+conn.commit()
 create_tables()
 
 # FIX customer table
