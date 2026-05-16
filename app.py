@@ -367,10 +367,10 @@ if not is_viewer:
             st.success("Loan Added ✅")
             st.rerun()
 
-        st.markdown("---")
+            st.markdown("---")
 
     # ===== SHOW EXISTING LOANS =====
-    if not loans_df.empty:
+if not loans_df.empty:
         st.markdown("📌 Existing loans:")
         for _, row in loans_df.iterrows():
             st.write(f"Loan ID: {row['id']} | {row['customer_name']} | ₹{row['amount']}")
