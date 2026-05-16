@@ -360,7 +360,7 @@ elif menu == "loans":
     st.markdown("---")
 
     # ===== SELECT LOAN =====
-if loans_df.empty:
+    if loans_df.empty:
     st.info("No loans available")
     st.stop()
 
