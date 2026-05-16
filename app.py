@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS loans (
 )
 """)
 
-    c.execute("""
+c.execute("""
 CREATE TABLE IF NOT EXISTS loan_payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     loan_id INTEGER,
@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS loan_payments (
     date TEXT
 )
 """)
-
     c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL, date TEXT)")
     c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL, date TEXT)")
     c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
@@ -335,47 +334,50 @@ elif menu == "Loans":
     st.subheader("💰 Loan Management")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
-    loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
-    payments_df = pd.read_sql("SELECT rowid as id, * FROM loan_payments", conn)
+    loans_df = pd.read_sql("SELECT * FROM loans", conn)
+    payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
+
+    # ===== ADD LOAN =====
+    st.markdown("### ➕ Add Loan")
 
     if customers.empty:
-        st.warning("No customers available")
-        st.stop()
+        st.warning("No customers found")
+    else:
+        cust = st.selectbox("Customer", customers["name"])
+        loan_amt = st.number_input("Loan Amount", min_value=0.0)
+        interest_rate = st.number_input("Interest % per month", value=1.0)
+        loan_date = st.date_input("Loan Start Date")
 
-    # ADD LOAN
-    cust = st.selectbox("Customer", customers["name"])
-    loan_amt = st.number_input("Loan Amount", min_value=0.0)
-    interest_rate = st.number_input("Interest % per month", min_value=0.0, value=1.0)
-    loan_date = st.date_input("Loan Start Date")
-
-    if st.button("Add Loan"):
-        if cust and loan_amt > 0:
+        if st.button("Add Loan"):
             c.execute(
-    "INSERT INTO loans (customer_name, amount, interest_rate, start_date) VALUES (?, ?, ?, ?)",
-    (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
-)
+                "INSERT INTO loans (customer_name, amount, interest_rate, start_date) VALUES (?, ?, ?, ?)",
+                (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
+            )
             conn.commit()
             st.success("Loan Added ✅")
             st.rerun()
-        else:
-            st.warning("Enter valid data")
 
     st.markdown("---")
 
+    # ===== SELECT LOAN =====
     if loans_df.empty:
         st.info("No loans available")
         st.stop()
 
+    # CLEAN LABEL (NO BUG)
     loans_df["label"] = loans_df.apply(
-    lambda x: f"{int(x['id'])} | {x['customer_name']} | ₹{x['amount']}",
-    axis=1
-)
+        lambda x: f"{int(x['id'])} | {x['customer_name']} | ₹{x['amount']}",
+        axis=1
+    )
 
     selected = st.selectbox("Select Loan", loans_df["label"])
+
+    # SAFE ID EXTRACTION
     loan_id = int(selected.split("|")[0].strip())
+
     loan = loans_df[loans_df["id"] == loan_id].iloc[0]
 
-    # ADD PAYMENT
+    # ===== ADD PAYMENT =====
     st.markdown("### ➕ Add Payment")
 
     pay_amt = st.number_input("Payment Amount", min_value=0.0)
@@ -384,42 +386,37 @@ elif menu == "Loans":
     if st.button("Add Payment"):
         if pay_amt > 0:
             c.execute(
-    "INSERT INTO loan_payments (name, amount, date) VALUES (?,?,?)",
-    (loan["name"], pay_amt, pay_date.strftime("%Y-%m-%d"))
-)
+                "INSERT INTO loan_payments (loan_id, amount, date) VALUES (?, ?, ?)",
+                (loan_id, pay_amt, pay_date.strftime("%Y-%m-%d"))
+            )
             conn.commit()
-            st.success("Payment Added")
+            st.success("Payment Added ✅")
             st.rerun()
 
+    # ===== SUMMARY =====
     st.markdown("---")
 
-    # SUMMARY
     principal = loan["amount"]
     rate = loan["interest_rate"]
-    start_date = pd.to_datetime(loan["start_date"])
-    today = pd.to_datetime(datetime.date.today())
 
-    cust_payments = payments_df
+    cust_payments = payments_df[payments_df["loan_id"] == loan_id]
+    total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
 
-    total_paid = cust_payments["amount"].sum()
-    remaining = principal - total_paid
+    interest = (principal * rate) / 100
+    balance = principal + interest - total_paid
 
-    months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
+    st.markdown("### 📊 Loan Summary")
+    st.write(f"*Principal:* ₹{principal}")
+    st.write(f"*Paid:* ₹{total_paid}")
+    st.write(f"*Interest:* ₹{interest}")
+    st.write(f"*Balance:* ₹{balance}")
 
-    interest = remaining * (rate / 100) * months
-    total = remaining + interest
-
-    st.metric("Principal", f"₹{principal}")
-    st.metric("Paid", f"₹{total_paid}")
-    st.metric("Interest", f"₹{round(interest,2)}")
-    st.metric("Balance", f"₹{round(total,2)}")
-
-    # DELETE
+    # ===== DELETE =====
     if st.button("Delete Loan"):
         c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
         c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
         conn.commit()
-        st.success("Deleted")
+        st.success("Loan Deleted 🗑️")
         st.rerun()
 # ================= DONATIONS =================
 elif menu == "Donations":
