@@ -312,7 +312,7 @@ elif menu == "Collections":
 
             col1, col2 = st.columns(2)
 
-            with col1:
+        with col1:
             if not is_viewer:
                 if st.button("Update Collection"):
                     c.execute(
