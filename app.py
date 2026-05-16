@@ -401,8 +401,8 @@ elif menu == "Loans":
 
     cust_payments = payments_df[payments_df["loan_id"] == loan_id]
     total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
-
-    interest = (principal * rate) / 100
+    months = len(cust_payments)
+    interest = (principal * rate / 100) * months
     balance = principal + interest - total_paid
 
     st.markdown("### 📊 Loan Summary")
