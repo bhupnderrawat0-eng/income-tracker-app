@@ -405,8 +405,8 @@ elif menu == "Loans":
     start_date = datetime.strptime(loan["start_date"], "%Y-%m-%d")
     today = datetime.today()
     months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
-    if months < 1:
-    months = 1
+if months < 1:
+months = 1
     interest = (principal * rate / 100) * months
     balance = principal + interest - total_paid
 
