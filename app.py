@@ -389,30 +389,16 @@ elif menu == "Loans":
 
     st.subheader("💰 Loan Management (Pro)")
 
-    # ---------------- FETCH DATA ----------------
     customers = pd.read_sql("SELECT * FROM customers", conn)
-
-    # SAFE TABLE FIX (auto add id if not exists)
-    try:
-        c.execute("ALTER TABLE loans ADD COLUMN id INTEGER")
-    except:
-        pass
-
-    try:
-        c.execute("ALTER TABLE loan_payments ADD COLUMN loan_id INTEGER")
-    except:
-        pass
-
-    loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
-    payments_df = pd.read_sql("SELECT rowid as pid, * FROM loan_payments", conn)
+    loans_df = pd.read_sql("SELECT * FROM loans", conn)
+    payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
     if customers.empty:
         st.warning("No customers available")
         st.stop()
 
-    # ---------------- ADD LOAN ----------------
+    # -------- ADD LOAN --------
     cust = st.selectbox("Customer", customers["name"])
-
     loan_amt = st.number_input("Loan Amount", min_value=0.0)
     interest_rate = st.number_input("Interest % per month", min_value=0.0, value=1.0)
     loan_date = st.date_input("Loan Start Date")
@@ -428,21 +414,20 @@ elif menu == "Loans":
 
     st.markdown("---")
 
-    # ---------------- SELECT LOAN ----------------
     if loans_df.empty:
         st.info("No loans available")
         st.stop()
 
     loans_df["label"] = loans_df.apply(
-        lambda x: f"{x['id']} | {x['name']} | ₹{x['amount']} | {x['start_date']}", axis=1
+        lambda x: f"{x['id']} | {x['name']} | ₹{x['amount']} | {x['start_date']}",
+        axis=1
     )
 
-    selected_label = st.selectbox("Select Loan", loans_df["label"])
+    selected = st.selectbox("Select Loan", loans_df["label"])
+    loan_id = int(selected.split("|")[0].strip())
+    loan = loans_df[loans_df["id"] == loan_id].iloc[0]
 
-    loan = loans_df[loans_df["label"] == selected_label].iloc[0]
-    loan_id = loan["id"]
-
-    # ---------------- ADD PAYMENT ----------------
+    # -------- ADD PAYMENT --------
     st.markdown("### ➕ Add Payment")
 
     pay_amt = st.number_input("Payment Amount", min_value=0.0)
@@ -450,8 +435,8 @@ elif menu == "Loans":
 
     if st.button("Add Payment"):
         c.execute(
-            "INSERT INTO loan_payments (name, amount, date, loan_id) VALUES (?,?,?,?)",
-            (loan["name"], pay_amt, pay_date.strftime("%Y-%m-%d"), loan_id)
+            "INSERT INTO loan_payments (loan_id, amount, date) VALUES (?,?,?)",
+            (loan_id, pay_amt, pay_date.strftime("%Y-%m-%d"))
         )
         conn.commit()
         st.success("Payment Added")
@@ -459,7 +444,7 @@ elif menu == "Loans":
 
     st.markdown("---")
 
-    # ---------------- CALCULATION ----------------
+    # -------- CALCULATION --------
     st.subheader("📊 Loan Summary")
 
     principal = loan["amount"]
@@ -467,7 +452,6 @@ elif menu == "Loans":
     start_date = pd.to_datetime(loan["start_date"])
     today = pd.to_datetime(datetime.date.today())
 
-    # 🔥 FIX: payment filter by loan_id (NOT name)
     cust_payments = payments_df[payments_df["loan_id"] == loan_id]
 
     total_paid = cust_payments["amount"].sum()
@@ -486,7 +470,7 @@ elif menu == "Loans":
 
     st.markdown("---")
 
-    # ---------------- LEDGER ----------------
+    # -------- LEDGER --------
     st.subheader("📄 Loan Ledger")
 
     ledger = []
@@ -510,9 +494,9 @@ elif menu == "Loans":
 
     st.markdown("---")
 
-    # ---------------- DELETE ----------------
+    # -------- DELETE --------
     if st.button("Delete Loan"):
-        c.execute("DELETE FROM loans WHERE rowid=?", (loan_id,))
+        c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
         c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
         conn.commit()
         st.warning("Loan Deleted")
