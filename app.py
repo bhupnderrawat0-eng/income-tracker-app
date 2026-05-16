@@ -397,7 +397,7 @@ if loan_row.empty:
 loan = loan_row.iloc[0]
 
     # ===== ADD PAYMENT =====
-    st.markdown("### ➕ Add Payment")
+st.markdown("### ➕ Add Payment")
 if not is_viewer:
     pay_amt = st.number_input("Payment Amount", min_value=0.0)
     pay_date = st.date_input("Payment Date")
