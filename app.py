@@ -406,7 +406,7 @@ elif menu == "Loans":
     today = datetime.today()
     months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 if months < 1:
-months = 1
+    months = 1
     interest = (principal * rate / 100) * months
     balance = principal + interest - total_paid
 
