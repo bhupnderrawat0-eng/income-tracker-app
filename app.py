@@ -367,9 +367,9 @@ elif menu == "Loans":
         st.stop()
 
     loans_df["label"] = loans_df.apply(
-        lambda x: f"{x['id']} | {x['customer_name']} | ₹{x['amount']}",
-        axis=1
-    )
+    lambda x: f"{x['id']} | {x['customer_name']} | ₹{x['amount']}",
+    axis=1
+)
 
     selected = st.selectbox("Select Loan", loans_df["label"])
     loan_id = int(selected.split("|")[0].strip())
