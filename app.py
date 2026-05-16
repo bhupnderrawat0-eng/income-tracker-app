@@ -393,7 +393,7 @@ elif menu == "Loans":
             st.success("Payment Added ✅")
             st.rerun()
 
-# ===== SUMMARY =====
+    # ===== SUMMARY =====
 from datetime import datetime
 
 principal = loan["amount"]
