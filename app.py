@@ -359,28 +359,32 @@ elif menu == "loans":
 
     st.markdown("---")
 
-    # ===== SELECT loan =====
-    loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
+    # ===== SELECT LOAN =====
+
+if loans_df.empty:
+    st.info("No loans available")
+    st.stop()
+
+# label banana
+loans_df["label"] = loans_df.apply(
+    lambda x: f"{int(x['id'])} | {x['customer_name']} | ₹{x['amount']}",
+    axis=1
+)
+
+# ⚠️ IMPORTANT: yeh line bilkul LEFT side pe ho (no extra space)
+selected = st.selectbox("Select loan", loans_df["label"])
+
+# id nikalna
+loan_id = int(selected.split("|")[0].strip())
+
+# SAFE fetch
+loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
 
 if loan_row.empty:
-    st.error("⚠️ Loan not found or deleted")
+    st.error("Loan not found")
     st.stop()
 
 loan = loan_row.iloc[0]
-
-    # CLEAN LABEL (NO BUG)
-loans_df["label"] = loans_df.apply(
-        lambda x: f"{int(x['id'])} | {x['customer_name']} | ₹{x['amount']}",
-        axis=1
-    )
-
-    selected = st.selectbox("Select loan", loans_df["label"])
-
-    # SAFE ID EXTRACTION
-    loan_id = int(selected.split("|")[0].strip())
-
-    loan = loans_df[loans_df["id"] == loan_id].iloc[0]
-
     # ===== ADD PAYMENT =====
     st.markdown("### ➕ Add Payment")
 
