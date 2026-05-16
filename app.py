@@ -402,10 +402,10 @@ elif menu == "Loans":
     cust_payments = payments_df[payments_df["loan_id"] == loan_id]
     total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
     from datetime import datetime
-start_date = datetime.strptime(loan["start_date"], "%Y-%m-%d")
-today = datetime.today()
-months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
-if months < 1:
+    start_date = datetime.strptime(loan["start_date"], "%Y-%m-%d")
+    today = datetime.today()
+    months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
+    if months < 1:
     months = 1
     interest = (principal * rate / 100) * months
     balance = principal + interest - total_paid
