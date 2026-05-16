@@ -381,9 +381,9 @@ elif menu == "Loans":
     if st.button("Add Payment"):
         if pay_amt > 0:
             c.execute(
-                "INSERT INTO loan_payments (loan_id, amount, date) VALUES (?,?,?)",
-                (loan_id, pay_amt, pay_date.strftime("%Y-%m-%d"))
-            )
+    "INSERT INTO loan_payments (name, amount, date) VALUES (?,?,?)",
+    (loan["name"], pay_amt, pay_date.strftime("%Y-%m-%d"))
+)
             conn.commit()
             st.success("Payment Added")
             st.rerun()
