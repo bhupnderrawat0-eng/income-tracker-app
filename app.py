@@ -34,11 +34,10 @@ def create_tables():
     c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
 
     conn.commit()
-create_tables()
 c.execute("DROP TABLE IF EXISTS loans")
 c.execute("DROP TABLE IF EXISTS loan_payments")
 conn.commit()
-
+create_tables()
 # FIX customer table
 def safe_add_customer_start_date():
     try:
