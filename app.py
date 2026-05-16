@@ -360,10 +360,13 @@ elif menu == "loans":
     st.markdown("---")
 
     # ===== SELECT loan =====
-    loan = loans_df[loans_df["id"].astype(int) == loan_id].iloc[0]
-    if loans_df.empty:
-        st.info("No loans available")
-        st.stop()
+    loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
+
+if loan_row.empty:
+    st.error("⚠️ Loan not found or deleted")
+    st.stop()
+
+loan = loan_row.iloc[0]
 
     # CLEAN LABEL (NO BUG)
     loans_df["label"] = loans_df.apply(
