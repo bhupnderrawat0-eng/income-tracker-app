@@ -333,7 +333,7 @@ elif menu == "Loans":
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
     loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
-    payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
+    payments_df = pd.read_sql("SELECT rowid as id, * FROM loan_payments", conn)
 
     if customers.empty:
         st.warning("No customers available")
@@ -396,7 +396,7 @@ elif menu == "Loans":
     start_date = pd.to_datetime(loan["start_date"])
     today = pd.to_datetime(datetime.date.today())
 
-    cust_payments = payments_df[payments_df["loan_id"] == loan_id]
+    cust_payments = payments_df
 
     total_paid = cust_payments["amount"].sum()
     remaining = principal - total_paid
