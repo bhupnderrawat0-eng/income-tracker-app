@@ -394,7 +394,7 @@ if loan_row.empty:
         st.error("Loan not found")
         st.stop()
 
-    loan = loan_row.iloc[0]
+loan = loan_row.iloc[0]
 
     # ===== ADD PAYMENT =====
     st.markdown("### ➕ Add Payment")
