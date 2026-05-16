@@ -488,25 +488,25 @@ if is_admin:
         st.rerun()
 # ================= DONATIONS =================
 elif menu == "Donations":
-if not is_viewer:
-    donor = st.text_input("Donor Name")
-    date = st.date_input("Date")
-    amt = st.number_input("Amount")
+    if not is_viewer:
+        donor = st.text_input("Donor Name")
+        date = st.date_input("Date")
+        amt = st.number_input("Amount")
 
-    if st.button("Save Donation"):
-        if donor and amt > 0:   # 👈 ye add karo
-            c.execute(
-                "INSERT INTO donations VALUES (?, ?, ?)",
-                (donor, amt, date.strftime("%Y-%m-%d"))
-            )
-            conn.commit()
-            st.success("Donation Saved ✅")
-            st.rerun()
-        else:
-            st.warning("Enter valid details ⚠️")
-else:
-    st.info("View Only Mode 👁️")
+        if st.button("Save Donation"):
+            if donor and amt > 0:
+                c.execute(
+                    "INSERT INTO donations VALUES (?, ?, ?)",
+                    (donor, amt, date.strftime("%Y-%m-%d"))
+                )
+                conn.commit()
+                st.success("Donation Saved ✅")
+                st.rerun()
+            else:
+                st.warning("Enter valid details ⚠️")
 
+    else:
+        st.info("View Only Mode 👁️")
 # ================= EXPENSES =================
 elif menu == "Expenses":
 
