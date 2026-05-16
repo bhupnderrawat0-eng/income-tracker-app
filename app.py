@@ -376,7 +376,7 @@ if not loans_df.empty:
             st.write(f"Loan ID: {row['id']} | {row['customer_name']} | ₹{row['amount']}")
 
     # ===== SELECT LOAN =====
-    if loans_df.empty:
+if loans_df.empty:
         st.info("No loans available")
         st.stop()
 
