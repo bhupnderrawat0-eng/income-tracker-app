@@ -323,7 +323,7 @@ elif menu == "Collections":
                     st.success("Updated ✅")
                     st.rerun()
 
-            with col2:
+        with col2:
             if is_admin:
                 if st.button("Delete Collection"):
                     c.execute("DELETE FROM collections WHERE rowid=?", (row["id"],))
