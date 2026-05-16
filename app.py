@@ -430,7 +430,7 @@ st.write(f"*Paid:* ₹{total_paid}")
 st.write(f"*Interest ({months} months):* ₹{interest}")
 st.write(f"*Balance:* ₹{balance}")
     # ===== DELETE =====
-    if st.button("Delete Loan"):
+if st.button("Delete Loan"):
         c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
         c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
         conn.commit()
