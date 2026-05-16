@@ -385,12 +385,12 @@ loans_df["label"] = loans_df.apply(
         axis=1
     )
 
-    selected = st.selectbox("Select Loan", loans_df["label"])
-    loan_id = int(selected.split("|")[1].replace("Loan #", "").strip())
+selected = st.selectbox("Select Loan", loans_df["label"])
+loan_id = int(selected.split("|")[1].replace("Loan #", "").strip())
 
-    loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
+loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
 
-    if loan_row.empty:
+if loan_row.empty:
         st.error("Loan not found")
         st.stop()
 
