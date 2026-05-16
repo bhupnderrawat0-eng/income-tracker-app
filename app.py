@@ -136,7 +136,15 @@ if not st.session_state.logged_in:
             st.error("Invalid Login")
 
     st.stop()
-
+if "role" in st.session_state:
+    role = st.session_state.role
+    is_admin = role == "Admin"
+    is_editor = role == "Editor"
+    is_viewer = role == "Viewer"
+else:
+    is_admin = False
+    is_editor = False
+    is_viewer = False
 # ================= DEVICE DETECTION (FINAL FIX) =================
 user_agent = st.context.headers.get("user-agent", "").lower()
 
