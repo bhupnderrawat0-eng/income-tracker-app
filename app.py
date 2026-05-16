@@ -332,7 +332,7 @@ elif menu == "Loans":
     st.subheader("💰 Loan Management")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
-    loans_df = pd.read_sql("SELECT * FROM loans", conn)
+    loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
     payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
     if customers.empty:
