@@ -360,6 +360,7 @@ elif menu == "loans":
     st.markdown("---")
 
     # ===== SELECT loan =====
+    loan = loans_df[loans_df["id"].astype(int) == loan_id].iloc[0]
     if loans_df.empty:
         st.info("No loans available")
         st.stop()
