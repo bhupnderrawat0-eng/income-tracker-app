@@ -146,7 +146,7 @@ if not is_mobile:
 
         menu = option_menu(
             None,
-            ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
+            ["Dashboard","Customers","Collections","loans","Donations","Expenses","Reports","Users","AI"],
             icons=["house","people","cash","bank","gift","credit-card","bar-chart","person","robot"],
             default_index=0,
         )
@@ -155,7 +155,7 @@ else:
 
     menu = st.radio(
         "Navigation",
-        ["Dashboard","Customers","Collections","Loans","Donations","Expenses","Reports","Users","AI"],
+        ["Dashboard","Customers","Collections","loans","Donations","Expenses","Reports","Users","AI"],
         horizontal=True
     )
 
@@ -191,7 +191,7 @@ if menu == "Dashboard":
     c1,c2,c3,c4 = st.columns(4)
 
     c1.metric("Collections", f"₹ {total_col}")
-    c2.metric("Loans", f"₹ {total_loan}")
+    c2.metric("loans", f"₹ {total_loan}")
     c3.metric("Donations", f"₹ {total_don}")
     c4.metric("Expenses", f"₹ {total_exp}")
 
@@ -328,38 +328,38 @@ elif menu == "Collections":
                 conn.commit()
                 st.error("All Deleted ❌")
                 st.rerun()
-# ========================= LOANS =========================
-elif menu == "Loans":
+# ========================= loanS =========================
+elif menu == "loans":
 
-    st.subheader("💰 Loan Management")
+    st.subheader("💰 loan Management")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
     loans_df = pd.read_sql("SELECT * FROM loans", conn)
     payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
-    # ===== ADD LOAN =====
-    st.markdown("### ➕ Add Loan")
+    # ===== ADD loan =====
+    st.markdown("### ➕ Add loan")
 
     if customers.empty:
         st.warning("No customers found")
     else:
         cust = st.selectbox("Customer", customers["name"])
-        loan_amt = st.number_input("Loan Amount", min_value=0.0)
+        loan_amt = st.number_input("loan Amount", min_value=0.0)
         interest_rate = st.number_input("Interest % per month", value=1.0)
-        loan_date = st.date_input("Loan Start Date")
+        loan_date = st.date_input("loan Start Date")
 
-        if st.button("Add Loan"):
+        if st.button("Add loan"):
             c.execute(
                 "INSERT INTO loans (customer_name, amount, interest_rate, start_date) VALUES (?, ?, ?, ?)",
                 (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
             )
             conn.commit()
-            st.success("Loan Added ✅")
+            st.success("loan Added ✅")
             st.rerun()
 
     st.markdown("---")
 
-    # ===== SELECT LOAN =====
+    # ===== SELECT loan =====
     if loans_df.empty:
         st.info("No loans available")
         st.stop()
@@ -370,7 +370,7 @@ elif menu == "Loans":
         axis=1
     )
 
-    selected = st.selectbox("Select Loan", loans_df["label"])
+    selected = st.selectbox("Select loan", loans_df["label"])
 
     # SAFE ID EXTRACTION
     loan_id = int(selected.split("|")[0].strip())
@@ -424,18 +424,18 @@ interest = (principal * rate / 100) * months
 balance = principal + interest - total_paid
 
 # UI display
-st.markdown("### 📊 Loan Summary")
+st.markdown("### 📊 loan Summary")
 st.write(f"*Principal:* ₹{principal}")
 st.write(f"*Paid:* ₹{total_paid}")
 st.write(f"*Interest ({months} months):* ₹{interest}")
 st.write(f"*Balance:* ₹{balance}")
     
     # ===== DELETE =====
-if st.button("Delete Loan"):
+if st.button("Delete loan"):
     c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
     c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
     conn.commit()
-    st.success("Loan Deleted 🗑️")
+    st.success("loan Deleted 🗑️")
     st.rerun()
 # ================= DONATIONS =================
 elif menu == "Donations":
