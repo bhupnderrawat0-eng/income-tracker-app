@@ -359,21 +359,29 @@ elif menu == "loans":
 
     st.markdown("---")
 
+    # ===== SHOW EXISTING LOANS FOR CUSTOMER =====
+    if not customers.empty:
+        cust_loans = loans_df[loans_df["customer_name"] == cust]
+        if not cust_loans.empty:
+            st.write("📌 Existing loans for this customer:")
+            for _, l in cust_loans.iterrows():
+                st.write(f"Loan ID: {l['id']} | ₹{l['amount']}")
+
+    st.markdown("---")
+
     # ===== SELECT LOAN =====
     if loans_df.empty:
         st.info("No loans available")
         st.stop()
 
-    # label banana
     loans_df["label"] = loans_df.apply(
-        lambda x: f"{int(x['id'])} | {x['customer_name']} | ₹{x['amount']}",
+        lambda x: f"{x['customer_name']} | Loan #{int(x['id'])} | ₹{x['amount']}",
         axis=1
     )
 
     selected = st.selectbox("Select Loan", loans_df["label"])
-    loan_id = int(selected.split("|")[0].strip())
+    loan_id = int(selected.split("|")[1].replace("Loan #", "").strip())
 
-    # SAFE fetch
     loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
 
     if loan_row.empty:
@@ -398,35 +406,70 @@ elif menu == "loans":
             st.success("Payment Added ✅")
             st.rerun()
 
-    # ===== SUMMARY =====
+    # ===== INTEREST CALCULATION =====
     from datetime import datetime
 
-    principal = loan["amount"]
-    rate = loan["interest_rate"]
-
-    cust_payments = payments_df[payments_df["loan_id"] == loan_id]
-    total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
-
-    start_date = loan["start_date"]
-    if isinstance(start_date, str):
-        start_date = datetime.strptime(start_date, "%Y-%m-%d")
-
+    start_date = datetime.strptime(loan["start_date"], "%Y-%m-%d")
     today = datetime.today()
 
-    months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
+    cust_payments = payments_df[payments_df["loan_id"] == loan_id].copy()
+
+    if not cust_payments.empty:
+        cust_payments["date"] = pd.to_datetime(cust_payments["date"])
+        cust_payments = cust_payments.sort_values("date")
+
+    balance = loan["amount"]
+    last_date = start_date
+    total_interest = 0
+
+    timeline = []
+
+    for _, p in cust_payments.iterrows():
+        months = (p["date"].year - last_date.year) * 12 + (p["date"].month - last_date.month)
+        if months < 1:
+            months = 1
+
+        interest = (balance * loan["interest_rate"] / 100) * months
+
+        timeline.append({
+            "From": last_date.date(),
+            "To": p["date"].date(),
+            "Interest": round(interest, 2),
+            "Payment": p["amount"],
+            "Balance Before": round(balance, 2)
+        })
+
+        total_interest += interest
+        balance += interest
+        balance -= p["amount"]
+
+        last_date = p["date"]
+
+    # remaining months
+    months = (today.year - last_date.year) * 12 + (today.month - last_date.month)
     if months < 1:
         months = 1
 
-    interest = (principal * rate / 100) * months
-    balance = principal + interest - total_paid
+    interest = (balance * loan["interest_rate"] / 100) * months
+    total_interest += interest
+    balance += interest
 
+    # ===== SUMMARY =====
     st.markdown("### 📊 Loan Summary")
-    st.write(f"*Principal:* ₹{principal}")
-    st.write(f"*Paid:* ₹{total_paid}")
-    st.write(f"*Interest:* ₹{interest}")
-    st.write(f"*Balance:* ₹{balance}")
+
+    st.write(f"Principal: ₹{loan['amount']}")
+    st.write(f"Total Interest: ₹{round(total_interest,2)}")
+    st.write(f"Balance: ₹{round(balance,2)}")
+
+    # ===== MONTHLY BREAKDOWN =====
+    if timeline:
+        st.markdown("### 📅 Monthly Breakdown")
+        timeline_df = pd.DataFrame(timeline)
+        st.dataframe(timeline_df)
 
     # ===== DELETE =====
+    st.markdown("---")
+
     if st.button("Delete Loan"):
         c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
         c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
