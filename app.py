@@ -36,7 +36,7 @@ c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role T
 
 conn.commit()
 create_tables()
-
+loans_df = pd.read_sql("SELECT * FROM loans", conn)
 # FIX customer table
 def safe_add_customer_start_date():
     try:
@@ -352,7 +352,6 @@ elif menu == "loans":
     st.subheader("💰 Loan Management")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
-    loans_df = pd.read_sql("SELECT * FROM loans", conn)
     payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
     # ===== ADD LOAN =====
