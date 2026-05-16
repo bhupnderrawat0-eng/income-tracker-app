@@ -511,7 +511,7 @@ while current_date <= end_date:
 
 monthly_df = pd.DataFrame(monthly_data)
 
-st.dataframe(monthly_df)
+    st.dataframe(monthly_df)
 
     # ===== DELETE =====
     st.markdown("---")
