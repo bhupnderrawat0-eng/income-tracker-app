@@ -13,21 +13,23 @@ def create_tables():
     c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
 
     c.execute("""
-    CREATE TABLE IF NOT EXISTS loans (
-        name TEXT,
-        amount REAL,
-        interest_rate REAL,
-        start_date TEXT
-    )
-    """)
+CREATE TABLE IF NOT EXISTS loans (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_name TEXT,
+    amount REAL,
+    interest_rate REAL,
+    start_date TEXT
+)
+""")
 
     c.execute("""
-    CREATE TABLE IF NOT EXISTS loan_payments (
-        name TEXT,
-        date TEXT,
-        amount REAL
-    )
-    """)
+CREATE TABLE IF NOT EXISTS loan_payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    loan_id INTEGER,
+    amount REAL,
+    date TEXT
+)
+""")
 
     c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL, date TEXT)")
     c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL, date TEXT)")
@@ -35,6 +37,9 @@ def create_tables():
 
     conn.commit()
 create_tables()
+c.execute("DROP TABLE IF EXISTS loans")
+c.execute("DROP TABLE IF EXISTS loan_payments")
+conn.commit()
 # FIX customer table
 def safe_add_customer_start_date():
     try:
