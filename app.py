@@ -333,8 +333,20 @@ elif menu == "Loans":
 
     # ---------------- FETCH DATA ----------------
     customers = pd.read_sql("SELECT * FROM customers", conn)
-    loans_df = pd.read_sql("SELECT * FROM loans", conn)
-    payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
+
+    # SAFE TABLE FIX (auto add id if not exists)
+    try:
+        c.execute("ALTER TABLE loans ADD COLUMN id INTEGER")
+    except:
+        pass
+
+    try:
+        c.execute("ALTER TABLE loan_payments ADD COLUMN loan_id INTEGER")
+    except:
+        pass
+
+    loans_df = pd.read_sql("SELECT rowid as id, * FROM loans", conn)
+    payments_df = pd.read_sql("SELECT rowid as pid, * FROM loan_payments", conn)
 
     if customers.empty:
         st.warning("No customers available")
@@ -363,10 +375,14 @@ elif menu == "Loans":
         st.info("No loans available")
         st.stop()
 
-    loan_options = loans_df["name"] + " | ₹" + loans_df["amount"].astype(str)
-    selected_loan = st.selectbox("Select Loan", loan_options)
+    loans_df["label"] = loans_df.apply(
+        lambda x: f"{x['id']} | {x['name']} | ₹{x['amount']} | {x['start_date']}", axis=1
+    )
 
-    loan = loans_df.iloc[loan_options.tolist().index(selected_loan)]
+    selected_label = st.selectbox("Select Loan", loans_df["label"])
+
+    loan = loans_df[loans_df["label"] == selected_label].iloc[0]
+    loan_id = loan["id"]
 
     # ---------------- ADD PAYMENT ----------------
     st.markdown("### ➕ Add Payment")
@@ -376,8 +392,8 @@ elif menu == "Loans":
 
     if st.button("Add Payment"):
         c.execute(
-            "INSERT INTO loan_payments (name, amount, date) VALUES (?,?,?)",
-            (loan["name"], pay_amt, pay_date.strftime("%Y-%m-%d"))
+            "INSERT INTO loan_payments (name, amount, date, loan_id) VALUES (?,?,?,?)",
+            (loan["name"], pay_amt, pay_date.strftime("%Y-%m-%d"), loan_id)
         )
         conn.commit()
         st.success("Payment Added")
@@ -393,7 +409,8 @@ elif menu == "Loans":
     start_date = pd.to_datetime(loan["start_date"])
     today = pd.to_datetime(datetime.date.today())
 
-    cust_payments = payments_df[payments_df["name"] == loan["name"]]
+    # 🔥 FIX: payment filter by loan_id (NOT name)
+    cust_payments = payments_df[payments_df["loan_id"] == loan_id]
 
     total_paid = cust_payments["amount"].sum()
     remaining_principal = principal - total_paid
@@ -415,8 +432,6 @@ elif menu == "Loans":
     st.subheader("📄 Loan Ledger")
 
     ledger = []
-
-    # Loan entry
     ledger.append([start_date.date(), "Loan", principal, principal])
 
     balance = principal
@@ -439,8 +454,8 @@ elif menu == "Loans":
 
     # ---------------- DELETE ----------------
     if st.button("Delete Loan"):
-        c.execute("DELETE FROM loans WHERE rowid=?", (loan["id"],))
-        c.execute("DELETE FROM loan_payments WHERE name=?", (loan["name"],))
+        c.execute("DELETE FROM loans WHERE rowid=?", (loan_id,))
+        c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
         conn.commit()
         st.warning("Loan Deleted")
         st.rerun()
