@@ -462,10 +462,56 @@ elif menu == "loans":
     st.write(f"Balance: ₹{round(balance,2)}")
 
     # ===== MONTHLY BREAKDOWN =====
-    if timeline:
-        st.markdown("### 📅 Monthly Breakdown")
-        timeline_df = pd.DataFrame(timeline)
-        st.dataframe(timeline_df)
+    st.markdown("### 📅 Monthly Breakdown (Clear View)")
+
+monthly_data = []
+
+balance = loan["amount"]
+rate = loan["interest_rate"]
+
+current_date = start_date.replace(day=1)
+end_date = today.replace(day=1)
+
+cust_payments = payments_df[payments_df["loan_id"] == loan_id].copy()
+
+if not cust_payments.empty:
+    cust_payments["date"] = pd.to_datetime(cust_payments["date"])
+
+while current_date <= end_date:
+
+    # month start & end
+    month_start = current_date
+    month_end = (current_date + pd.DateOffset(months=1))
+
+    # interest for this month
+    interest = (balance * rate / 100)
+
+    # payments in this month
+    month_payments = cust_payments[
+        (cust_payments["date"] >= month_start) &
+        (cust_payments["date"] < month_end)
+    ]
+
+    payment_sum = month_payments["amount"].sum() if not month_payments.empty else 0
+
+    opening_balance = balance
+
+    # update balance
+    balance = balance + interest - payment_sum
+
+    monthly_data.append({
+        "Month": month_start.strftime("%b %Y"),
+        "Opening": round(opening_balance, 2),
+        "Interest": round(interest, 2),
+        "Payment": round(payment_sum, 2),
+        "Closing": round(balance, 2)
+    })
+
+    current_date = month_end
+
+monthly_df = pd.DataFrame(monthly_data)
+
+st.dataframe(monthly_df)
 
     # ===== DELETE =====
     st.markdown("---")
