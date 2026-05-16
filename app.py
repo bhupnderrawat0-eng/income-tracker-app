@@ -369,7 +369,7 @@ if loan_row.empty:
 loan = loan_row.iloc[0]
 
     # CLEAN LABEL (NO BUG)
-    loans_df["label"] = loans_df.apply(
+loans_df["label"] = loans_df.apply(
         lambda x: f"{int(x['id'])} | {x['customer_name']} | ₹{x['amount']}",
         axis=1
     )
