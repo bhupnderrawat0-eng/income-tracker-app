@@ -61,7 +61,11 @@ def fix_loan_system():
 
     if old_loans:
         for loan in old_loans:
-            rowid, name, amount, rate, start = loan
+            rowid = loan[0]
+            name = loan[1]
+            amount = loan[2]
+            rate = loan[3]
+            start = loan[4]
 
             c.execute(
                 "INSERT INTO loans_new (name, amount, interest_rate, start_date) VALUES (?,?,?,?)",
