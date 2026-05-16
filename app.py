@@ -331,59 +331,57 @@ elif menu == "Collections":
 # ========================= LOANS =========================
 elif menu == "loans":
 
-    st.subheader("💰 loan Management")
+    st.subheader("💰 Loan Management")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
     loans_df = pd.read_sql("SELECT * FROM loans", conn)
     payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
-    # ===== ADD loan =====
-    st.markdown("### ➕ Add loan")
+    # ===== ADD LOAN =====
+    st.markdown("### ➕ Add Loan")
 
     if customers.empty:
         st.warning("No customers found")
     else:
         cust = st.selectbox("Customer", customers["name"])
-        loan_amt = st.number_input("loan Amount", min_value=0.0)
+        loan_amt = st.number_input("Loan Amount", min_value=0.0)
         interest_rate = st.number_input("Interest % per month", value=1.0)
-        loan_date = st.date_input("loan Start Date")
+        loan_date = st.date_input("Loan Start Date")
 
-        if st.button("Add loan"):
+        if st.button("Add Loan"):
             c.execute(
                 "INSERT INTO loans (customer_name, amount, interest_rate, start_date) VALUES (?, ?, ?, ?)",
                 (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
             )
             conn.commit()
-            st.success("loan Added ✅")
+            st.success("Loan Added ✅")
             st.rerun()
 
     st.markdown("---")
 
     # ===== SELECT LOAN =====
-if loans_df.empty:
-    st.info("No loans available")
-    st.stop()
+    if loans_df.empty:
+        st.info("No loans available")
+        st.stop()
 
-# label banana
-loans_df["label"] = loans_df.apply(
-    lambda x: f"{int(x['id'])} | {x['customer_name']} | ₹{x['amount']}",
-    axis=1
-)
+    # label banana
+    loans_df["label"] = loans_df.apply(
+        lambda x: f"{int(x['id'])} | {x['customer_name']} | ₹{x['amount']}",
+        axis=1
+    )
 
-# ⚠️ IMPORTANT: yeh line bilkul LEFT side pe ho (no extra space)
-selected = st.selectbox("Select loan", loans_df["label"])
+    selected = st.selectbox("Select Loan", loans_df["label"])
+    loan_id = int(selected.split("|")[0].strip())
 
-# id nikalna
-loan_id = int(selected.split("|")[0].strip())
+    # SAFE fetch
+    loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
 
-# SAFE fetch
-loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
-
-if loan_row.empty:
-    st.error("Loan not found")
-    st.stop()
+    if loan_row.empty:
+        st.error("Loan not found")
+        st.stop()
 
     loan = loan_row.iloc[0]
+
     # ===== ADD PAYMENT =====
     st.markdown("### ➕ Add Payment")
 
@@ -401,45 +399,40 @@ if loan_row.empty:
             st.rerun()
 
     # ===== SUMMARY =====
-from datetime import datetime
+    from datetime import datetime
 
-# GET selected loan data
-loan = loans_df[loans_df["id"] == loan_id].iloc[0]
+    principal = loan["amount"]
+    rate = loan["interest_rate"]
 
-principal = loan["amount"]
-rate = loan["interest_rate"]
+    cust_payments = payments_df[payments_df["loan_id"] == loan_id]
+    total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
 
-# Payments
-cust_payments = payments_df[payments_df["loan_id"] == loan_id]
-total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
+    start_date = loan["start_date"]
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, "%Y-%m-%d")
 
-# Start date handling
-start_date = loan["start_date"]
-if isinstance(start_date, str):
-    start_date = datetime.strptime(start_date, "%Y-%m-%d")
+    today = datetime.today()
 
-today = datetime.today()
+    months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
+    if months < 1:
+        months = 1
 
-months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
-if months < 1:
-    months = 1
+    interest = (principal * rate / 100) * months
+    balance = principal + interest - total_paid
 
-interest = (principal * rate / 100) * months
-balance = principal + interest - total_paid
+    st.markdown("### 📊 Loan Summary")
+    st.write(f"*Principal:* ₹{principal}")
+    st.write(f"*Paid:* ₹{total_paid}")
+    st.write(f"*Interest:* ₹{interest}")
+    st.write(f"*Balance:* ₹{balance}")
 
-st.markdown("### 📊 Loan Summary")
-st.write(f"*Principal:* ₹{principal}")
-st.write(f"*Paid:* ₹{total_paid}")
-st.write(f"*Interest:* ₹{interest}")
-st.write(f"*Balance:* ₹{balance}")
-    
     # ===== DELETE =====
-if st.button("Delete loan"):
-    c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
-    c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
-    conn.commit()
-    st.success("loan Deleted 🗑️")
-    st.rerun()
+    if st.button("Delete Loan"):
+        c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
+        c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
+        conn.commit()
+        st.success("Loan Deleted 🗑️")
+        st.rerun()
 # ================= DONATIONS =================
 elif menu == "Donations":
 
