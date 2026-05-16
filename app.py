@@ -351,9 +351,9 @@ elif menu == "Loans":
     if st.button("Add Loan"):
         if cust and loan_amt > 0:
             c.execute(
-                "INSERT INTO loans (name, amount, interest_rate, start_date) VALUES (?,?,?,?)",
-                (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
-            )
+    "INSERT INTO loans (customer_name, amount, interest_rate, start_date) VALUES (?, ?, ?, ?)",
+    (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
+)
             conn.commit()
             st.success("Loan Added ✅")
             st.rerun()
