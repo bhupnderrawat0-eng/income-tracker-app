@@ -329,7 +329,7 @@ elif menu == "Collections":
 # ========================= LOANS =========================
 elif menu == "Loans":
 
-    st.subheader("💰 Loan Management (Pro)")
+    st.subheader("💰 Loan Management")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
     loans_df = pd.read_sql("SELECT * FROM loans", conn)
@@ -339,20 +339,23 @@ elif menu == "Loans":
         st.warning("No customers available")
         st.stop()
 
-    # -------- ADD LOAN --------
+    # ADD LOAN
     cust = st.selectbox("Customer", customers["name"])
     loan_amt = st.number_input("Loan Amount", min_value=0.0)
     interest_rate = st.number_input("Interest % per month", min_value=0.0, value=1.0)
     loan_date = st.date_input("Loan Start Date")
 
     if st.button("Add Loan"):
-        c.execute(
-            "INSERT INTO loans (name, amount, interest_rate, start_date) VALUES (?,?,?,?)",
-            (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
-        )
-        conn.commit()
-        st.success("Loan Added")
-        st.rerun()
+        if cust and loan_amt > 0:
+            c.execute(
+                "INSERT INTO loans (name, amount, interest_rate, start_date) VALUES (?,?,?,?)",
+                (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
+            )
+            conn.commit()
+            st.success("Loan Added ✅")
+            st.rerun()
+        else:
+            st.warning("Enter valid data")
 
     st.markdown("---")
 
@@ -361,7 +364,7 @@ elif menu == "Loans":
         st.stop()
 
     loans_df["label"] = loans_df.apply(
-        lambda x: f"{x['id']} | {x['name']} | ₹{x['amount']} | {x['start_date']}",
+        lambda x: f"{x['id']} | {x['name']} | ₹{x['amount']}",
         axis=1
     )
 
@@ -369,26 +372,25 @@ elif menu == "Loans":
     loan_id = int(selected.split("|")[0].strip())
     loan = loans_df[loans_df["id"] == loan_id].iloc[0]
 
-    # -------- ADD PAYMENT --------
+    # ADD PAYMENT
     st.markdown("### ➕ Add Payment")
 
     pay_amt = st.number_input("Payment Amount", min_value=0.0)
     pay_date = st.date_input("Payment Date")
 
     if st.button("Add Payment"):
-        c.execute(
-            "INSERT INTO loan_payments (loan_id, amount, date) VALUES (?,?,?)",
-            (loan_id, pay_amt, pay_date.strftime("%Y-%m-%d"))
-        )
-        conn.commit()
-        st.success("Payment Added")
-        st.rerun()
+        if pay_amt > 0:
+            c.execute(
+                "INSERT INTO loan_payments (loan_id, amount, date) VALUES (?,?,?)",
+                (loan_id, pay_amt, pay_date.strftime("%Y-%m-%d"))
+            )
+            conn.commit()
+            st.success("Payment Added")
+            st.rerun()
 
     st.markdown("---")
 
-    # -------- CALCULATION --------
-    st.subheader("📊 Loan Summary")
-
+    # SUMMARY
     principal = loan["amount"]
     rate = loan["interest_rate"]
     start_date = pd.to_datetime(loan["start_date"])
@@ -397,51 +399,24 @@ elif menu == "Loans":
     cust_payments = payments_df[payments_df["loan_id"] == loan_id]
 
     total_paid = cust_payments["amount"].sum()
-    remaining_principal = principal - total_paid
+    remaining = principal - total_paid
 
     months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
 
-    total_interest = remaining_principal * (rate / 100) * months
-    total_balance = remaining_principal + total_interest
+    interest = remaining * (rate / 100) * months
+    total = remaining + interest
 
     st.metric("Principal", f"₹{principal}")
-    st.metric("Total Paid", f"₹{total_paid}")
-    st.metric("Total Interest", f"₹{round(total_interest,2)}")
-    st.metric("Remaining Principal", f"₹{round(remaining_principal,2)}")
-    st.metric("Total Balance", f"₹{round(total_balance,2)}")
+    st.metric("Paid", f"₹{total_paid}")
+    st.metric("Interest", f"₹{round(interest,2)}")
+    st.metric("Balance", f"₹{round(total,2)}")
 
-    st.markdown("---")
-
-    # -------- LEDGER --------
-    st.subheader("📄 Loan Ledger")
-
-    ledger = []
-    ledger.append([start_date.date(), "Loan", principal, principal])
-
-    balance = principal
-
-    for _, pay in cust_payments.iterrows():
-        balance -= pay["amount"]
-        ledger.append([
-            pd.to_datetime(pay["date"]).date(),
-            "Payment",
-            -pay["amount"],
-            balance
-        ])
-
-    ledger_df = pd.DataFrame(ledger, columns=["Date", "Type", "Amount", "Balance"])
-    ledger_df = ledger_df.sort_values("Date")
-
-    st.dataframe(ledger_df, use_container_width=True)
-
-    st.markdown("---")
-
-    # -------- DELETE --------
+    # DELETE
     if st.button("Delete Loan"):
         c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
         c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
         conn.commit()
-        st.warning("Loan Deleted")
+        st.success("Deleted")
         st.rerun()
 # ================= DONATIONS =================
 elif menu == "Donations":
