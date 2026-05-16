@@ -328,7 +328,7 @@ elif menu == "Collections":
                 conn.commit()
                 st.error("All Deleted ❌")
                 st.rerun()
-# ========================= loanS =========================
+# ========================= LOANS =========================
 elif menu == "loans":
 
     st.subheader("💰 loan Management")
@@ -396,6 +396,9 @@ elif menu == "loans":
     # ===== SUMMARY =====
 from datetime import datetime
 
+# GET selected loan data
+loan = loans_df[loans_df["id"] == loan_id].iloc[0]
+
 principal = loan["amount"]
 rate = loan["interest_rate"]
 
@@ -403,31 +406,24 @@ rate = loan["interest_rate"]
 cust_payments = payments_df[payments_df["loan_id"] == loan_id]
 total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
 
-# Start date safe handling
+# Start date handling
 start_date = loan["start_date"]
-
 if isinstance(start_date, str):
     start_date = datetime.strptime(start_date, "%Y-%m-%d")
 
 today = datetime.today()
 
-# Month calculation
 months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
-
 if months < 1:
     months = 1
 
-# Interest calculation (per month)
 interest = (principal * rate / 100) * months
-
-# Final balance
 balance = principal + interest - total_paid
 
-# UI display
-st.markdown("### 📊 loan Summary")
+st.markdown("### 📊 Loan Summary")
 st.write(f"*Principal:* ₹{principal}")
 st.write(f"*Paid:* ₹{total_paid}")
-st.write(f"*Interest ({months} months):* ₹{interest}")
+st.write(f"*Interest:* ₹{interest}")
 st.write(f"*Balance:* ₹{balance}")
     
     # ===== DELETE =====
