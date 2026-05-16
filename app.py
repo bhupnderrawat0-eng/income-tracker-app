@@ -393,29 +393,42 @@ elif menu == "Loans":
             st.success("Payment Added ✅")
             st.rerun()
 
-    # ===== SUMMARY =====
-    st.markdown("---")
+# ===== SUMMARY =====
+from datetime import datetime
 
-    principal = loan["amount"]
-    rate = loan["interest_rate"]
+principal = loan["amount"]
+rate = loan["interest_rate"]
 
-    cust_payments = payments_df[payments_df["loan_id"] == loan_id]
-    total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
-    from datetime import datetime
-    start_date = datetime.strptime(loan["start_date"], "%Y-%m-%d")
-    today = datetime.today()
-    months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
+# Payments
+cust_payments = payments_df[payments_df["loan_id"] == loan_id]
+total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
+
+# Start date safe handling
+start_date = loan["start_date"]
+
+if isinstance(start_date, str):
+    start_date = datetime.strptime(start_date, "%Y-%m-%d")
+
+today = datetime.today()
+
+# Month calculation
+months = (today.year - start_date.year) * 12 + (today.month - start_date.month)
+
 if months < 1:
     months = 1
-    interest = (principal * rate / 100) * months
-    balance = principal + interest - total_paid
 
-    st.markdown("### 📊 Loan Summary")
-    st.write(f"*Principal:* ₹{principal}")
-    st.write(f"*Paid:* ₹{total_paid}")
-    st.write(f"*Interest:* ₹{interest}")
-    st.write(f"*Balance:* ₹{balance}")
+# Interest calculation (per month)
+interest = (principal * rate / 100) * months
 
+# Final balance
+balance = principal + interest - total_paid
+
+# UI display
+st.markdown("### 📊 Loan Summary")
+st.write(f"*Principal:* ₹{principal}")
+st.write(f"*Paid:* ₹{total_paid}")
+st.write(f"*Interest ({months} months):* ₹{interest}")
+st.write(f"*Balance:* ₹{balance}")
     # ===== DELETE =====
     if st.button("Delete Loan"):
         c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
