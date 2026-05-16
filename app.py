@@ -278,6 +278,7 @@ elif menu == "Collections":
         payment_date = st.date_input("Payment Date")
         amt = st.number_input("Amount")
 
+    if not is_viewer:
         if st.button("Save Collection"):
 
             start_date = customers[customers["name"] == cust]["start_date"].values[0]
@@ -312,6 +313,7 @@ elif menu == "Collections":
             col1, col2 = st.columns(2)
 
             with col1:
+            if not is_viewer:
                 if st.button("Update Collection"):
                     c.execute(
                         "UPDATE collections SET amount=? WHERE rowid=?",
@@ -322,13 +324,15 @@ elif menu == "Collections":
                     st.rerun()
 
             with col2:
+            if is_admin:
                 if st.button("Delete Collection"):
                     c.execute("DELETE FROM collections WHERE rowid=?", (row["id"],))
                     conn.commit()
                     st.warning("Deleted ⚠️")
                     st.rerun()
 
-            # DELETE ALL
+        # DELETE ALL
+        if is_admin:
             if st.button("Delete All Collections of This Customer"):
                 c.execute("DELETE FROM collections WHERE name=?", (row["name"],))
                 conn.commit()
@@ -353,7 +357,7 @@ elif menu == "loans":
         loan_amt = st.number_input("Loan Amount", min_value=0.0)
         interest_rate = st.number_input("Interest % per month", value=1.0)
         loan_date = st.date_input("Loan Start Date")
-
+if not is_viewer:
         if st.button("Add Loan"):
             c.execute(
                 "INSERT INTO loans (customer_name, amount, interest_rate, start_date) VALUES (?, ?, ?, ?)",
@@ -394,7 +398,7 @@ elif menu == "loans":
 
     # ===== ADD PAYMENT =====
     st.markdown("### ➕ Add Payment")
-
+if not is_viewer:
     pay_amt = st.number_input("Payment Amount", min_value=0.0)
     pay_date = st.date_input("Payment Date")
 
@@ -475,7 +479,7 @@ elif menu == "loans":
 
     # ===== DELETE =====
     st.markdown("---")
-
+if is_admin:
     if st.button("Delete Loan"):
         c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
         c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
@@ -484,30 +488,49 @@ elif menu == "loans":
         st.rerun()
 # ================= DONATIONS =================
 elif menu == "Donations":
-
+if not is_viewer:
     donor = st.text_input("Donor Name")
     date = st.date_input("Date")
     amt = st.number_input("Amount")
 
     if st.button("Save Donation"):
-        c.execute("INSERT INTO donations VALUES (?,?,?)",
-                  (donor, amt, date.strftime("%Y-%m-%d")))
-        conn.commit()
-
-    st.dataframe(pd.read_sql("SELECT * FROM donations", conn))
+        if donor and amt > 0:   # 👈 ye add karo
+            c.execute(
+                "INSERT INTO donations VALUES (?, ?, ?)",
+                (donor, amt, date.strftime("%Y-%m-%d"))
+            )
+            conn.commit()
+            st.success("Donation Saved ✅")
+            st.rerun()
+        else:
+            st.warning("Enter valid details ⚠️")
+else:
+    st.info("View Only Mode 👁️")
 
 # ================= EXPENSES =================
 elif menu == "Expenses":
 
-    exp = st.text_input("Expense Type")
-    date = st.date_input("Date")
-    amt = st.number_input("Amount")
+    if not is_viewer:
+        exp = st.text_input("Expense Type")
+        date = st.date_input("Date")
+        amt = st.number_input("Amount")
 
-    if st.button("Save Expense"):
-        c.execute("INSERT INTO expenses VALUES (?,?,?)",
-                  (exp, amt, date.strftime("%Y-%m-%d")))
-        conn.commit()
+        if st.button("Save Expense"):
+            if exp and amt > 0:
+                c.execute(
+                    "INSERT INTO expenses VALUES (?, ?, ?)",
+                    (exp, amt, date.strftime("%Y-%m-%d"))
+                )
+                conn.commit()
+                st.success("Expense Saved ✅")
+                st.rerun()
+            else:
+                st.warning("Enter valid details ⚠️")
 
+    else:
+        st.info("View Only Mode 👁️")
+
+    # 👇 ye sabko dikhega (important)
     st.dataframe(pd.read_sql("SELECT * FROM expenses", conn))
 # ================= REPORT =================
 elif menu == "Reports":
