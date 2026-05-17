@@ -755,19 +755,110 @@ elif menu == "Reports":
 # ================= USERS =================
 if menu == "Users":
 
-    if st.session_state.role != "Admin":
-        st.warning("Only Admin Access")
-    else:
+    st.subheader("👥 User Management")
+
+    current_user = st.session_state.current_user
+    role = st.session_state.role
+
+    # ================= USER SELF PASSWORD CHANGE =================
+    st.markdown("### 🔐 Change Your Password")
+
+    old_pass = st.text_input("Old Password", type="password")
+    new_pass = st.text_input("New Password", type="password")
+    confirm_pass = st.text_input("Confirm New Password", type="password")
+
+    if st.button("Update My Password"):
+        user = c.execute(
+            "SELECT * FROM users WHERE username=?",
+            (current_user,)
+        ).fetchone()
+
+        if hash_pass(old_pass) != user[1]:
+            st.error("Old password incorrect ❌")
+
+        elif new_pass != confirm_pass:
+            st.error("Passwords do not match ❌")
+
+        elif len(new_pass) < 4:
+            st.error("Password too short ❌")
+
+        else:
+            c.execute(
+                "UPDATE users SET password=? WHERE username=?",
+                (hash_pass(new_pass), current_user)
+            )
+            conn.commit()
+            st.success("Password updated successfully ✅")
+            st.rerun()
+
+    st.markdown("---")
+
+    # ================= ADMIN FEATURES =================
+    if role == "Admin":
+
+        # ===== CREATE USER =====
+        st.markdown("### ➕ Create User")
+
         u = st.text_input("Username")
         p = st.text_input("Password", type="password")
         r = st.selectbox("Role", ["Admin","Editor","Viewer"])
 
         if st.button("Create User"):
-            c.execute("INSERT INTO users VALUES (?,?,?)",(u,hash_pass(p),r))
-            conn.commit()
-            st.success("User Created")
+            if u and p:
+                c.execute("INSERT INTO users VALUES (?,?,?)",(u,hash_pass(p),r))
+                conn.commit()
+                st.success("User Created ✅")
+                st.rerun()
+            else:
+                st.warning("Enter username & password")
 
+        st.markdown("---")
+
+        # ===== ADMIN RESET PASSWORD =====
+        st.markdown("### 🔑 Reset User Password")
+
+        users_df = pd.read_sql("SELECT username FROM users", conn)
+
+        selected_user = st.selectbox("Select User", users_df["username"])
+
+        new_pass_admin = st.text_input("New Password for User", type="password")
+
+        if st.button("Reset Password"):
+            if new_pass_admin:
+                c.execute(
+                    "UPDATE users SET password=? WHERE username=?",
+                    (hash_pass(new_pass_admin), selected_user)
+                )
+                conn.commit()
+                st.success("Password Reset Done ✅")
+                st.rerun()
+            else:
+                st.warning("Enter new password")
+
+        st.markdown("---")
+
+        # ===== DELETE USER =====
+        st.markdown("### 🗑️ Delete User")
+
+        del_user = st.selectbox("Select User to Delete", users_df["username"])
+
+        if st.button("Delete User"):
+            if del_user == "admin":
+                st.error("Admin cannot be deleted ❌")
+            else:
+                c.execute("DELETE FROM users WHERE username=?", (del_user,))
+                conn.commit()
+                st.warning("User Deleted ⚠️")
+                st.rerun()
+
+        st.markdown("---")
+
+        # ===== SHOW USERS =====
+        st.markdown("### 📋 All Users")
         st.dataframe(pd.read_sql("SELECT username, role FROM users", conn))
+
+    else:
+        st.info("Limited access: You can only change your password 👁️")
 
 # ================= AI =================
 elif menu == "AI":
