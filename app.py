@@ -4,7 +4,9 @@ from streamlit_option_menu import option_menu
 import hashlib
 import datetime
 import sqlite3
-
+import os
+if os.path.exists("data.db"):
+    os.remove("data.db")
 # ================= DATABASE =================
 conn = sqlite3.connect("data.db", check_same_thread=False)
 c = conn.cursor()
