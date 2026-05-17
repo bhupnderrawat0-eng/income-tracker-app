@@ -560,28 +560,74 @@ elif menu == "Donations":
 # ================= EXPENSES =================
 elif menu == "Expenses":
 
-    if not is_viewer:
-        exp = st.text_input("Expense Type")
-        date = st.date_input("Date")
-        amt = st.number_input("Amount")
+    st.subheader("💸 Expense Management")
 
-        if st.button("Save Expense"):
-            if exp and amt > 0:
+    # ===== ADD EXPENSE =====
+    if not is_viewer:
+        exp_type = st.text_input("Expense Type")
+        date = st.date_input("Date")
+        amt = st.number_input("Amount", min_value=0.0)
+
+        if st.button("Save Expense", key="save_expense"):
+            if exp_type and amt > 0:
                 c.execute(
-                    "INSERT INTO expenses VALUES (?, ?, ?)",
-                    (exp, amt, date.strftime("%Y-%m-%d"))
+                    "INSERT INTO expenses (type, amount, date) VALUES (?, ?, ?)",
+                    (exp_type, amt, date.strftime("%Y-%m-%d"))
                 )
                 conn.commit()
                 st.success("Expense Saved ✅")
                 st.rerun()
             else:
                 st.warning("Enter valid details ⚠️")
-
     else:
         st.info("View Only Mode 👁️")
 
-    # 👇 ye sabko dikhega (important)
-    st.dataframe(pd.read_sql("SELECT * FROM expenses", conn))
+    st.markdown("---")
+
+    # ===== SHOW DATA =====
+    df = pd.read_sql("SELECT rowid as id, * FROM expenses", conn)
+    st.dataframe(df)
+
+    # ===== EDIT / DELETE =====
+    if not df.empty:
+
+        df["label"] = df["type"] + " | ₹" + df["amount"].astype(str) + " | " + df["date"]
+
+        selected = st.selectbox("Select Expense", df["label"])
+
+        row = df[df["label"] == selected].iloc[0]
+
+        new_type = st.text_input("Edit Type", value=row["type"])
+        new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
+        new_date = st.date_input("Edit Date", value=pd.to_datetime(row["date"]))
+
+        col1, col2 = st.columns(2)
+
+        # ===== UPDATE =====
+        with col1:
+            if not is_viewer:
+                if st.button("Update Expense", key="update_expense"):
+                    c.execute(
+                        "UPDATE expenses SET type=?, amount=?, date=? WHERE rowid=?",
+                        (
+                            new_type,
+                            new_amt,
+                            new_date.strftime("%Y-%m-%d"),
+                            row["id"]
+                        )
+                    )
+                    conn.commit()
+                    st.success("Updated ✅")
+                    st.rerun()
+
+        # ===== DELETE =====
+        with col2:
+            if is_admin:
+                if st.button("Delete Expense", key="delete_expense"):
+                    c.execute("DELETE FROM expenses WHERE rowid=?", (row["id"],))
+                    conn.commit()
+                    st.warning("Deleted ⚠️")
+                    st.rerun()
 # ================= REPORT =================
 elif menu == "Reports":
 
