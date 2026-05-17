@@ -286,39 +286,38 @@ elif menu == "Collections":
         payment_date = st.date_input("Payment Date")
         amt = st.number_input("Amount")
 
-    if not is_viewer:
-        if st.button("Save Collection"):
+        if not is_viewer:
+            if st.button("Save Collection"):
 
-            start_date = customers[customers["name"] == cust]["start_date"].values[0]
+                start_date = customers[customers["name"] == cust]["start_date"].values[0]
 
-            c.execute(
-                "INSERT INTO collections (name, month, start_date, date, amount) VALUES (?,?,?,?,?)",
-                (
-                    cust,
-                    month,
-                    start_date,
-                    payment_date.strftime("%Y-%m-%d"),
-                    amt
+                c.execute(
+                    "INSERT INTO collections (name, month, start_date, date, amount) VALUES (?,?,?,?,?)",
+                    (
+                        cust,
+                        month,
+                        start_date,
+                        payment_date.strftime("%Y-%m-%d"),
+                        amt
+                    )
                 )
-            )
-            conn.commit()
-            st.success("Collection Saved ✅")
-            st.rerun()
+                conn.commit()
+                st.success("Collection Saved ✅")
+                st.rerun()
 
-        # SHOW DATA
-        df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
-        st.dataframe(df)
+    df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
+    st.dataframe(df)
 
-        # MANAGE
-        if not df.empty:
-            df["label"] = df["name"] + " | " + df["month"] + " | ₹" + df["amount"].astype(str)
+    if not df.empty:
 
-            selected = st.selectbox("Select Entry", df["label"])
-            row = df[df["label"] == selected].iloc[0]
+        df["label"] = df["name"] + " | " + df["month"] + " | ₹" + df["amount"].astype(str)
 
-            new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
+        selected = st.selectbox("Select Entry", df["label"])
+        row = df[df["label"] == selected].iloc[0]
 
-            col1, col2 = st.columns(2)
+        new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
+
+        col1, col2 = st.columns(2)
 
         with col1:
             if not is_viewer:
@@ -338,14 +337,6 @@ elif menu == "Collections":
                     conn.commit()
                     st.warning("Deleted ⚠️")
                     st.rerun()
-
-        # DELETE ALL
-        if is_admin:
-            if st.button("Delete All Collections of This Customer"):
-                c.execute("DELETE FROM collections WHERE name=?", (row["name"],))
-                conn.commit()
-                st.error("All Deleted ❌")
-                st.rerun()
 # ========================= LOANS =========================
 elif menu == "loans":
 
