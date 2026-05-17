@@ -488,6 +488,7 @@ elif menu == "loans":
             st.rerun()
 # ================= DONATIONS =================
 elif menu == "Donations":
+
     if not is_viewer:
         donor = st.text_input("Donor Name")
         date = st.date_input("Date")
@@ -507,6 +508,8 @@ elif menu == "Donations":
 
     else:
         st.info("View Only Mode 👁️")
+
+        st.dataframe(pd.read_sql("SELECT * FROM donations", conn))
 # ================= EXPENSES =================
 elif menu == "Expenses":
 
