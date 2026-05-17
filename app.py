@@ -489,15 +489,18 @@ elif menu == "loans":
 # ================= DONATIONS =================
 elif menu == "Donations":
 
+    st.subheader("🎁 Donations Management")
+
+    # ===== ADD DONATION =====
     if not is_viewer:
         donor = st.text_input("Donor Name")
         date = st.date_input("Date")
-        amt = st.number_input("Amount")
+        amt = st.number_input("Amount", min_value=0.0)
 
-        if st.button("Save Donation"):
+        if st.button("Save Donation", key="save_donation"):
             if donor and amt > 0:
                 c.execute(
-                    "INSERT INTO donations VALUES (?, ?, ?)",
+                    "INSERT INTO donations (name, amount, date) VALUES (?, ?, ?)",
                     (donor, amt, date.strftime("%Y-%m-%d"))
                 )
                 conn.commit()
@@ -505,11 +508,55 @@ elif menu == "Donations":
                 st.rerun()
             else:
                 st.warning("Enter valid details ⚠️")
-
     else:
         st.info("View Only Mode 👁️")
 
-        st.dataframe(pd.read_sql("SELECT * FROM donations", conn))
+    st.markdown("---")
+
+    # ===== SHOW DATA =====
+    df = pd.read_sql("SELECT rowid as id, * FROM donations", conn)
+    st.dataframe(df)
+
+    # ===== EDIT / DELETE =====
+    if not df.empty:
+
+        df["label"] = df["name"] + " | ₹" + df["amount"].astype(str) + " | " + df["date"]
+
+        selected = st.selectbox("Select Donation", df["label"])
+
+        row = df[df["label"] == selected].iloc[0]
+
+        new_name = st.text_input("Edit Name", value=row["name"])
+        new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
+        new_date = st.date_input("Edit Date", value=pd.to_datetime(row["date"]))
+
+        col1, col2 = st.columns(2)
+
+        # ===== UPDATE =====
+        with col1:
+            if not is_viewer:
+                if st.button("Update Donation", key="update_donation"):
+                    c.execute(
+                        "UPDATE donations SET name=?, amount=?, date=? WHERE rowid=?",
+                        (
+                            new_name,
+                            new_amt,
+                            new_date.strftime("%Y-%m-%d"),
+                            row["id"]
+                        )
+                    )
+                    conn.commit()
+                    st.success("Updated ✅")
+                    st.rerun()
+
+        # ===== DELETE =====
+        with col2:
+            if is_admin:
+                if st.button("Delete Donation", key="delete_donation"):
+                    c.execute("DELETE FROM donations WHERE rowid=?", (row["id"],))
+                    conn.commit()
+                    st.warning("Deleted ⚠️")
+                    st.rerun()
 # ================= EXPENSES =================
 elif menu == "Expenses":
 
