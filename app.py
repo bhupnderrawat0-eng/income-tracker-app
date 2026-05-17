@@ -343,6 +343,7 @@ elif menu == "loans":
     st.subheader("💰 Loan Management")
 
     customers = pd.read_sql("SELECT * FROM customers", conn)
+    loans_df = pd.read_sql("SELECT * FROM loans", conn)
     payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
 
     # ===== ADD LOAN =====
@@ -355,60 +356,62 @@ elif menu == "loans":
         loan_amt = st.number_input("Loan Amount", min_value=0.0)
         interest_rate = st.number_input("Interest % per month", value=1.0)
         loan_date = st.date_input("Loan Start Date")
-if not is_viewer:
-        if st.button("Add Loan"):
-            c.execute(
-                "INSERT INTO loans (customer_name, amount, interest_rate, start_date) VALUES (?, ?, ?, ?)",
-                (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
-            )
-            conn.commit()
-            st.success("Loan Added ✅")
-            st.rerun()
 
-            st.markdown("---")
+        if not is_viewer:
+            if st.button("Add Loan", key="add_loan_btn"):
+                c.execute(
+                    "INSERT INTO loans (customer_name, amount, interest_rate, start_date) VALUES (?, ?, ?, ?)",
+                    (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
+                )
+                conn.commit()
+                st.success("Loan Added ✅")
+                st.rerun()
+
+    st.markdown("---")
 
     # ===== SHOW EXISTING LOANS =====
-if not loans_df.empty:
+    if not loans_df.empty:
         st.markdown("📌 Existing loans:")
         for _, row in loans_df.iterrows():
             st.write(f"Loan ID: {row['id']} | {row['customer_name']} | ₹{row['amount']}")
 
     # ===== SELECT LOAN =====
-if loans_df.empty:
+    if loans_df.empty:
         st.info("No loans available")
         st.stop()
 
-loans_df["label"] = loans_df.apply(
+    loans_df["label"] = loans_df.apply(
         lambda x: f"{x['customer_name']} | Loan #{int(x['id'])} | ₹{x['amount']}",
         axis=1
     )
 
-selected = st.selectbox("Select Loan", loans_df["label"])
-loan_id = int(selected.split("|")[1].replace("Loan #", "").strip())
+    selected = st.selectbox("Select Loan", loans_df["label"])
+    loan_id = int(selected.split("|")[1].replace("Loan #", "").strip())
 
-loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
+    loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
 
-if loan_row.empty:
+    if loan_row.empty:
         st.error("Loan not found")
         st.stop()
 
-loan = loan_row.iloc[0]
+    loan = loan_row.iloc[0]
 
     # ===== ADD PAYMENT =====
-st.markdown("### ➕ Add Payment")
-if not is_viewer:
-    pay_amt = st.number_input("Payment Amount", min_value=0.0)
-    pay_date = st.date_input("Payment Date")
+    st.markdown("### ➕ Add Payment")
 
-    if st.button("Add Payment"):
-        if pay_amt > 0:
-            c.execute(
-                "INSERT INTO loan_payments (loan_id, amount, date) VALUES (?, ?, ?)",
-                (loan_id, pay_amt, pay_date.strftime("%Y-%m-%d"))
-            )
-            conn.commit()
-            st.success("Payment Added ✅")
-            st.rerun()
+    if not is_viewer:
+        pay_amt = st.number_input("Payment Amount", min_value=0.0)
+        pay_date = st.date_input("Payment Date")
+
+        if st.button("Add Payment", key="add_payment_btn"):
+            if pay_amt > 0:
+                c.execute(
+                    "INSERT INTO loan_payments (loan_id, amount, date) VALUES (?, ?, ?)",
+                    (loan_id, pay_amt, pay_date.strftime("%Y-%m-%d"))
+                )
+                conn.commit()
+                st.success("Payment Added ✅")
+                st.rerun()
 
     # ===== SUMMARY + MONTHLY SYSTEM =====
     from datetime import datetime
@@ -430,7 +433,6 @@ if not is_viewer:
     current_date = start_date
     running_principal = principal
 
-    # payment map
     payment_map = {}
     for _, p in cust_payments.iterrows():
         payment_map.setdefault(p["date"][:7], 0)
@@ -455,7 +457,6 @@ if not is_viewer:
             "Balance": round(balance_after, 2)
         })
 
-        # next month
         if current_date.month == 12:
             current_date = current_date.replace(year=current_date.year+1, month=1)
         else:
@@ -477,13 +478,14 @@ if not is_viewer:
 
     # ===== DELETE =====
     st.markdown("---")
-if is_admin:
-    if st.button("Delete Loan"):
-        c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
-        c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
-        conn.commit()
-        st.success("Loan Deleted 🗑️")
-        st.rerun()
+
+    if is_admin:
+        if st.button("Delete Loan", key="delete_loan_btn"):
+            c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
+            c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
+            conn.commit()
+            st.success("Loan Deleted 🗑️")
+            st.rerun()
 # ================= DONATIONS =================
 elif menu == "Donations":
     if not is_viewer:
