@@ -196,43 +196,43 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ================= DASHBOARD =================
+
 if menu == "Dashboard":
+
     try:
         total_col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0]
         if total_col is None:
-        total_col = 0
+            total_col = 0
     except:
         total_col = 0
 
     try:
         total_loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0]
         if total_loan is None:
-        total_loan = 0
+            total_loan = 0
     except:
         total_loan = 0
 
     try:
         total_don = c.execute("SELECT SUM(amount) FROM donations").fetchone()[0]
         if total_don is None:
-        total_don = 0
+            total_don = 0
     except:
         total_don = 0
 
     try:
         total_exp = c.execute("SELECT SUM(amount) FROM expenses").fetchone()[0]
         if total_exp is None:
-        total_exp = 0
+            total_exp = 0
     except:
         total_exp = 0
 
-    c1,c2,c3,c4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4)
 
     c1.metric("Collections", f"₹ {total_col}")
-    c2.metric("loans", f"₹ {total_loan}")
+    c2.metric("Loans", f"₹ {total_loan}")
     c3.metric("Donations", f"₹ {total_don}")
     c4.metric("Expenses", f"₹ {total_exp}")
-
-    st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
 # ========================= CUSTOMERS =========================
 elif menu == "Customers":
 
