@@ -110,6 +110,10 @@ html, body, .stApp {
 """, unsafe_allow_html=True)
 
 # ================= SESSION =================
+if "current_user" not in st.session_state:
+    st.session_state.current_user = ""
+if "role" not in st.session_state:
+    st.session_state.role = ""
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -130,15 +134,12 @@ if st.button("Login"):
         st.rerun()
     else:
         st.error("Invalid Login")
+    st.stop()
 #        if user:
 #           st.session_state.logged_in = True
 #          st.session_state.current_user = user[0]
 #         st.session_state.role = user[2]
-    # ================= ROLE SETUP =================
-    role = st.session_state.role
-    is_admin = role == "Admin"
-    is_editor = role == "Editor"
-    is_viewer = role == "Viewer"
+    # ================= ROLE SETUP =================   
 if "role" in st.session_state:
     role = st.session_state.role
     is_admin = role == "Admin"
