@@ -80,12 +80,13 @@ if "logged_in" not in st.session_state:
 # ================= LOGIN =================
 if not st.session_state.logged_in:
 
-    st.title("🔐 Login")
-
+    with st.form("login_form"):
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
 
-    if st.button("Login"):
+    submitted = st.form_submit_button("Login")
+
+    if submitted:
 
         try:
             user_data = supabase.table("users") \
@@ -96,6 +97,17 @@ if not st.session_state.logged_in:
 
             if user_data.data:
                 user = user_data.data[0]
+
+                st.session_state.logged_in = True
+                st.session_state.current_user = user["username"]
+                st.session_state.role = user["role"]
+
+                st.rerun()
+            else:
+                st.error("Invalid Login")
+
+        except:
+            st.error("Login Error")
 
                 st.session_state.logged_in = True
                 st.session_state.current_user = user["username"]
