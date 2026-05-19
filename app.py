@@ -42,7 +42,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 #
 #     conn.commit()
 # create_tables()
-loans_df = pd.read_sql("SELECT * FROM loans", conn)
+# loans_df = pd.read_sql("SELECT * FROM loans", conn)
 # FIX customer table
 def safe_add_customer_start_date():
     try:
