@@ -77,69 +77,50 @@ html, body, .stApp {
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
+# ================= SESSION =================
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
 # ================= LOGIN =================
 if not st.session_state.logged_in:
 
- with st.form("login_form"):
-    u = st.text_input("Username")
-    p = st.text_input("Password", type="password")
+    with st.form("login_form"):
+        u = st.text_input("Username")
+        p = st.text_input("Password", type="password")
 
-    submitted = st.form_submit_button("Login")
+        submitted = st.form_submit_button("Login")
 
-    if submitted:
+        if submitted:
+            try:
+                user_data = supabase.table("users") \
+                    .select("*") \
+                    .eq("username", u) \
+                    .eq("password", hash_pass(p)) \
+                    .execute()
 
-        try:
-            user_data = supabase.table("users") \
-                .select("*") \
-                .eq("username", u) \
-                .eq("password", hash_pass(p)) \
-                .execute()
+                if user_data.data:
+                    user = user_data.data[0]
 
-            if user_data.data:
-                user = user_data.data[0]
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = user["username"]
+                    st.session_state.role = user["role"]
 
-                st.session_state.logged_in = True
-                st.session_state.current_user = user["username"]
-                st.session_state.role = user["role"]
+                    st.rerun()
+                else:
+                    st.error("Invalid Login")
 
-                st.rerun()
-            else:
-                st.error("Invalid Login")
-
-        except:
-            st.error("Login Error")
-
-                st.session_state.logged_in = True
-                st.session_state.current_user = user["username"]
-                st.session_state.role = user["role"]
-
-                # ================= ROLE SETUP =================
-                role = st.session_state.role
-
-                is_admin = role == "Admin"
-                is_editor = role == "Editor"
-                is_viewer = role == "Viewer"
-
-                st.rerun()
-            else:
-                st.error("Invalid Login")
-
-        except:
-            st.error("Login Error")
+            except:
+                st.error("Login Error")
 
     st.stop()
 
 
 # ================= ROLE SETUP =================
-if "role" in st.session_state:
-    role = st.session_state.role
-    is_admin = role == "Admin"
-    is_editor = role == "Editor"
-    is_viewer = role == "Viewer"
-else:
-    is_admin = False
-    is_editor = False
-    is_viewer = False
+role = st.session_state.get("role", None)
+
+is_admin = role == "Admin"
+is_editor = role == "Editor"
+is_viewer = role == "Viewer"
 # ================= DEVICE DETECTION (FINAL FIX) =================
 user_agent = st.context.headers.get("user-agent", "").lower()
 
