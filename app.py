@@ -197,33 +197,33 @@ st.markdown("""
 
 # ================= DASHBOARD =================
 if menu == "Dashboard":
-try:
-    total_col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0]
-    if total_col is None:
+    try:
+        total_col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0]
+        if total_col is None:
         total_col = 0
-except:
-    total_col = 0
+    except:
+        total_col = 0
 
-try:
-    total_loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0]
-    if total_loan is None:
+    try:
+        total_loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0]
+        if total_loan is None:
         total_loan = 0
-except:
-    total_loan = 0
+    except:
+        total_loan = 0
 
-try:
-    total_don = c.execute("SELECT SUM(amount) FROM donations").fetchone()[0]
-    if total_don is None:
+    try:
+        total_don = c.execute("SELECT SUM(amount) FROM donations").fetchone()[0]
+        if total_don is None:
         total_don = 0
-except:
-    total_don = 0
+    except:
+        total_don = 0
 
-try:
-    total_exp = c.execute("SELECT SUM(amount) FROM expenses").fetchone()[0]
-    if total_exp is None:
+    try:
+        total_exp = c.execute("SELECT SUM(amount) FROM expenses").fetchone()[0]
+        if total_exp is None:
         total_exp = 0
-except:
-    total_exp = 0
+    except:
+        total_exp = 0
 
     c1,c2,c3,c4 = st.columns(4)
 
