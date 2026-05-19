@@ -65,10 +65,10 @@ def hash_pass(p):
     return hashlib.sha256(p.encode()).hexdigest()
 
 # default admin
-c.execute("SELECT * FROM users WHERE username='admin'")
-if not c.fetchone():
-    c.execute("INSERT INTO users VALUES (?,?,?)", ("admin", hash_pass("admin123"), "Admin"))
-    conn.commit()
+# c.execute("SELECT * FROM users WHERE username='admin'")
+# if not c.fetchone():
+#    c.execute("INSERT INTO users VALUES (?,?,?)", ("admin", hash_pass("admin123"), "Admin"))
+#    conn.commit()
 
 # ================= CONFIG =================
 st.set_page_config(page_title="Bal Yuva SaaS", layout="wide")
