@@ -123,7 +123,7 @@ if not st.session_state.logged_in:
 
     if st.button("Login"):
     # TEMP LOGIN (bypass)
-    if u == "admin" and p == "admin123":
+        if u == "admin" and p == "admin123":
         st.session_state.logged_in = True
         st.session_state.current_user = "admin"
         st.session_state.role = "Admin"
