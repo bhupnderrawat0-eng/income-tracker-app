@@ -815,6 +815,152 @@ elif menu == "Reports":
 
         else:
             st.success("✅ All customers have paid for this month")
+# ================= USERS =================
+if menu == "Users":
 
+    st.subheader("👥 User Management")
+
+    current_user = st.session_state.current_user
+    role = st.session_state.role
+
+    # ================= USER SELF PASSWORD CHANGE =================
+    st.markdown("### 🔐 Change Your Password")
+
+    old_pass = st.text_input("Old Password", type="password")
+    new_pass = st.text_input("New Password", type="password")
+    confirm_pass = st.text_input("Confirm New Password", type="password")
+
+    if st.button("Update My Password"):
+
+        try:
+            user_data = supabase.table("users").select("*").eq("username", current_user).execute()
+
+            if not user_data.data:
+                st.error("User not found ❌")
+
+            else:
+                user = user_data.data[0]
+
+                if hash_pass(old_pass) != user["password"]:
+                    st.error("Old password incorrect ❌")
+
+                elif new_pass != confirm_pass:
+                    st.error("Passwords do not match ❌")
+
+                elif len(new_pass) < 4:
+                    st.error("Password too short ❌")
+
+                else:
+                    supabase.table("users").update({
+                        "password": hash_pass(new_pass)
+                    }).eq("username", current_user).execute()
+
+                    st.success("Password updated successfully ✅")
+                    st.rerun()
+
+        except:
+            st.error("Error updating password")
+
+    st.markdown("---")
+
+    # ================= ADMIN FEATURES =================
+    if role == "Admin":
+
+        # ===== CREATE USER =====
+        st.markdown("### ➕ Create User")
+
+        u = st.text_input("Username")
+        p = st.text_input("Password", type="password")
+        r = st.selectbox("Role", ["Admin","Editor","Viewer"])
+
+        if st.button("Create User"):
+            if u and p:
+                try:
+                    supabase.table("users").insert({
+                        "username": u,
+                        "password": hash_pass(p),
+                        "role": r
+                    }).execute()
+
+                    st.success("User Created ✅")
+                    st.rerun()
+                except:
+                    st.error("Error creating user")
+            else:
+                st.warning("Enter username & password")
+
+        st.markdown("---")
+
+        # ===== LOAD USERS =====
+        try:
+            users_df = pd.DataFrame(
+                supabase.table("users").select("*").execute().data
+            )
+        except:
+            users_df = pd.DataFrame()
+
+        # ===== ADMIN RESET PASSWORD =====
+        st.markdown("### 🔑 Reset User Password")
+
+        if not users_df.empty:
+            selected_user = st.selectbox("Select User", users_df["username"])
+        else:
+            selected_user = None
+
+        new_pass_admin = st.text_input("New Password for User", type="password")
+
+        if st.button("Reset Password"):
+            if selected_user and new_pass_admin:
+                try:
+                    supabase.table("users").update({
+                        "password": hash_pass(new_pass_admin)
+                    }).eq("username", selected_user).execute()
+
+                    st.success("Password Reset Done ✅")
+                    st.rerun()
+                except:
+                    st.error("Reset failed")
+            else:
+                st.warning("Enter new password")
+
+        st.markdown("---")
+
+        # ===== DELETE USER =====
+        st.markdown("### 🗑️ Delete User")
+
+        if not users_df.empty:
+            del_user = st.selectbox("Select User to Delete", users_df["username"])
+        else:
+            del_user = None
+
+        if st.button("Delete User"):
+            if del_user == "admin":
+                st.error("Admin cannot be deleted ❌")
+            elif del_user:
+                try:
+                    supabase.table("users").delete().eq("username", del_user).execute()
+
+                    st.warning("User Deleted ⚠️")
+                    st.rerun()
+                except:
+                    st.error("Delete failed")
+
+        st.markdown("---")
+
+        # ===== SHOW USERS =====
+        st.markdown("### 📋 All Users")
+
+        if not users_df.empty:
+            st.dataframe(users_df[["username", "role"]])
+        else:
+            st.info("No users found")
+
+    else:
+        st.info("Limited access: You can only change your password 👁️")
+
+# ================= AI =================
+elif menu == "AI":
+    st.subheader("🤖 AI Insights (Coming Soon)")
+    st.info("Future AI features yaha add honge")
     else:
         st.info("No collection data available yet")
