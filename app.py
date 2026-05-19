@@ -122,10 +122,14 @@ if not st.session_state.logged_in:
     p = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        user = c.execute(
-            "SELECT * FROM users WHERE username=? AND password=?",
-            (u, hash_pass(p))
-        ).fetchone()
+    # TEMP LOGIN (bypass)
+    if u == "admin" and p == "admin123":
+        st.session_state.logged_in = True
+        st.session_state.current_user = "admin"
+        st.session_state.role = "Admin"
+        st.rerun()
+    else:
+        st.error("Invalid Login")
 
         if user:
             st.session_state.logged_in = True
