@@ -139,11 +139,6 @@ if st.button("Login"):
     is_admin = role == "Admin"
     is_editor = role == "Editor"
     is_viewer = role == "Viewer"
-    st.rerun()
-        else:
-            st.error("Invalid Login")
-
-    st.stop()
 if "role" in st.session_state:
     role = st.session_state.role
     is_admin = role == "Admin"
