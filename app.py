@@ -121,20 +121,19 @@ if not st.session_state.logged_in:
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
 
-    if st.button("Login"):
-    # TEMP LOGIN (bypass)
-        if u == "admin" and p == "admin123":
+if st.button("Login"):
+   # TEMP LOGIN (bypass)
+    if u == "admin" and p == "admin123":
         st.session_state.logged_in = True
         st.session_state.current_user = "admin"
         st.session_state.role = "Admin"
         st.rerun()
     else:
         st.error("Invalid Login")
-
-        if user:
-            st.session_state.logged_in = True
-            st.session_state.current_user = user[0]
-            st.session_state.role = user[2]
+#        if user:
+ #           st.session_state.logged_in = True
+  #          st.session_state.current_user = user[0]
+   #         st.session_state.role = user[2]
         # ================= ROLE SETUP =================
             role = st.session_state.role
 
