@@ -3,73 +3,38 @@ import pandas as pd
 from streamlit_option_menu import option_menu
 import hashlib
 import datetime
-from supabase import create_client
+
+# ================= SUPABASE =================
+from supabase import create_client, Client
 
 SUPABASE_URL = "https://eflpyuvwtofgnjcrsgoz.supabase.co"
 SUPABASE_KEY = "sb_publishable_FwNyrhViDcmux8hRRidMmA_Ta4EGAyf"
 
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# ================= DATABASE =================
-# conn = sqlite3.connect("data.db", check_same_thread=False)
-# c = conn.cursor()
-# def create_tables():
-#     c.execute("CREATE TABLE IF NOT EXISTS customers(name TEXT, mobile TEXT)")
-#     c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
-#
-#     c.execute("""
-# CREATE TABLE IF NOT EXISTS loans (
-#     id INTEGER PRIMARY KEY AUTOINCREMENT,
-#     customer_name TEXT,
-#     amount REAL,
-#     interest_rate REAL,
-#     start_date TEXT
-# )
-# """)
-#
-#     c.execute("""
-# CREATE TABLE IF NOT EXISTS loan_payments (
-#     id INTEGER PRIMARY KEY AUTOINCREMENT,
-#     loan_id INTEGER,
-#     amount REAL,
-#     date TEXT
-# )
-# """)
-#
-#     c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL, date TEXT)")
-#     c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL, date TEXT)")
-#     c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
-#
-#     conn.commit()
-# create_tables()
-# loans_df = pd.read_sql("SELECT * FROM loans", conn)
-# FIX customer table
-def safe_add_customer_start_date():
-    try:
-        c.execute("ALTER TABLE customers ADD COLUMN start_date TEXT")
-    except:
-        pass
+# ================= SAFE LOAD =================
+try:
+    loans_data = supabase.table("loans").select("*").execute()
+    loans_df = pd.DataFrame(loans_data.data)
+except:
+    loans_df = pd.DataFrame()
 
-safe_add_customer_start_date()
-# SAFE column add
-def safe_add_column(table, column):
-    try:
-        c.execute(f"ALTER TABLE {table} ADD COLUMN {column} TEXT")
-    except:
-        pass
-
-safe_add_column("donations", "date")
-safe_add_column("expenses", "date")
-
+# ================= PASSWORD =================
 def hash_pass(p):
     return hashlib.sha256(p.encode()).hexdigest()
 
-# default admin
-# c.execute("SELECT * FROM users WHERE username='admin'")
-# if not c.fetchone():
-#    c.execute("INSERT INTO users VALUES (?,?,?)", ("admin", hash_pass("admin123"), "Admin"))
-#    conn.commit()
+# ================= DEFAULT ADMIN =================
+try:
+    users = supabase.table("users").select("*").eq("username", "admin").execute()
 
+    if not users.data:
+        supabase.table("users").insert({
+            "username": "admin",
+            "password": hash_pass("admin123"),
+            "role": "Admin"
+        }).execute()
+except:
+    pass
 # ================= CONFIG =================
 st.set_page_config(page_title="Bal Yuva SaaS", layout="wide")
 
@@ -108,17 +73,9 @@ html, body, .stApp {
 }
 </style>
 """, unsafe_allow_html=True)
-
 # ================= SESSION =================
-if "current_user" not in st.session_state:
-    st.session_state.current_user = ""
-
-if "role" not in st.session_state:
-    st.session_state.role = ""
-
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-
 
 # ================= LOGIN =================
 if not st.session_state.logged_in:
@@ -129,23 +86,48 @@ if not st.session_state.logged_in:
     p = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        if u == "admin" and p == "admin123":
-            st.session_state.logged_in = True
-            st.session_state.current_user = "admin"
-            st.session_state.role = "Admin"
-            st.rerun()
-        else:
-            st.error("Invalid Login")
 
-    st.stop()   # 🔥 IMPORTANT (yahi sabse important line hai)
+        try:
+            user_data = supabase.table("users") \
+                .select("*") \
+                .eq("username", u) \
+                .eq("password", hash_pass(p)) \
+                .execute()
+
+            if user_data.data:
+                user = user_data.data[0]
+
+                st.session_state.logged_in = True
+                st.session_state.current_user = user["username"]
+                st.session_state.role = user["role"]
+
+                # ================= ROLE SETUP =================
+                role = st.session_state.role
+
+                is_admin = role == "Admin"
+                is_editor = role == "Editor"
+                is_viewer = role == "Viewer"
+
+                st.rerun()
+            else:
+                st.error("Invalid Login")
+
+        except:
+            st.error("Login Error")
+
+    st.stop()
 
 
 # ================= ROLE SETUP =================
-role = st.session_state.get("role", "")
-
-is_admin = role == "Admin"
-is_editor = role == "Editor"
-is_viewer = role == "Viewer"
+if "role" in st.session_state:
+    role = st.session_state.role
+    is_admin = role == "Admin"
+    is_editor = role == "Editor"
+    is_viewer = role == "Viewer"
+else:
+    is_admin = False
+    is_editor = False
+    is_viewer = False
 # ================= DEVICE DETECTION (FINAL FIX) =================
 user_agent = st.context.headers.get("user-agent", "").lower()
 
@@ -194,45 +176,30 @@ st.markdown("""
 <p style='color:lightgray;'>Smart Finance SaaS System</p>
 </div>
 """, unsafe_allow_html=True)
-
 # ================= DASHBOARD =================
-
 if menu == "Dashboard":
 
-    try:
-        total_col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0]
-        if total_col is None:
-            total_col = 0
-    except:
-        total_col = 0
+    def get_sum(table_name):
+        try:
+            data = supabase.table(table_name).select("amount").execute()
+            df = pd.DataFrame(data.data)
+            return df["amount"].sum() if not df.empty else 0
+        except:
+            return 0
 
-    try:
-        total_loan = c.execute("SELECT SUM(amount) FROM loans").fetchone()[0]
-        if total_loan is None:
-            total_loan = 0
-    except:
-        total_loan = 0
-
-    try:
-        total_don = c.execute("SELECT SUM(amount) FROM donations").fetchone()[0]
-        if total_don is None:
-            total_don = 0
-    except:
-        total_don = 0
-
-    try:
-        total_exp = c.execute("SELECT SUM(amount) FROM expenses").fetchone()[0]
-        if total_exp is None:
-            total_exp = 0
-    except:
-        total_exp = 0
+    total_col = get_sum("collections")
+    total_loan = get_sum("loans")
+    total_don = get_sum("donations")
+    total_exp = get_sum("expenses")
 
     c1, c2, c3, c4 = st.columns(4)
 
     c1.metric("Collections", f"₹ {total_col}")
-    c2.metric("Loans", f"₹ {total_loan}")
+    c2.metric("loans", f"₹ {total_loan}")
     c3.metric("Donations", f"₹ {total_don}")
     c4.metric("Expenses", f"₹ {total_exp}")
+
+    st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
 # ========================= CUSTOMERS =========================
 elif menu == "Customers":
 
@@ -243,15 +210,25 @@ elif menu == "Customers":
     start_date = st.date_input("Start Date")
 
     if st.button("Add Customer"):
-        c.execute(
-            "INSERT INTO customers (name, mobile, start_date) VALUES (?,?,?)",
-            (name, mobile, start_date.strftime("%Y-%m-%d"))
-        )
-        conn.commit()
-        st.success("Customer Added ✅")
-        st.rerun()
+        try:
+            supabase.table("customers").insert({
+                "name": name,
+                "mobile": mobile,
+                "start_date": start_date.strftime("%Y-%m-%d")
+            }).execute()
 
-    df = pd.read_sql("SELECT rowid as id, * FROM customers", conn)
+            st.success("Customer Added ✅")
+            st.rerun()
+        except:
+            st.error("Error adding customer")
+
+    # LOAD DATA
+    try:
+        data = supabase.table("customers").select("*").execute()
+        df = pd.DataFrame(data.data)
+    except:
+        df = pd.DataFrame()
+
     st.dataframe(df)
 
     if not df.empty:
@@ -269,32 +246,38 @@ elif menu == "Customers":
 
         with col1:
             if st.button("Update Customer"):
-                c.execute(
-                    "UPDATE customers SET name=?, mobile=?, start_date=? WHERE rowid=?",
-                    (
-                        new_name,
-                        new_mobile,
-                        new_start.strftime("%Y-%m-%d"),
-                        selected_id
-                    )
-                )
-                conn.commit()
-                st.success("Updated ✅")
-                st.rerun()
+                try:
+                    supabase.table("customers").update({
+                        "name": new_name,
+                        "mobile": new_mobile,
+                        "start_date": new_start.strftime("%Y-%m-%d")
+                    }).eq("id", selected_id).execute()
+
+                    st.success("Updated ✅")
+                    st.rerun()
+                except:
+                    st.error("Update failed")
 
         with col2:
             if st.button("Delete Customer"):
-                c.execute("DELETE FROM customers WHERE rowid=?", (selected_id,))
-                conn.commit()
-                st.warning("Deleted ⚠️")
-                st.rerun()
+                try:
+                    supabase.table("customers").delete().eq("id", selected_id).execute()
 
+                    st.warning("Deleted ⚠️")
+                    st.rerun()
+                except:
+                    st.error("Delete failed")
 # ========================= COLLECTION =========================
 elif menu == "Collections":
 
     st.subheader("🔥 Collection Management")
 
-    customers = pd.read_sql("SELECT * FROM customers", conn)
+    # LOAD CUSTOMERS
+    try:
+        cust_data = supabase.table("customers").select("*").execute()
+        customers = pd.DataFrame(cust_data.data)
+    except:
+        customers = pd.DataFrame()
 
     if customers.empty:
         st.warning("No customers available")
@@ -314,21 +297,27 @@ elif menu == "Collections":
 
                 start_date = customers[customers["name"] == cust]["start_date"].values[0]
 
-                c.execute(
-                    "INSERT INTO collections (name, month, start_date, date, amount) VALUES (?,?,?,?,?)",
-                    (
-                        cust,
-                        month,
-                        start_date,
-                        payment_date.strftime("%Y-%m-%d"),
-                        amt
-                    )
-                )
-                conn.commit()
-                st.success("Collection Saved ✅")
-                st.rerun()
+                try:
+                    supabase.table("collections").insert({
+                        "name": cust,
+                        "month": month,
+                        "start_date": start_date,
+                        "date": payment_date.strftime("%Y-%m-%d"),
+                        "amount": amt
+                    }).execute()
 
-    df = pd.read_sql("SELECT rowid as id, * FROM collections", conn)
+                    st.success("Collection Saved ✅")
+                    st.rerun()
+                except:
+                    st.error("Error saving collection")
+
+    # LOAD COLLECTION DATA
+    try:
+        data = supabase.table("collections").select("*").execute()
+        df = pd.DataFrame(data.data)
+    except:
+        df = pd.DataFrame()
+
     st.dataframe(df)
 
     if not df.empty:
@@ -345,29 +334,46 @@ elif menu == "Collections":
         with col1:
             if not is_viewer:
                 if st.button("Update Collection"):
-                    c.execute(
-                        "UPDATE collections SET amount=? WHERE rowid=?",
-                        (new_amt, row["id"])
-                    )
-                    conn.commit()
-                    st.success("Updated ✅")
-                    st.rerun()
+                    try:
+                        supabase.table("collections").update({
+                            "amount": new_amt
+                        }).eq("id", row["id"]).execute()
+
+                        st.success("Updated ✅")
+                        st.rerun()
+                    except:
+                        st.error("Update failed")
 
         with col2:
             if is_admin:
                 if st.button("Delete Collection"):
-                    c.execute("DELETE FROM collections WHERE rowid=?", (row["id"],))
-                    conn.commit()
-                    st.warning("Deleted ⚠️")
-                    st.rerun()
+                    try:
+                        supabase.table("collections").delete().eq("id", row["id"]).execute()
+
+                        st.warning("Deleted ⚠️")
+                        st.rerun()
+                    except:
+                        st.error("Delete failed")
 # ========================= LOANS =========================
 elif menu == "loans":
 
     st.subheader("💰 Loan Management")
 
-    customers = pd.read_sql("SELECT * FROM customers", conn)
-    loans_df = pd.read_sql("SELECT * FROM loans", conn)
-    payments_df = pd.read_sql("SELECT * FROM loan_payments", conn)
+    # LOAD DATA
+    try:
+        customers = pd.DataFrame(supabase.table("customers").select("*").execute().data)
+    except:
+        customers = pd.DataFrame()
+
+    try:
+        loans_df = pd.DataFrame(supabase.table("loans").select("*").execute().data)
+    except:
+        loans_df = pd.DataFrame()
+
+    try:
+        payments_df = pd.DataFrame(supabase.table("loan_payments").select("*").execute().data)
+    except:
+        payments_df = pd.DataFrame()
 
     # ===== ADD LOAN =====
     st.markdown("### ➕ Add Loan")
@@ -382,13 +388,18 @@ elif menu == "loans":
 
         if not is_viewer:
             if st.button("Add Loan", key="add_loan_btn"):
-                c.execute(
-                    "INSERT INTO loans (customer_name, amount, interest_rate, start_date) VALUES (?, ?, ?, ?)",
-                    (cust, loan_amt, interest_rate, loan_date.strftime("%Y-%m-%d"))
-                )
-                conn.commit()
-                st.success("Loan Added ✅")
-                st.rerun()
+                try:
+                    supabase.table("loans").insert({
+                        "customer_name": cust,
+                        "amount": loan_amt,
+                        "interest_rate": interest_rate,
+                        "start_date": loan_date.strftime("%Y-%m-%d")
+                    }).execute()
+
+                    st.success("Loan Added ✅")
+                    st.rerun()
+                except:
+                    st.error("Error adding loan")
 
     st.markdown("---")
 
@@ -428,13 +439,17 @@ elif menu == "loans":
 
         if st.button("Add Payment", key="add_payment_btn"):
             if pay_amt > 0:
-                c.execute(
-                    "INSERT INTO loan_payments (loan_id, amount, date) VALUES (?, ?, ?)",
-                    (loan_id, pay_amt, pay_date.strftime("%Y-%m-%d"))
-                )
-                conn.commit()
-                st.success("Payment Added ✅")
-                st.rerun()
+                try:
+                    supabase.table("loan_payments").insert({
+                        "loan_id": loan_id,
+                        "amount": pay_amt,
+                        "date": pay_date.strftime("%Y-%m-%d")
+                    }).execute()
+
+                    st.success("Payment Added ✅")
+                    st.rerun()
+                except:
+                    st.error("Error adding payment")
 
     # ===== SUMMARY + MONTHLY SYSTEM =====
     from datetime import datetime
@@ -504,11 +519,14 @@ elif menu == "loans":
 
     if is_admin:
         if st.button("Delete Loan", key="delete_loan_btn"):
-            c.execute("DELETE FROM loans WHERE id=?", (loan_id,))
-            c.execute("DELETE FROM loan_payments WHERE loan_id=?", (loan_id,))
-            conn.commit()
-            st.success("Loan Deleted 🗑️")
-            st.rerun()
+            try:
+                supabase.table("loans").delete().eq("id", loan_id).execute()
+                supabase.table("loan_payments").delete().eq("loan_id", loan_id).execute()
+
+                st.success("Loan Deleted 🗑️")
+                st.rerun()
+            except:
+                st.error("Delete failed")
 # ================= DONATIONS =================
 elif menu == "Donations":
 
@@ -522,13 +540,17 @@ elif menu == "Donations":
 
         if st.button("Save Donation", key="save_donation"):
             if donor and amt > 0:
-                c.execute(
-                    "INSERT INTO donations (name, amount, date) VALUES (?, ?, ?)",
-                    (donor, amt, date.strftime("%Y-%m-%d"))
-                )
-                conn.commit()
-                st.success("Donation Saved ✅")
-                st.rerun()
+                try:
+                    supabase.table("donations").insert({
+                        "name": donor,
+                        "amount": amt,
+                        "date": date.strftime("%Y-%m-%d")
+                    }).execute()
+
+                    st.success("Donation Saved ✅")
+                    st.rerun()
+                except:
+                    st.error("Error saving donation")
             else:
                 st.warning("Enter valid details ⚠️")
     else:
@@ -537,7 +559,12 @@ elif menu == "Donations":
     st.markdown("---")
 
     # ===== SHOW DATA =====
-    df = pd.read_sql("SELECT rowid as id, * FROM donations", conn)
+    try:
+        data = supabase.table("donations").select("*").execute()
+        df = pd.DataFrame(data.data)
+    except:
+        df = pd.DataFrame()
+
     st.dataframe(df)
 
     # ===== EDIT / DELETE =====
@@ -559,27 +586,29 @@ elif menu == "Donations":
         with col1:
             if not is_viewer:
                 if st.button("Update Donation", key="update_donation"):
-                    c.execute(
-                        "UPDATE donations SET name=?, amount=?, date=? WHERE rowid=?",
-                        (
-                            new_name,
-                            new_amt,
-                            new_date.strftime("%Y-%m-%d"),
-                            row["id"]
-                        )
-                    )
-                    conn.commit()
-                    st.success("Updated ✅")
-                    st.rerun()
+                    try:
+                        supabase.table("donations").update({
+                            "name": new_name,
+                            "amount": new_amt,
+                            "date": new_date.strftime("%Y-%m-%d")
+                        }).eq("id", row["id"]).execute()
+
+                        st.success("Updated ✅")
+                        st.rerun()
+                    except:
+                        st.error("Update failed")
 
         # ===== DELETE =====
         with col2:
             if is_admin:
                 if st.button("Delete Donation", key="delete_donation"):
-                    c.execute("DELETE FROM donations WHERE rowid=?", (row["id"],))
-                    conn.commit()
-                    st.warning("Deleted ⚠️")
-                    st.rerun()
+                    try:
+                        supabase.table("donations").delete().eq("id", row["id"]).execute()
+
+                        st.warning("Deleted ⚠️")
+                        st.rerun()
+                    except:
+                        st.error("Delete failed")
 # ================= EXPENSES =================
 elif menu == "Expenses":
 
@@ -593,13 +622,17 @@ elif menu == "Expenses":
 
         if st.button("Save Expense", key="save_expense"):
             if exp_type and amt > 0:
-                c.execute(
-                    "INSERT INTO expenses (type, amount, date) VALUES (?, ?, ?)",
-                    (exp_type, amt, date.strftime("%Y-%m-%d"))
-                )
-                conn.commit()
-                st.success("Expense Saved ✅")
-                st.rerun()
+                try:
+                    supabase.table("expenses").insert({
+                        "type": exp_type,
+                        "amount": amt,
+                        "date": date.strftime("%Y-%m-%d")
+                    }).execute()
+
+                    st.success("Expense Saved ✅")
+                    st.rerun()
+                except:
+                    st.error("Error saving expense")
             else:
                 st.warning("Enter valid details ⚠️")
     else:
@@ -608,7 +641,12 @@ elif menu == "Expenses":
     st.markdown("---")
 
     # ===== SHOW DATA =====
-    df = pd.read_sql("SELECT rowid as id, * FROM expenses", conn)
+    try:
+        data = supabase.table("expenses").select("*").execute()
+        df = pd.DataFrame(data.data)
+    except:
+        df = pd.DataFrame()
+
     st.dataframe(df)
 
     # ===== EDIT / DELETE =====
@@ -630,33 +668,40 @@ elif menu == "Expenses":
         with col1:
             if not is_viewer:
                 if st.button("Update Expense", key="update_expense"):
-                    c.execute(
-                        "UPDATE expenses SET type=?, amount=?, date=? WHERE rowid=?",
-                        (
-                            new_type,
-                            new_amt,
-                            new_date.strftime("%Y-%m-%d"),
-                            row["id"]
-                        )
-                    )
-                    conn.commit()
-                    st.success("Updated ✅")
-                    st.rerun()
+                    try:
+                        supabase.table("expenses").update({
+                            "type": new_type,
+                            "amount": new_amt,
+                            "date": new_date.strftime("%Y-%m-%d")
+                        }).eq("id", row["id"]).execute()
+
+                        st.success("Updated ✅")
+                        st.rerun()
+                    except:
+                        st.error("Update failed")
 
         # ===== DELETE =====
         with col2:
             if is_admin:
                 if st.button("Delete Expense", key="delete_expense"):
-                    c.execute("DELETE FROM expenses WHERE rowid=?", (row["id"],))
-                    conn.commit()
-                    st.warning("Deleted ⚠️")
-                    st.rerun()
+                    try:
+                        supabase.table("expenses").delete().eq("id", row["id"]).execute()
+
+                        st.warning("Deleted ⚠️")
+                        st.rerun()
+                    except:
+                        st.error("Delete failed")
 # ================= REPORT =================
 elif menu == "Reports":
 
     st.subheader("📊 Advanced Reports")
 
-    df = pd.read_sql("SELECT * FROM collections", conn)
+    # LOAD COLLECTIONS
+    try:
+        data = supabase.table("collections").select("*").execute()
+        df = pd.DataFrame(data.data)
+    except:
+        df = pd.DataFrame()
 
     if not df.empty:
 
@@ -671,11 +716,23 @@ elif menu == "Reports":
 
         total_collection = df_month["amount"].sum()
 
-        expense_df = pd.read_sql("SELECT * FROM expenses", conn)
-        total_expense = expense_df["amount"].sum() if not expense_df.empty else 0
+        # LOAD EXPENSES
+        try:
+            expense_df = pd.DataFrame(
+                supabase.table("expenses").select("*").execute().data
+            )
+            total_expense = expense_df["amount"].sum() if not expense_df.empty else 0
+        except:
+            total_expense = 0
 
-        donation_df = pd.read_sql("SELECT * FROM donations", conn)
-        total_donation = donation_df["amount"].sum() if not donation_df.empty else 0
+        # LOAD DONATIONS
+        try:
+            donation_df = pd.DataFrame(
+                supabase.table("donations").select("*").execute().data
+            )
+            total_donation = donation_df["amount"].sum() if not donation_df.empty else 0
+        except:
+            total_donation = 0
 
         balance = total_collection + total_donation - total_expense
 
@@ -709,7 +766,12 @@ elif menu == "Reports":
         # ================= 🔔 SMART REMINDER SYSTEM =================
         st.markdown("### 🔔 Smart Reminder System")
 
-        all_customers = pd.read_sql("SELECT * FROM customers", conn)
+        try:
+            all_customers = pd.DataFrame(
+                supabase.table("customers").select("*").execute().data
+            )
+        except:
+            all_customers = pd.DataFrame()
 
         paid_customers = df_month["name"].unique()
 
@@ -754,136 +816,5 @@ elif menu == "Reports":
         else:
             st.success("✅ All customers have paid for this month")
 
-        # ================= 📥 EXPORT TO EXCEL =================
-        st.markdown("### 📥 Download Report")
-
-        import io
-
-        report_df = df_month.copy()   # ✅ FIXED
-
-        output = io.BytesIO()
-
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            report_df.to_excel(writer, index=False, sheet_name='Report')
-
-        st.download_button(
-            label="📥 Download Excel Report",
-            data=output.getvalue(),
-            file_name="monthly_report.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
     else:
         st.info("No collection data available yet")
-# ================= USERS =================
-if menu == "Users":
-
-    st.subheader("👥 User Management")
-
-    current_user = st.session_state.current_user
-    role = st.session_state.role
-
-    # ================= USER SELF PASSWORD CHANGE =================
-    st.markdown("### 🔐 Change Your Password")
-
-    old_pass = st.text_input("Old Password", type="password")
-    new_pass = st.text_input("New Password", type="password")
-    confirm_pass = st.text_input("Confirm New Password", type="password")
-
-    if st.button("Update My Password"):
-        user = c.execute(
-            "SELECT * FROM users WHERE username=?",
-            (current_user,)
-        ).fetchone()
-
-        if hash_pass(old_pass) != user[1]:
-            st.error("Old password incorrect ❌")
-
-        elif new_pass != confirm_pass:
-            st.error("Passwords do not match ❌")
-
-        elif len(new_pass) < 4:
-            st.error("Password too short ❌")
-
-        else:
-            c.execute(
-                "UPDATE users SET password=? WHERE username=?",
-                (hash_pass(new_pass), current_user)
-            )
-            conn.commit()
-            st.success("Password updated successfully ✅")
-            st.rerun()
-
-    st.markdown("---")
-
-    # ================= ADMIN FEATURES =================
-    if role == "Admin":
-
-        # ===== CREATE USER =====
-        st.markdown("### ➕ Create User")
-
-        u = st.text_input("Username")
-        p = st.text_input("Password", type="password")
-        r = st.selectbox("Role", ["Admin","Editor","Viewer"])
-
-        if st.button("Create User"):
-            if u and p:
-                c.execute("INSERT INTO users VALUES (?,?,?)",(u,hash_pass(p),r))
-                conn.commit()
-                st.success("User Created ✅")
-                st.rerun()
-            else:
-                st.warning("Enter username & password")
-
-        st.markdown("---")
-
-        # ===== ADMIN RESET PASSWORD =====
-        st.markdown("### 🔑 Reset User Password")
-
-        users_df = pd.read_sql("SELECT username FROM users", conn)
-
-        selected_user = st.selectbox("Select User", users_df["username"])
-
-        new_pass_admin = st.text_input("New Password for User", type="password")
-
-        if st.button("Reset Password"):
-            if new_pass_admin:
-                c.execute(
-                    "UPDATE users SET password=? WHERE username=?",
-                    (hash_pass(new_pass_admin), selected_user)
-                )
-                conn.commit()
-                st.success("Password Reset Done ✅")
-                st.rerun()
-            else:
-                st.warning("Enter new password")
-
-        st.markdown("---")
-
-        # ===== DELETE USER =====
-        st.markdown("### 🗑️ Delete User")
-
-        del_user = st.selectbox("Select User to Delete", users_df["username"])
-
-        if st.button("Delete User"):
-            if del_user == "admin":
-                st.error("Admin cannot be deleted ❌")
-            else:
-                c.execute("DELETE FROM users WHERE username=?", (del_user,))
-                conn.commit()
-                st.warning("User Deleted ⚠️")
-                st.rerun()
-
-        st.markdown("---")
-
-        # ===== SHOW USERS =====
-        st.markdown("### 📋 All Users")
-        st.dataframe(pd.read_sql("SELECT username, role FROM users", conn))
-
-    else:
-        st.info("Limited access: You can only change your password 👁️")
-
-# ================= AI =================
-elif menu == "AI":
-    st.subheader("🤖 AI Insights (Coming Soon)")
-    st.info("Future AI features yaha add honge")
