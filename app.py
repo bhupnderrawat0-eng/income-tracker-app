@@ -3,39 +3,45 @@ import pandas as pd
 from streamlit_option_menu import option_menu
 import hashlib
 import datetime
-import sqlite3
+from supabase import create_client
+
+SUPABASE_URL = "https://eflpyuvwtofgnjcrsgoz.supabase.co"
+SUPABASE_KEY = "sb_publishable_FwNyrhViDcmux8hRRidMmA_Ta4EGAyf"
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ================= DATABASE =================
-conn = sqlite3.connect("data.db", check_same_thread=False)
-c = conn.cursor()
-def create_tables():
-    c.execute("CREATE TABLE IF NOT EXISTS customers(name TEXT, mobile TEXT)")
-    c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
-
-    c.execute("""
-CREATE TABLE IF NOT EXISTS loans (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    customer_name TEXT,
-    amount REAL,
-    interest_rate REAL,
-    start_date TEXT
-)
-""")
-
-c.execute("""
-CREATE TABLE IF NOT EXISTS loan_payments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    loan_id INTEGER,
-    amount REAL,
-    date TEXT
-)
-""")
-c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL, date TEXT)")
-c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL, date TEXT)")
-c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
-
-conn.commit()
-create_tables()
+# conn = sqlite3.connect("data.db", check_same_thread=False)
+# c = conn.cursor()
+# def create_tables():
+#     c.execute("CREATE TABLE IF NOT EXISTS customers(name TEXT, mobile TEXT)")
+#     c.execute("CREATE TABLE IF NOT EXISTS collections(name TEXT, month TEXT, start_date TEXT, date TEXT, amount REAL)")
+#
+#     c.execute("""
+# CREATE TABLE IF NOT EXISTS loans (
+#     id INTEGER PRIMARY KEY AUTOINCREMENT,
+#     customer_name TEXT,
+#     amount REAL,
+#     interest_rate REAL,
+#     start_date TEXT
+# )
+# """)
+#
+#     c.execute("""
+# CREATE TABLE IF NOT EXISTS loan_payments (
+#     id INTEGER PRIMARY KEY AUTOINCREMENT,
+#     loan_id INTEGER,
+#     amount REAL,
+#     date TEXT
+# )
+# """)
+#
+#     c.execute("CREATE TABLE IF NOT EXISTS donations(name TEXT, amount REAL, date TEXT)")
+#     c.execute("CREATE TABLE IF NOT EXISTS expenses(type TEXT, amount REAL, date TEXT)")
+#     c.execute("CREATE TABLE IF NOT EXISTS users(username TEXT, password TEXT, role TEXT)")
+#
+#     conn.commit()
+# create_tables()
 loans_df = pd.read_sql("SELECT * FROM loans", conn)
 # FIX customer table
 def safe_add_customer_start_date():
