@@ -131,9 +131,9 @@ if st.button("Login"):
     else:
         st.error("Invalid Login")
 #        if user:
- #           st.session_state.logged_in = True
-  #          st.session_state.current_user = user[0]
-   #         st.session_state.role = user[2]
+#           st.session_state.logged_in = True
+#          st.session_state.current_user = user[0]
+#         st.session_state.role = user[2]
         # ================= ROLE SETUP =================
             role = st.session_state.role
 
