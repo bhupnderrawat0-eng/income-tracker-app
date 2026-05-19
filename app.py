@@ -135,7 +135,7 @@ if st.button("Login"):
 #          st.session_state.current_user = user[0]
 #         st.session_state.role = user[2]
         # ================= ROLE SETUP =================
-            role = st.session_state.role
+    role = st.session_state.role
 
             is_admin = role == "Admin"
             is_editor = role == "Editor"
