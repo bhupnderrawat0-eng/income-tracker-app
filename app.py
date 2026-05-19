@@ -112,10 +112,13 @@ html, body, .stApp {
 # ================= SESSION =================
 if "current_user" not in st.session_state:
     st.session_state.current_user = ""
+
 if "role" not in st.session_state:
     st.session_state.role = ""
+
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+
 
 # ================= LOGIN =================
 if not st.session_state.logged_in:
@@ -125,30 +128,24 @@ if not st.session_state.logged_in:
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
 
-if st.button("Login"):
-   # TEMP LOGIN (bypass)
-    if u == "admin" and p == "admin123":
-        st.session_state.logged_in = True
-        st.session_state.current_user = "admin"
-        st.session_state.role = "Admin"
-        st.rerun()
-    else:
-        st.error("Invalid Login")
-#        if user:
-#           st.session_state.logged_in = True
-#          st.session_state.current_user = user[0]
-#         st.session_state.role = user[2]
-    st.stop()
-    # ================= ROLE SETUP =================   
-if "role" in st.session_state:
-    role = st.session_state.role
-    is_admin = role == "Admin"
-    is_editor = role == "Editor"
-    is_viewer = role == "Viewer"
-else:
-    is_admin = False
-    is_editor = False
-    is_viewer = False
+    if st.button("Login"):
+        if u == "admin" and p == "admin123":
+            st.session_state.logged_in = True
+            st.session_state.current_user = "admin"
+            st.session_state.role = "Admin"
+            st.rerun()
+        else:
+            st.error("Invalid Login")
+
+    st.stop()   # 🔥 IMPORTANT (yahi sabse important line hai)
+
+
+# ================= ROLE SETUP =================
+role = st.session_state.get("role", "")
+
+is_admin = role == "Admin"
+is_editor = role == "Editor"
+is_viewer = role == "Viewer"
 # ================= DEVICE DETECTION (FINAL FIX) =================
 user_agent = st.context.headers.get("user-agent", "").lower()
 
