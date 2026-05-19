@@ -197,8 +197,7 @@ st.markdown("""
 
 # ================= DASHBOARD =================
 if menu == "Dashboard":
-
-    try:
+try:
     total_col = c.execute("SELECT SUM(amount) FROM collections").fetchone()[0]
     if total_col is None:
         total_col = 0
