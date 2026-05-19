@@ -815,6 +815,9 @@ elif menu == "Reports":
 
         else:
             st.success("✅ All customers have paid for this month")
+
+    else:
+        st.info("No collection data available yet")
 # ================= USERS =================
 if menu == "Users":
 
@@ -962,5 +965,3 @@ if menu == "Users":
 elif menu == "AI":
     st.subheader("🤖 AI Insights (Coming Soon)")
     st.info("Future AI features yaha add honge")
-    else:
-        st.info("No collection data available yet")
