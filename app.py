@@ -80,7 +80,7 @@ if "logged_in" not in st.session_state:
 # ================= LOGIN =================
 if not st.session_state.logged_in:
 
-    with st.form("login_form"):
+with st.form("login_form"):
     u = st.text_input("Username")
     p = st.text_input("Password", type="password")
 
