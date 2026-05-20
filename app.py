@@ -295,11 +295,33 @@ st.markdown("---")
 
 # ================= HEADER =================
 st.markdown("""
-<div class="glass-card">
-<h2>🚀 Bal Yuva Mangal Dal</h2>
-<p>Smart Finance SaaS System</p>
+<div class="glass-card fade-in" style="
+    margin-bottom:20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+">
+
+    <div>
+        <h2 style="font-weight:700; margin:0;">
+            🚀 Bal Yuva Mangal Dal
+        </h2>
+        <p style="color:lightgray; margin:5px 0 0 0;">
+            Smart Finance SaaS System
+        </p>
+    </div>
+
+    <div style="
+        font-size:14px;
+        color:#94a3b8;
+        margin-top:5px;
+    ">
+        Welcome, {user}
+    </div>
+
 </div>
-""", unsafe_allow_html=True)
+""".format(user=st.session_state.get("current_user","User")), unsafe_allow_html=True)
 # ================= DASHBOARD =================
 if menu == "Dashboard":
 
