@@ -31,7 +31,7 @@ st.set_page_config(page_title="Bal Yuva SaaS", layout="wide")
 st.markdown("""
 <style>
 
-/* ===== MAIN BACKGROUND ===== */
+/* ===== ANIMATED BACKGROUND ===== */
 .stApp {
     background: linear-gradient(135deg,#020617,#0f172a,#020617);
     background-size: 400% 400%;
@@ -44,7 +44,7 @@ st.markdown("""
     100% {background-position:0% 50%;}
 }
 
-/* ===== HIDE DEFAULT ===== */
+/* ===== HIDE HEADER ===== */
 header, footer {visibility:hidden;}
 .block-container {padding-top:1rem;}
 
@@ -68,6 +68,13 @@ section[data-testid="stSidebar"] {
     padding: 20px;
     border: 1px solid rgba(255,255,255,0.1);
     box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+/* ===== CARD HOVER ===== */
+.glass-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
 }
 
 /* ===== INPUT FIELDS ===== */
@@ -80,7 +87,7 @@ section[data-testid="stSidebar"] {
     border:1px solid rgba(255,255,255,0.1);
 }
 
-/* ===== BUTTONS ===== */
+/* ===== NORMAL BUTTONS ===== */
 div.stButton > button {
     background: linear-gradient(90deg,#2563eb,#7c3aed);
     color: white;
@@ -90,18 +97,19 @@ div.stButton > button {
     transition: all 0.3s ease;
 }
 
-/* ===== BUTTON HOVER ANIMATION ===== */
+/* ===== BUTTON HOVER ===== */
 div.stButton > button:hover {
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(124,58,237,0.6);
 }
 
-/* ===== FORM BUTTON ===== */
+/* ===== FORM BUTTON (LOGIN SAFE) ===== */
 div.stForm button {
     background: linear-gradient(90deg,#16a34a,#22c55e) !important;
     color: white !important;
     border-radius: 12px !important;
     padding: 10px 20px !important;
+    border: none !important;
     transition: all 0.3s ease;
 }
 
@@ -117,6 +125,35 @@ div.stForm button:hover {
     padding: 15px;
     border-radius: 12px;
     border: 1px solid rgba(255,255,255,0.1);
+    transition: 0.3s;
+}
+
+/* ===== METRIC HOVER ===== */
+[data-testid="metric-container"]:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(124,58,237,0.4);
+}
+
+/* ===== FADE ANIMATION ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* ===== PASSWORD FIELD FIX ===== */
+div[data-testid="stTextInput"] > div {
+    display: flex;
+    align-items: center;
 }
 
 /* ===== SCROLLBAR ===== */
@@ -128,7 +165,20 @@ div.stForm button:hover {
     border-radius: 10px;
 }
 
-/* ===== MOBILE ===== */
+/* ===== MOBILE FIX ===== */
+html, body, .stApp {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
+}
+
+/* ===== MOBILE MENU ===== */
+.stRadio > div {
+    flex-direction: row;
+    overflow-x: auto;
+}
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .block-container {
         padding: 10px !important;
