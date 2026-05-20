@@ -119,6 +119,15 @@ if "android" in user_agent or "iphone" in user_agent:
 else:
     is_mobile = False
 
+# ================= ROLE BASED MENU =================
+if is_admin:
+    menu_list = ["Dashboard","Customers","Collections","loans","Donations","Expenses","Reports","Users","AI"]
+elif is_editor:
+    menu_list = ["Dashboard","Customers","Collections","loans","Donations","Expenses","Reports"]
+else:
+    menu_list = ["Dashboard","Reports"]
+
+
 # ================= MENU =================
 if not is_mobile:
     with st.sidebar:
@@ -126,8 +135,8 @@ if not is_mobile:
 
         menu = option_menu(
             None,
-            ["Dashboard","Customers","Collections","loans","Donations","Expenses","Reports","Users","AI"],
-            icons=["house","people","cash","bank","gift","credit-card","bar-chart","person","robot"],
+            menu_list,
+            icons=["house","people","cash","bank","gift","credit-card","bar-chart","person","robot"][:len(menu_list)],
             default_index=0,
         )
 else:
@@ -135,10 +144,9 @@ else:
 
     menu = st.radio(
         "Navigation",
-        ["Dashboard","Customers","Collections","loans","Donations","Expenses","Reports","Users","AI"],
+        menu_list,
         horizontal=True
     )
-
 # ================= USER BAR =================
 col_user, col_logout = st.columns([3,1])
 
