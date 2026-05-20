@@ -309,6 +309,8 @@ st.markdown("---")
 # ================= DASHBOARD =================
 if menu == "Dashboard":
 
+    import plotly.express as px
+
     def get_sum(table_name):
         try:
             data = supabase.table(table_name).select("amount").execute()
@@ -322,14 +324,49 @@ if menu == "Dashboard":
     total_don = get_sum("donations")
     total_exp = get_sum("expenses")
 
+    # ===== METRICS =====
     c1, c2, c3, c4 = st.columns(4)
 
     c1.metric("Collections", f"₹ {total_col}")
-    c2.metric("loans", f"₹ {total_loan}")
+    c2.metric("Loans", f"₹ {total_loan}")
     c3.metric("Donations", f"₹ {total_don}")
     c4.metric("Expenses", f"₹ {total_exp}")
 
     st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
+
+    st.markdown("---")
+
+    # ===== COLLECTION TREND CHART =====
+    st.markdown("### 📊 Collection Trend")
+
+    try:
+        data = supabase.table("collections").select("*").execute()
+        df = pd.DataFrame(data.data)
+
+        if not df.empty:
+
+            df["date"] = pd.to_datetime(df["date"])
+
+            fig = px.line(
+                df,
+                x="date",
+                y="amount",
+                title="Collection Growth",
+            )
+
+            fig.update_layout(
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="white")
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+        else:
+            st.info("No collection data available")
+
+    except Exception as e:
+        st.error(f"Chart Error: {e}")
 # ========================= CUSTOMERS =========================
 elif menu == "Customers":
 
