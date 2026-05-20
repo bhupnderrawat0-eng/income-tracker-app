@@ -25,14 +25,29 @@ def hash_pass(p):
 
 # ================= DEFAULT ADMIN =================
 try:
-    users = supabase.table("users").select("*").eq("username", "admin").execute()
+    user_data = supabase.table("users") \
+        .select("*") \
+        .eq("username", u) \
+        .execute()
 
-    if not users.data:
-        supabase.table("users").insert({
-            "username": "admin",
-            "password": hash_pass("admin123"),
-            "role": "Admin"
-        }).execute()
+    if user_data.data:
+        user = user_data.data[0]
+
+        # Password check yaha hoga
+        if user["password"] == hash_pass(p):
+
+            st.session_state.logged_in = True
+            st.session_state.current_user = user["username"]
+            st.session_state.role = user["role"]
+
+            st.rerun()
+        else:
+            st.error("Wrong Password")
+    else:
+        st.error("User not found")
+
+except Exception as e:
+    st.error(f"Login Error: {e}")
 except:
     pass
 # ================= CONFIG =================
