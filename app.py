@@ -59,7 +59,7 @@ section[data-testid="stSidebar"] {
     border-radius:8px !important;
 }
 
-/* ===== NORMAL BUTTONS (SAFE) ===== */
+/* ===== NORMAL BUTTONS ===== */
 div.stButton > button {
     background: linear-gradient(90deg,#2563eb,#7c3aed);
     color: white;
@@ -68,20 +68,21 @@ div.stButton > button {
     border: none;
 }
 
-/* ===== FORM BUTTON FIX (LOGIN ISSUE SOLVED) ===== */
+/* ===== FORM BUTTON (LOGIN SAFE) ===== */
 div.stForm button {
-    width: 100% !important;
-    height: 45px !important;
-    border-radius: 10px !important;
+    width: auto !important;
+    height: 40px !important;
+    border-radius: 8px !important;
     background: linear-gradient(90deg,#16a34a,#22c55e) !important;
     color: white !important;
-    font-size: 16px !important;
+    padding: 0 20px !important;
     border: none !important;
 }
 
-/* ===== REMOVE WEIRD SMALL BUTTON BUG ===== */
-button[kind="secondary"] {
-    display: none !important;
+/* ===== PASSWORD FIELD FIX ===== */
+div[data-testid="stTextInput"] > div {
+    display: flex;
+    align-items: center;
 }
 
 /* ===== MOBILE FIX ===== */
@@ -91,13 +92,13 @@ html, body, .stApp {
     height: auto !important;
 }
 
-/* ===== MOBILE MENU SCROLL ===== */
+/* ===== MOBILE MENU ===== */
 .stRadio > div {
     flex-direction: row;
     overflow-x: auto;
 }
 
-/* ===== RESPONSIVE SPACING ===== */
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .block-container {
         padding: 10px !important;
@@ -152,7 +153,6 @@ if not st.session_state.logged_in:
                     st.error(f"Login Error: {e}")
 
     st.stop()
-
 # ================= ROLE SETUP =================
 role = st.session_state.get("role", None)
 
@@ -205,7 +205,7 @@ with col_user:
 with col_logout:
     if st.button("Logout"):
 
-        # 🔥 Full session clear
+        # FULL CLEAN LOGOUT
         for key in list(st.session_state.keys()):
             del st.session_state[key]
 
