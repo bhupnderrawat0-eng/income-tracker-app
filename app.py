@@ -102,29 +102,34 @@ if not st.session_state.logged_in:
         submitted = st.form_submit_button("Login")
 
         if submitted:
-            try:
-                user_data = supabase.table("users") \
-                    .select("*") \
-                    .eq("username", u) \
-                    .eq("password", hash_pass(p)) \
-                    .execute()
+            if u == "" or p == "":
+                st.warning("Enter Username & Password")
+            else:
+                try:
+                    user_data = supabase.table("users") \
+                        .select("*") \
+                        .eq("username", u) \
+                        .execute()
 
-                if user_data.data:
-                    user = user_data.data[0]
+                    if user_data.data:
+                        user = user_data.data[0]
 
-                    st.session_state.logged_in = True
-                    st.session_state.current_user = user["username"]
-                    st.session_state.role = user["role"]
+                        if user["password"] == hash_pass(p):
 
-                    st.rerun()
-                else:
-                    st.error("Invalid Login")
+                            st.session_state.logged_in = True
+                            st.session_state.current_user = user["username"]
+                            st.session_state.role = user["role"]
 
-            except:
-                st.error("Login Error")
+                            st.rerun()
+                        else:
+                            st.error("Wrong Password")
+                    else:
+                        st.error("User not found")
+
+                except Exception as e:
+                    st.error(f"Login Error: {e}")
 
     st.stop()
-
 
 # ================= ROLE SETUP =================
 role = st.session_state.get("role", None)
