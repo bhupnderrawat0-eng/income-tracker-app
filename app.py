@@ -23,33 +23,7 @@ except:
 def hash_pass(p):
     return hashlib.sha256(p.encode()).hexdigest()
 
-# ================= DEFAULT ADMIN =================
-try:
-    user_data = supabase.table("users") \
-        .select("*") \
-        .eq("username", u) \
-        .execute()
 
-    if user_data.data:
-        user = user_data.data[0]
-
-        # Password check yaha hoga
-        if user["password"] == hash_pass(p):
-
-            st.session_state.logged_in = True
-            st.session_state.current_user = user["username"]
-            st.session_state.role = user["role"]
-
-            st.rerun()
-        else:
-            st.error("Wrong Password")
-    else:
-        st.error("User not found")
-
-except Exception as e:
-    st.error(f"Login Error: {e}")
-except:
-    pass
 # ================= CONFIG =================
 st.set_page_config(page_title="Bal Yuva SaaS", layout="wide")
 
