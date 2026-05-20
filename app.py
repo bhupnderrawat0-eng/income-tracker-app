@@ -30,36 +30,84 @@ st.set_page_config(page_title="Bal Yuva SaaS", layout="wide")
 # ================= CSS =================
 st.markdown("""
 <style>
-.stApp {background: linear-gradient(135deg,#020617,#0f172a);}
+
+/* ===== BACKGROUND ===== */
+.stApp {
+    background: linear-gradient(135deg,#020617,#0f172a);
+}
+
+/* ===== HIDE HEADER ===== */
 header, footer {visibility:hidden;}
 .block-container {padding-top:1rem;}
-h1,h2,h3,h4,h5,p,label {color:white !important;}
 
-section[data-testid="stSidebar"] {background:#020617;}
-
-.stTextInput input, .stNumberInput input, .stSelectbox div {
-    background:#111827 !important;
+/* ===== TEXT ===== */
+h1,h2,h3,h4,h5,p,label {
     color:white !important;
 }
 
-.stButton>button {
-    background:linear-gradient(90deg,#2563eb,#7c3aed);
-    color:white;
-    border-radius:10px;
+/* ===== SIDEBAR ===== */
+section[data-testid="stSidebar"] {
+    background:#020617;
 }
 
-/* MOBILE FIX */
+/* ===== INPUT FIELDS ===== */
+.stTextInput input,
+.stNumberInput input,
+.stSelectbox div {
+    background:#111827 !important;
+    color:white !important;
+    border-radius:8px !important;
+}
+
+/* ===== NORMAL BUTTONS (SAFE) ===== */
+div.stButton > button {
+    background: linear-gradient(90deg,#2563eb,#7c3aed);
+    color: white;
+    border-radius: 10px;
+    height: 42px;
+    border: none;
+}
+
+/* ===== FORM BUTTON FIX (LOGIN ISSUE SOLVED) ===== */
+div.stForm button {
+    width: 100% !important;
+    height: 45px !important;
+    border-radius: 10px !important;
+    background: linear-gradient(90deg,#16a34a,#22c55e) !important;
+    color: white !important;
+    font-size: 16px !important;
+    border: none !important;
+}
+
+/* ===== REMOVE WEIRD SMALL BUTTON BUG ===== */
+button[kind="secondary"] {
+    display: none !important;
+}
+
+/* ===== MOBILE FIX ===== */
 html, body, .stApp {
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-    height:auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: auto !important;
 }
 
-/* mobile scroll menu */
+/* ===== MOBILE MENU SCROLL ===== */
 .stRadio > div {
     flex-direction: row;
     overflow-x: auto;
 }
+
+/* ===== RESPONSIVE SPACING ===== */
+@media (max-width: 768px) {
+    .block-container {
+        padding: 10px !important;
+    }
+
+    div.stButton > button {
+        width: 100% !important;
+    }
+}
+
 </style>
 """, unsafe_allow_html=True)
 # ================= SESSION =================
