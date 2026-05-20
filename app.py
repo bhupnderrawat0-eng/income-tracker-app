@@ -304,7 +304,7 @@ st.markdown("""
 ">
 
     <div>
-        <h2 style="font-weight:700; margin:0;">
+        <h2 style="font-weight:700; margin:0; color:white; text-shadow:0 0 10px rgba(124,58,237,0.7);">
             🚀 Bal Yuva Mangal Dal
         </h2>
         <p style="color:lightgray; margin:5px 0 0 0;">
