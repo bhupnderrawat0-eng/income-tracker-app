@@ -279,28 +279,29 @@ else:
 col_user, col_logout = st.columns([3,1])
 
 with col_user:
-    user = st.session_state.get("current_user", "Guest")
-    st.write(f"👤 {user}")
+    st.markdown(f"👤 {st.session_state.get('current_user','User')}")
 
 with col_logout:
     if st.button("Logout"):
-
-        # FULL CLEAN LOGOUT
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-
+        st.session_state.logged_in = False
         st.rerun()
 
 st.markdown("---")
 
+
 # ================= HEADER =================
 st.markdown(f"""
-<div class="glass-card fade-in" style="
+<div style="
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    padding: 20px;
+    border-radius: 15px;
     margin-bottom:20px;
     display:flex;
     justify-content:space-between;
     align-items:center;
     flex-wrap:wrap;
+    border:1px solid rgba(255,255,255,0.1);
 ">
 
     <div>
