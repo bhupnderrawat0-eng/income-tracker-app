@@ -294,7 +294,7 @@ with col_logout:
 st.markdown("---")
 
 # ================= HEADER =================
-st.markdown("""
+st.markdown(f"""
 <div class="glass-card fade-in" style="
     margin-bottom:20px;
     display:flex;
@@ -317,11 +317,11 @@ st.markdown("""
         color:#94a3b8;
         margin-top:5px;
     ">
-        Welcome, {user}
+        Welcome, {st.session_state.get("current_user","User")}
     </div>
 
 </div>
-""".format(user=st.session_state.get("current_user","User")), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 # ================= DASHBOARD =================
 if menu == "Dashboard":
 
