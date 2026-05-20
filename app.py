@@ -279,7 +279,7 @@ else:
 col_user, col_logout = st.columns([3,1])
 
 with col_user:
-    st.markdown(f"👤 {st.session_state.get('current_user','User')}")
+    st.write(f"👤 {st.session_state.get('current_user','User')}")
 
 with col_logout:
     if st.button("Logout"):
@@ -290,39 +290,22 @@ st.markdown("---")
 
 
 # ================= HEADER =================
-st.markdown(f"""
-<div style="
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(15px);
-    padding: 20px;
-    border-radius: 15px;
-    margin-bottom:20px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    border:1px solid rgba(255,255,255,0.1);
-">
+col1, col2 = st.columns([4,1])
 
-    <div>
-        <h2 style="font-weight:700; margin:0; color:white; text-shadow:0 0 10px rgba(124,58,237,0.7);">
-            🚀 Bal Yuva Mangal Dal
-        </h2>
-        <p style="color:lightgray; margin:5px 0 0 0;">
-            Smart Finance SaaS System
-        </p>
-    </div>
+with col1:
+    st.markdown("""
+    ### 🚀 Bal Yuva Mangal Dal
+    <p style='color:lightgray;'>Smart Finance SaaS System</p>
+    """, unsafe_allow_html=True)
 
-    <div style="
-        font-size:14px;
-        color:#94a3b8;
-        margin-top:5px;
-    ">
-        Welcome, {st.session_state.get("current_user","User")}
-    </div>
+with col2:
+    st.markdown(f"""
+    <p style='text-align:right; color:#94a3b8; margin-top:20px;'>
+    Welcome, {st.session_state.get("current_user","User")}
+    </p>
+    """, unsafe_allow_html=True)
 
-</div>
-""", unsafe_allow_html=True)
+st.markdown("---")
 # ================= DASHBOARD =================
 if menu == "Dashboard":
 
