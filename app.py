@@ -151,11 +151,16 @@ else:
 col_user, col_logout = st.columns([3,1])
 
 with col_user:
-    st.write(f"👤 {st.session_state.current_user}")
+    user = st.session_state.get("current_user", "Guest")
+    st.write(f"👤 {user}")
 
 with col_logout:
     if st.button("Logout"):
-        st.session_state.logged_in = False
+
+        # 🔥 Full session clear
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+
         st.rerun()
 
 st.markdown("---")
