@@ -763,6 +763,14 @@ elif menu == "Donations":
 
     st.subheader("🎁 Donations Management")
 
+    # ✅ CACHE DATA
+    @st.cache_data(ttl=60)
+    def load_donations():
+        try:
+            return supabase.table("donations").select("*").execute().data
+        except:
+            return []
+
     # ===== ADD DONATION =====
     if not is_viewer:
         donor = st.text_input("Donor Name")
@@ -779,7 +787,10 @@ elif menu == "Donations":
                     }).execute()
 
                     st.success("Donation Saved ✅")
+
+                    st.cache_data.clear()  # ✅ refresh
                     st.rerun()
+
                 except:
                     st.error("Error saving donation")
             else:
@@ -790,11 +801,8 @@ elif menu == "Donations":
     st.markdown("---")
 
     # ===== SHOW DATA =====
-    try:
-        data = supabase.table("donations").select("*").execute()
-        df = pd.DataFrame(data.data)
-    except:
-        df = pd.DataFrame()
+    data = load_donations()
+    df = pd.DataFrame(data)
 
     st.dataframe(df)
 
@@ -825,7 +833,10 @@ elif menu == "Donations":
                         }).eq("id", row["id"]).execute()
 
                         st.success("Updated ✅")
+
+                        st.cache_data.clear()  # ✅ refresh
                         st.rerun()
+
                     except:
                         st.error("Update failed")
 
@@ -837,7 +848,10 @@ elif menu == "Donations":
                         supabase.table("donations").delete().eq("id", row["id"]).execute()
 
                         st.warning("Deleted ⚠️")
+
+                        st.cache_data.clear()  # ✅ refresh
                         st.rerun()
+
                     except:
                         st.error("Delete failed")
 # ================= EXPENSES =================
