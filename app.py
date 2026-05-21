@@ -1264,32 +1264,44 @@ if menu == "Users":
     if role == "Admin":
 
         # ===== CREATE USER =====
-        st.markdown("### ➕ Create User")
+st.markdown("### ➕ Create User")
 
-        u = st.text_input("Username")
-        p = st.text_input("Password", type="password")
-        r = st.selectbox("Role", ["Admin", "Editor", "Viewer"])
+u = st.text_input("Username")
+p = st.text_input("Password", type="password")
+r = st.selectbox("Role", ["Admin", "Editor", "Viewer"])
 
-        if st.button("Create User"):
-            if u and p:
-                try:
-                    supabase.table("users").insert({
-                        "username": u,
-                        "password": hash_pass(p),
-                        "role": r
-                    }).execute()
+if st.button("Create User"):
+    if u and p:
+        try:
+            # ✅ CLEAN INPUT
+            username = u.strip().lower()
 
-                    st.success("User Created ✅")
+            # ✅ CHECK IF USER ALREADY EXISTS
+            existing = supabase.table("users") \
+                .select("username") \
+                .eq("username", username) \
+                .execute()
 
-                    st.cache_data.clear()  # ✅ refresh
-                    st.rerun()
+            if existing.data:
+                st.warning("⚠️ Username already exists")
 
-                except:
-                    st.error("Error creating user")
             else:
-                st.warning("Enter username & password")
+                supabase.table("users").insert({
+                    "username": username,
+                    "password": hash_pass(p),
+                    "role": r
+                }).execute()
 
-        st.markdown("---")
+                st.success("User Created ✅")
+
+                st.cache_data.clear()  # refresh
+                st.rerun()
+
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+    else:
+        st.warning("Enter username & password")
 
         # ===== ADMIN RESET PASSWORD =====
         st.markdown("### 🔑 Reset User Password")
