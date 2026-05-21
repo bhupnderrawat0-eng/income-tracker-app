@@ -196,7 +196,27 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 # ================= LOGIN =================
-if not st.session_state.logged_in:
+import time
+
+SESSION_TIMEOUT = 1800  # 30 minutes
+
+# ===== CHECK SESSION TIMEOUT =====
+if st.session_state.get("logged_in"):
+
+    if "last_active" not in st.session_state:
+        st.session_state.last_active = time.time()
+
+    if time.time() - st.session_state.last_active > SESSION_TIMEOUT:
+        st.warning("Session expired. Please login again.")
+        st.session_state.clear()
+        st.rerun()
+
+    # update activity time
+    st.session_state.last_active = time.time()
+
+
+# ===== LOGIN SYSTEM =====
+if not st.session_state.get("logged_in", False):
 
     with st.form("login_form"):
         u = st.text_input("Username")
@@ -219,13 +239,19 @@ if not st.session_state.logged_in:
 
                         if user["password"] == hash_pass(p):
 
+                            # ✅ SESSION SET
                             st.session_state.logged_in = True
                             st.session_state.current_user = user["username"]
                             st.session_state.role = user["role"]
 
+                            # ✅ START TIMER
+                            st.session_state.last_active = time.time()
+
                             st.rerun()
+
                         else:
                             st.error("Wrong Password")
+
                     else:
                         st.error("User not found")
 
