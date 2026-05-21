@@ -568,21 +568,31 @@ elif menu == "loans":
 
     st.subheader("💰 Loan Management")
 
-    # LOAD DATA
-    try:
-        customers = pd.DataFrame(supabase.table("customers").select("*").execute().data)
-    except:
-        customers = pd.DataFrame()
+    # ✅ CACHE DATA
+    @st.cache_data(ttl=60)
+    def load_all_data():
+        try:
+            customers = supabase.table("customers").select("name").execute().data
+        except:
+            customers = []
 
-    try:
-        loans_df = pd.DataFrame(supabase.table("loans").select("*").execute().data)
-    except:
-        loans_df = pd.DataFrame()
+        try:
+            loans = supabase.table("loans").select("*").execute().data
+        except:
+            loans = []
 
-    try:
-        payments_df = pd.DataFrame(supabase.table("loan_payments").select("*").execute().data)
-    except:
-        payments_df = pd.DataFrame()
+        try:
+            payments = supabase.table("loan_payments").select("*").execute().data
+        except:
+            payments = []
+
+        return customers, loans, payments
+
+    customers_data, loans_data, payments_data = load_all_data()
+
+    customers = pd.DataFrame(customers_data)
+    loans_df = pd.DataFrame(loans_data)
+    payments_df = pd.DataFrame(payments_data)
 
     # ===== ADD LOAN =====
     st.markdown("### ➕ Add Loan")
@@ -606,7 +616,10 @@ elif menu == "loans":
                     }).execute()
 
                     st.success("Loan Added ✅")
+
+                    st.cache_data.clear()  # ✅ refresh
                     st.rerun()
+
                 except:
                     st.error("Error adding loan")
 
@@ -656,7 +669,10 @@ elif menu == "loans":
                     }).execute()
 
                     st.success("Payment Added ✅")
+
+                    st.cache_data.clear()  # ✅ refresh
                     st.rerun()
+
                 except:
                     st.error("Error adding payment")
 
@@ -667,6 +683,7 @@ elif menu == "loans":
     rate = loan["interest_rate"]
 
     cust_payments = payments_df[payments_df["loan_id"] == loan_id].sort_values("date")
+
     total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
 
     start_date = loan["start_date"]
@@ -675,15 +692,16 @@ elif menu == "loans":
 
     today = datetime.today()
 
+    # ✅ PAYMENT MAP (optimized)
+    payment_map = {}
+    for _, p in cust_payments.iterrows():
+        key = p["date"][:7]
+        payment_map[key] = payment_map.get(key, 0) + p["amount"]
+
     # ===== MONTHLY BREAKDOWN =====
     timeline = []
     current_date = start_date
     running_principal = principal
-
-    payment_map = {}
-    for _, p in cust_payments.iterrows():
-        payment_map.setdefault(p["date"][:7], 0)
-        payment_map[p["date"][:7]] += p["amount"]
 
     while current_date <= today:
 
@@ -704,10 +722,11 @@ elif menu == "loans":
             "Balance": round(balance_after, 2)
         })
 
+        # faster month increment
         if current_date.month == 12:
-            current_date = current_date.replace(year=current_date.year+1, month=1)
+            current_date = current_date.replace(year=current_date.year + 1, month=1)
         else:
-            current_date = current_date.replace(month=current_date.month+1)
+            current_date = current_date.replace(month=current_date.month + 1)
 
     total_interest = sum(x["Interest"] for x in timeline)
     balance = timeline[-1]["Balance"] if timeline else principal
@@ -733,7 +752,10 @@ elif menu == "loans":
                 supabase.table("loan_payments").delete().eq("loan_id", loan_id).execute()
 
                 st.success("Loan Deleted 🗑️")
+
+                st.cache_data.clear()  # ✅ refresh
                 st.rerun()
+
             except:
                 st.error("Delete failed")
 # ================= DONATIONS =================
