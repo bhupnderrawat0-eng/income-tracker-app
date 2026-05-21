@@ -463,12 +463,24 @@ elif menu == "Collections":
 
     st.subheader("🔥 Collection Management")
 
-    # LOAD CUSTOMERS
-    try:
-        cust_data = supabase.table("customers").select("*").execute()
-        customers = pd.DataFrame(cust_data.data)
-    except:
-        customers = pd.DataFrame()
+    # ✅ CACHE CUSTOMERS
+    @st.cache_data(ttl=60)
+    def load_customers():
+        try:
+            return supabase.table("customers").select("name,start_date").execute().data
+        except:
+            return []
+
+    # ✅ CACHE COLLECTIONS
+    @st.cache_data(ttl=60)
+    def load_collections():
+        try:
+            return supabase.table("collections").select("*").execute().data
+        except:
+            return []
+
+    customers_data = load_customers()
+    customers = pd.DataFrame(customers_data)
 
     if customers.empty:
         st.warning("No customers available")
@@ -498,16 +510,16 @@ elif menu == "Collections":
                     }).execute()
 
                     st.success("Collection Saved ✅")
+
+                    st.cache_data.clear()  # ✅ refresh cache
                     st.rerun()
+
                 except:
                     st.error("Error saving collection")
 
     # LOAD COLLECTION DATA
-    try:
-        data = supabase.table("collections").select("*").execute()
-        df = pd.DataFrame(data.data)
-    except:
-        df = pd.DataFrame()
+    data = load_collections()
+    df = pd.DataFrame(data)
 
     st.dataframe(df)
 
@@ -531,7 +543,10 @@ elif menu == "Collections":
                         }).eq("id", row["id"]).execute()
 
                         st.success("Updated ✅")
+
+                        st.cache_data.clear()  # ✅ refresh
                         st.rerun()
+
                     except:
                         st.error("Update failed")
 
@@ -542,7 +557,10 @@ elif menu == "Collections":
                         supabase.table("collections").delete().eq("id", row["id"]).execute()
 
                         st.warning("Deleted ⚠️")
+
+                        st.cache_data.clear()  # ✅ refresh
                         st.rerun()
+
                     except:
                         st.error("Delete failed")
 # ========================= LOANS =========================
