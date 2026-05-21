@@ -1226,7 +1226,6 @@ if menu == "Users":
     confirm_pass = st.text_input("Confirm New Password", type="password")
 
     if st.button("Update My Password"):
-
         try:
             user_row = users_df[users_df["username"] == current_user]
 
@@ -1251,8 +1250,7 @@ if menu == "Users":
                     }).eq("username", current_user).execute()
 
                     st.success("Password updated successfully ✅")
-
-                    st.cache_data.clear()  # ✅ refresh
+                    st.cache_data.clear()
                     st.rerun()
 
         except:
@@ -1264,46 +1262,44 @@ if menu == "Users":
     if role == "Admin":
 
         # ===== CREATE USER =====
-st.markdown("### ➕ Create User")
+        st.markdown("### ➕ Create User")
 
-u = st.text_input("Username")
-p = st.text_input("Password", type="password")
-r = st.selectbox("Role", ["Admin", "Editor", "Viewer"])
+        u = st.text_input("Username")
+        p = st.text_input("Password", type="password")
+        r = st.selectbox("Role", ["Admin", "Editor", "Viewer"])
 
-if st.button("Create User"):
-    if u and p:
-        try:
-            # ✅ CLEAN INPUT
-            username = u.strip().lower()
+        if st.button("Create User"):
+            if u and p:
+                try:
+                    username = u.strip().lower()
 
-            # ✅ CHECK IF USER ALREADY EXISTS
-            existing = supabase.table("users") \
-                .select("username") \
-                .eq("username", username) \
-                .execute()
+                    existing = supabase.table("users") \
+                        .select("username") \
+                        .eq("username", username) \
+                        .execute()
 
-            if existing.data:
-                st.warning("⚠️ Username already exists")
+                    if existing.data:
+                        st.warning("⚠️ Username already exists")
+                    else:
+                        supabase.table("users").insert({
+                            "username": username,
+                            "password": hash_pass(p),
+                            "role": r
+                        }).execute()
+
+                        st.success("User Created ✅")
+                        st.cache_data.clear()
+                        st.rerun()
+
+                except Exception as e:
+                    st.error(f"Error: {e}")
 
             else:
-                supabase.table("users").insert({
-                    "username": username,
-                    "password": hash_pass(p),
-                    "role": r
-                }).execute()
+                st.warning("Enter username & password")
 
-                st.success("User Created ✅")
+        st.markdown("---")
 
-                st.cache_data.clear()  # refresh
-                st.rerun()
-
-        except Exception as e:
-            st.error(f"Error: {e}")
-
-    else:
-        st.warning("Enter username & password")
-
-        # ===== ADMIN RESET PASSWORD =====
+        # ===== RESET PASSWORD =====
         st.markdown("### 🔑 Reset User Password")
 
         if not users_df.empty:
@@ -1321,8 +1317,7 @@ if st.button("Create User"):
                     }).eq("username", selected_user).execute()
 
                     st.success("Password Reset Done ✅")
-
-                    st.cache_data.clear()  # ✅ refresh
+                    st.cache_data.clear()
                     st.rerun()
 
                 except:
@@ -1348,8 +1343,7 @@ if st.button("Create User"):
                     supabase.table("users").delete().eq("username", del_user).execute()
 
                     st.warning("User Deleted ⚠️")
-
-                    st.cache_data.clear()  # ✅ refresh
+                    st.cache_data.clear()
                     st.rerun()
 
                 except:
