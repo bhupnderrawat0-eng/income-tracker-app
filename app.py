@@ -989,7 +989,7 @@ elif menu == "Reports":
 
     st.subheader("📊 Advanced Reports")
 
-    # ✅ CACHE ALL DATA (BIGGEST SPEED BOOST)
+    # ✅ CACHE ALL DATA
     @st.cache_data(ttl=60)
     def load_all_reports_data():
         try:
@@ -1045,6 +1045,26 @@ elif menu == "Reports":
         c3.metric("Expenses", f"₹ {total_expense}")
         c4.metric("Balance", f"₹ {balance}")
 
+        # ===== 📈 GROWTH =====
+        try:
+            month_list_sorted = sorted(df["month"].unique())
+
+            if len(month_list_sorted) > 1:
+                idx = month_list_sorted.index(selected_month)
+                if idx > 0:
+                    prev_month = month_list_sorted[idx - 1]
+                    prev_total = df[df["month"] == prev_month]["amount"].sum()
+                    growth = ((total_collection - prev_total) / prev_total * 100) if prev_total else 0
+                else:
+                    growth = 0
+            else:
+                growth = 0
+
+            st.metric("Growth %", f"{round(growth,2)} %")
+
+        except:
+            growth = 0
+
         # ================= CHART =================
         st.markdown("### 📊 Collection Chart")
 
@@ -1052,6 +1072,18 @@ elif menu == "Reports":
         chart_df["date"] = pd.to_datetime(chart_df["date"])
 
         st.bar_chart(chart_df.set_index("date")["amount"])
+
+        # ===== 📊 DAILY INSIGHTS =====
+        try:
+            avg_daily = chart_df["amount"].mean()
+            max_day = chart_df.loc[chart_df["amount"].idxmax()]
+
+            st.markdown("### 📈 Insights")
+            st.write(f"📊 Average Daily Collection: ₹ {round(avg_daily,2)}")
+            st.write(f"🔥 Best Day: {max_day['date'].date()} (₹ {max_day['amount']})")
+
+        except:
+            pass
 
         # ================= CUSTOMER REPORT =================
         st.markdown("### 👤 Customer-wise Report")
@@ -1074,9 +1106,9 @@ elif menu == "Reports":
             ~all_customers["name"].isin(paid_customers)
         ]
 
-        if not pending_list.empty:
+        total_pending = len(pending_list)
 
-            total_pending = len(pending_list)
+        if not pending_list.empty:
 
             if total_pending >= 5:
                 st.error(f"🚨 High Pending: {total_pending} customers")
@@ -1087,7 +1119,7 @@ elif menu == "Reports":
 
             st.dataframe(pending_list)
 
-            # ================= WHATSAPP REMINDER =================
+            # ================= WHATSAPP =================
             st.markdown("### 📱 Send Reminder")
 
             selected_customer = st.selectbox(
@@ -1110,6 +1142,60 @@ elif menu == "Reports":
 
         else:
             st.success("✅ All customers have paid for this month")
+
+        # ===== ⚠️ RISK ANALYSIS =====
+        st.markdown("### ⚠️ Risk Analysis")
+
+        try:
+            all_months = df["month"].unique()
+
+            risk_data = []
+
+            for cust in all_customers["name"]:
+                paid_months = df[df["name"] == cust]["month"].unique()
+                missed = len(set(all_months) - set(paid_months))
+
+                risk_data.append({
+                    "Customer": cust,
+                    "Missed Months": missed
+                })
+
+            risk_df = pd.DataFrame(risk_data)
+
+            high_risk = risk_df[risk_df["Missed Months"] >= 2]
+
+            if not high_risk.empty:
+                st.error("🚨 High Risk Customers")
+                st.dataframe(high_risk.sort_values(by="Missed Months", ascending=False))
+            else:
+                st.success("No high risk customers 🎉")
+
+        except:
+            st.info("Risk analysis not available")
+
+        # ===== 🤖 SMART SUGGESTIONS =====
+        st.markdown("### 🤖 Smart Suggestions")
+
+        try:
+            suggestions = []
+
+            if balance < 0:
+                suggestions.append("⚠️ Expenses are higher than income.")
+
+            if total_pending >= 3:
+                suggestions.append("📢 Many customers pending. Send reminders.")
+
+            if growth < 0:
+                suggestions.append("📉 Collection decreasing.")
+
+            if not suggestions:
+                suggestions.append("✅ System running healthy")
+
+            for s in suggestions:
+                st.write(s)
+
+        except:
+            st.info("No suggestions available")
 
     else:
         st.info("No collection data available yet")
