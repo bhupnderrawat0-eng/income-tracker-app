@@ -311,18 +311,29 @@ if menu == "Dashboard":
 
     import plotly.express as px
 
-    def get_sum(table_name):
+    # ✅ CACHE FUNCTION (BIG SPEED BOOST)
+    @st.cache_data(ttl=60)
+    def get_sum_cached(table_name):
         try:
             data = supabase.table(table_name).select("amount").execute()
-            df = pd.DataFrame(data.data)
-            return df["amount"].sum() if not df.empty else 0
+            if data.data:
+                return sum(item["amount"] for item in data.data)
+            return 0
         except:
             return 0
 
-    total_col = get_sum("collections")
-    total_loan = get_sum("loans")
-    total_don = get_sum("donations")
-    total_exp = get_sum("expenses")
+    @st.cache_data(ttl=60)
+    def get_collection_data():
+        try:
+            return supabase.table("collections").select("amount,date").execute().data
+        except:
+            return []
+
+    # ✅ FAST SUM (no pandas)
+    total_col = get_sum_cached("collections")
+    total_loan = get_sum_cached("loans")
+    total_don = get_sum_cached("donations")
+    total_exp = get_sum_cached("expenses")
 
     # ===== METRICS =====
     c1, c2, c3, c4 = st.columns(4)
@@ -340,10 +351,10 @@ if menu == "Dashboard":
     st.markdown("### 📊 Collection Trend")
 
     try:
-        data = supabase.table("collections").select("*").execute()
-        df = pd.DataFrame(data.data)
+        data = get_collection_data()
 
-        if not df.empty:
+        if data:
+            df = pd.DataFrame(data)
 
             df["date"] = pd.to_datetime(df["date"])
 
