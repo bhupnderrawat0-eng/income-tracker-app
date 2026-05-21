@@ -396,16 +396,23 @@ elif menu == "Customers":
             }).execute()
 
             st.success("Customer Added ✅")
+
+            st.cache_data.clear()  # ✅ refresh cache
             st.rerun()
+
         except:
             st.error("Error adding customer")
 
-    # LOAD DATA
-    try:
-        data = supabase.table("customers").select("*").execute()
-        df = pd.DataFrame(data.data)
-    except:
-        df = pd.DataFrame()
+    # ✅ CACHE DATA (big speed boost)
+    @st.cache_data(ttl=60)
+    def load_customers():
+        try:
+            return supabase.table("customers").select("*").execute().data
+        except:
+            return []
+
+    data = load_customers()
+    df = pd.DataFrame(data)
 
     st.dataframe(df)
 
@@ -432,7 +439,10 @@ elif menu == "Customers":
                     }).eq("id", selected_id).execute()
 
                     st.success("Updated ✅")
+
+                    st.cache_data.clear()  # ✅ refresh
                     st.rerun()
+
                 except:
                     st.error("Update failed")
 
@@ -442,7 +452,10 @@ elif menu == "Customers":
                     supabase.table("customers").delete().eq("id", selected_id).execute()
 
                     st.warning("Deleted ⚠️")
+
+                    st.cache_data.clear()  # ✅ refresh
                     st.rerun()
+
                 except:
                     st.error("Delete failed")
 # ========================= COLLECTION =========================
