@@ -955,12 +955,37 @@ elif menu == "Reports":
 
     st.subheader("📊 Advanced Reports")
 
-    # LOAD COLLECTIONS
-    try:
-        data = supabase.table("collections").select("*").execute()
-        df = pd.DataFrame(data.data)
-    except:
-        df = pd.DataFrame()
+    # ✅ CACHE ALL DATA (BIGGEST SPEED BOOST)
+    @st.cache_data(ttl=60)
+    def load_all_reports_data():
+        try:
+            collections = supabase.table("collections").select("*").execute().data
+        except:
+            collections = []
+
+        try:
+            expenses = supabase.table("expenses").select("*").execute().data
+        except:
+            expenses = []
+
+        try:
+            donations = supabase.table("donations").select("*").execute().data
+        except:
+            donations = []
+
+        try:
+            customers = supabase.table("customers").select("*").execute().data
+        except:
+            customers = []
+
+        return collections, expenses, donations, customers
+
+    collections_data, expenses_data, donations_data, customers_data = load_all_reports_data()
+
+    df = pd.DataFrame(collections_data)
+    expense_df = pd.DataFrame(expenses_data)
+    donation_df = pd.DataFrame(donations_data)
+    all_customers = pd.DataFrame(customers_data)
 
     if not df.empty:
 
@@ -974,24 +999,8 @@ elif menu == "Reports":
         st.markdown("### 📅 Monthly Summary")
 
         total_collection = df_month["amount"].sum()
-
-        # LOAD EXPENSES
-        try:
-            expense_df = pd.DataFrame(
-                supabase.table("expenses").select("*").execute().data
-            )
-            total_expense = expense_df["amount"].sum() if not expense_df.empty else 0
-        except:
-            total_expense = 0
-
-        # LOAD DONATIONS
-        try:
-            donation_df = pd.DataFrame(
-                supabase.table("donations").select("*").execute().data
-            )
-            total_donation = donation_df["amount"].sum() if not donation_df.empty else 0
-        except:
-            total_donation = 0
+        total_expense = expense_df["amount"].sum() if not expense_df.empty else 0
+        total_donation = donation_df["amount"].sum() if not donation_df.empty else 0
 
         balance = total_collection + total_donation - total_expense
 
@@ -1024,13 +1033,6 @@ elif menu == "Reports":
 
         # ================= 🔔 SMART REMINDER SYSTEM =================
         st.markdown("### 🔔 Smart Reminder System")
-
-        try:
-            all_customers = pd.DataFrame(
-                supabase.table("customers").select("*").execute().data
-            )
-        except:
-            all_customers = pd.DataFrame()
 
         paid_customers = df_month["name"].unique()
 
