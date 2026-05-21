@@ -1087,6 +1087,17 @@ if menu == "Users":
     current_user = st.session_state.current_user
     role = st.session_state.role
 
+    # ✅ CACHE USERS DATA
+    @st.cache_data(ttl=60)
+    def load_users():
+        try:
+            return supabase.table("users").select("*").execute().data
+        except:
+            return []
+
+    users_data = load_users()
+    users_df = pd.DataFrame(users_data)
+
     # ================= USER SELF PASSWORD CHANGE =================
     st.markdown("### 🔐 Change Your Password")
 
@@ -1097,13 +1108,13 @@ if menu == "Users":
     if st.button("Update My Password"):
 
         try:
-            user_data = supabase.table("users").select("*").eq("username", current_user).execute()
+            user_row = users_df[users_df["username"] == current_user]
 
-            if not user_data.data:
+            if user_row.empty:
                 st.error("User not found ❌")
 
             else:
-                user = user_data.data[0]
+                user = user_row.iloc[0]
 
                 if hash_pass(old_pass) != user["password"]:
                     st.error("Old password incorrect ❌")
@@ -1120,6 +1131,8 @@ if menu == "Users":
                     }).eq("username", current_user).execute()
 
                     st.success("Password updated successfully ✅")
+
+                    st.cache_data.clear()  # ✅ refresh
                     st.rerun()
 
         except:
@@ -1135,7 +1148,7 @@ if menu == "Users":
 
         u = st.text_input("Username")
         p = st.text_input("Password", type="password")
-        r = st.selectbox("Role", ["Admin","Editor","Viewer"])
+        r = st.selectbox("Role", ["Admin", "Editor", "Viewer"])
 
         if st.button("Create User"):
             if u and p:
@@ -1147,21 +1160,16 @@ if menu == "Users":
                     }).execute()
 
                     st.success("User Created ✅")
+
+                    st.cache_data.clear()  # ✅ refresh
                     st.rerun()
+
                 except:
                     st.error("Error creating user")
             else:
                 st.warning("Enter username & password")
 
         st.markdown("---")
-
-        # ===== LOAD USERS =====
-        try:
-            users_df = pd.DataFrame(
-                supabase.table("users").select("*").execute().data
-            )
-        except:
-            users_df = pd.DataFrame()
 
         # ===== ADMIN RESET PASSWORD =====
         st.markdown("### 🔑 Reset User Password")
@@ -1181,7 +1189,10 @@ if menu == "Users":
                     }).eq("username", selected_user).execute()
 
                     st.success("Password Reset Done ✅")
+
+                    st.cache_data.clear()  # ✅ refresh
                     st.rerun()
+
                 except:
                     st.error("Reset failed")
             else:
@@ -1205,7 +1216,10 @@ if menu == "Users":
                     supabase.table("users").delete().eq("username", del_user).execute()
 
                     st.warning("User Deleted ⚠️")
+
+                    st.cache_data.clear()  # ✅ refresh
                     st.rerun()
+
                 except:
                     st.error("Delete failed")
 
@@ -1221,7 +1235,6 @@ if menu == "Users":
 
     else:
         st.info("Limited access: You can only change your password 👁️")
-
 # ================= AI =================
 elif menu == "AI":
     st.subheader("🤖 AI Insights (Coming Soon)")
