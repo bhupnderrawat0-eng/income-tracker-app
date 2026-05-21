@@ -859,6 +859,14 @@ elif menu == "Expenses":
 
     st.subheader("💸 Expense Management")
 
+    # ✅ CACHE DATA
+    @st.cache_data(ttl=60)
+    def load_expenses():
+        try:
+            return supabase.table("expenses").select("*").execute().data
+        except:
+            return []
+
     # ===== ADD EXPENSE =====
     if not is_viewer:
         exp_type = st.text_input("Expense Type")
@@ -875,7 +883,10 @@ elif menu == "Expenses":
                     }).execute()
 
                     st.success("Expense Saved ✅")
+
+                    st.cache_data.clear()  # ✅ refresh
                     st.rerun()
+
                 except:
                     st.error("Error saving expense")
             else:
@@ -886,11 +897,8 @@ elif menu == "Expenses":
     st.markdown("---")
 
     # ===== SHOW DATA =====
-    try:
-        data = supabase.table("expenses").select("*").execute()
-        df = pd.DataFrame(data.data)
-    except:
-        df = pd.DataFrame()
+    data = load_expenses()
+    df = pd.DataFrame(data)
 
     st.dataframe(df)
 
@@ -921,7 +929,10 @@ elif menu == "Expenses":
                         }).eq("id", row["id"]).execute()
 
                         st.success("Updated ✅")
+
+                        st.cache_data.clear()  # ✅ refresh
                         st.rerun()
+
                     except:
                         st.error("Update failed")
 
@@ -933,7 +944,10 @@ elif menu == "Expenses":
                         supabase.table("expenses").delete().eq("id", row["id"]).execute()
 
                         st.warning("Deleted ⚠️")
+
+                        st.cache_data.clear()  # ✅ refresh
                         st.rerun()
+
                     except:
                         st.error("Delete failed")
 # ================= REPORT =================
