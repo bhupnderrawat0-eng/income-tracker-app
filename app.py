@@ -36,6 +36,7 @@ st.markdown("""
     background: linear-gradient(135deg,#020617,#0f172a,#020617);
     background-size: 400% 400%;
     animation: gradientBG 12s ease infinite;
+    color: white;
 }
 
 @keyframes gradientBG {
@@ -55,90 +56,110 @@ h1,h2,h3,h4,h5,p,label {
 
 /* ===== SIDEBAR GLASS ===== */
 section[data-testid="stSidebar"] {
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(20px);
-    border-right: 1px solid rgba(255,255,255,0.1);
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(18px);
+    border-right: 1px solid rgba(255,255,255,0.08);
 }
 
 /* ===== GLASS CARD ===== */
 .glass-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(15px);
-    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(18px);
+    border-radius: 16px;
     padding: 20px;
-    border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+    transition: all 0.25s ease;
 }
 
-/* ===== CARD HOVER ===== */
+/* ===== CARD HOVER (soft) ===== */
 .glass-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 35px rgba(124,58,237,0.25);
 }
 
 /* ===== INPUT FIELDS ===== */
 .stTextInput input,
 .stNumberInput input,
-.stSelectbox div {
-    background: rgba(17,24,39,0.7) !important;
+.stDateInput input {
+    background: rgba(17,24,39,0.75) !important;
     color:white !important;
     border-radius:10px !important;
-    border:1px solid rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.08);
 }
 
-/* ===== NORMAL BUTTONS ===== */
+/* ===== SELECTBOX FIX ===== */
+.stSelectbox div[data-baseweb="select"] {
+    background: rgba(17,24,39,0.75) !important;
+    border-radius:10px !important;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+/* ===== BUTTONS ===== */
 div.stButton > button {
-    background: linear-gradient(90deg,#2563eb,#7c3aed);
+    background: linear-gradient(135deg,#6366f1,#7c3aed);
     color: white;
     border-radius: 12px;
     height: 42px;
     border: none;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
 }
 
-/* ===== BUTTON HOVER ===== */
+/* ===== BUTTON HOVER (controlled) ===== */
 div.stButton > button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(124,58,237,0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 0 12px rgba(124,58,237,0.4);
 }
 
 /* ===== FORM BUTTON (LOGIN SAFE) ===== */
 div.stForm button {
-    background: linear-gradient(90deg,#16a34a,#22c55e) !important;
+    background: linear-gradient(135deg,#16a34a,#22c55e) !important;
     color: white !important;
     border-radius: 12px !important;
     padding: 10px 20px !important;
     border: none !important;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
 }
 
 div.stForm button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 12px rgba(34,197,94,0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 0 10px rgba(34,197,94,0.5);
 }
 
 /* ===== METRIC CARDS ===== */
 [data-testid="metric-container"] {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(15px);
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(18px);
     padding: 15px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.1);
-    transition: 0.3s;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.25s ease;
 }
 
 /* ===== METRIC HOVER ===== */
 [data-testid="metric-container"]:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(124,58,237,0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 0 15px rgba(124,58,237,0.3);
+}
+
+/* ===== DATAFRAME ===== */
+[data-testid="stDataFrame"] {
+    background: rgba(255,255,255,0.02);
+    border-radius: 12px;
+    padding: 5px;
+}
+
+/* ===== CHART AREA ===== */
+canvas {
+    background: rgba(255,255,255,0.02) !important;
+    border-radius: 10px;
 }
 
 /* ===== FADE ANIMATION ===== */
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(15px);
     }
     to {
         opacity: 1;
@@ -147,13 +168,7 @@ div.stForm button:hover {
 }
 
 .fade-in {
-    animation: fadeInUp 0.6s ease forwards;
-}
-
-/* ===== PASSWORD FIELD FIX ===== */
-div[data-testid="stTextInput"] > div {
-    display: flex;
-    align-items: center;
+    animation: fadeInUp 0.5s ease forwards;
 }
 
 /* ===== SCROLLBAR ===== */
@@ -161,7 +176,7 @@ div[data-testid="stTextInput"] > div {
     width: 6px;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.15);
     border-radius: 10px;
 }
 
@@ -169,13 +184,6 @@ div[data-testid="stTextInput"] > div {
 html, body, .stApp {
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    height: auto !important;
-}
-
-/* ===== MOBILE MENU ===== */
-.stRadio > div {
-    flex-direction: row;
-    overflow-x: auto;
 }
 
 /* ===== RESPONSIVE ===== */
