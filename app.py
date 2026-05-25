@@ -370,19 +370,22 @@ if menu == "Dashboard":
 # ========================= MEMBERS =========================
 elif menu == "Members":
 
+    import uuid
+
     st.subheader("👥 Member Management")
 
     name = st.text_input("Member Name")
     mobile = st.text_input("Mobile")
-    start_date = st.date_input("Start Date")
 
     if st.button("Add Member"):
         if name:
             try:
-                supabase.table("customers").insert({
+                member_id = str(uuid.uuid4())[:8]
+
+                supabase.table("members").insert({
+                    "id": member_id,
                     "name": name.strip(),
-                    "mobile": mobile,
-                    "start_date": start_date.strftime("%Y-%m-%d")
+                    "mobile": mobile
                 }).execute()
 
                 st.success("Member Added ✅")
@@ -390,16 +393,16 @@ elif menu == "Members":
                 st.cache_data.clear()
                 st.rerun()
 
-            except:
-                st.error("Error adding member")
+            except Exception as e:
+                st.error(f"Error adding member: {e}")
         else:
             st.warning("Enter member name")
 
-    # ✅ CACHE DATA
+    # ================= LOAD MEMBERS =================
     @st.cache_data(ttl=60)
     def load_members():
         try:
-            return supabase.table("customers").select("*").execute().data
+            return supabase.table("members").select("*").execute().data
         except:
             return []
 
@@ -408,9 +411,9 @@ elif menu == "Members":
 
     st.dataframe(df)
 
+    # ================= EDIT / DELETE =================
     if not df.empty:
 
-        # ✅ Better selectbox (ID backend, Name frontend)
         selected_id = st.selectbox(
             "Select Member",
             df["id"],
@@ -421,20 +424,16 @@ elif menu == "Members":
 
         new_name = st.text_input("Edit Name", value=row["name"])
         new_mobile = st.text_input("Edit Mobile", value=row["mobile"])
-        new_start = st.date_input(
-            "Edit Start Date",
-            value=pd.to_datetime(row["start_date"])
-        )
 
         col1, col2 = st.columns(2)
 
+        # ✅ UPDATE
         with col1:
             if st.button("Update Member"):
                 try:
-                    supabase.table("customers").update({
+                    supabase.table("members").update({
                         "name": new_name.strip(),
-                        "mobile": new_mobile,
-                        "start_date": new_start.strftime("%Y-%m-%d")
+                        "mobile": new_mobile
                     }).eq("id", selected_id).execute()
 
                     st.success("Updated ✅")
@@ -442,21 +441,22 @@ elif menu == "Members":
                     st.cache_data.clear()
                     st.rerun()
 
-                except:
-                    st.error("Update failed")
+                except Exception as e:
+                    st.error(f"Update failed: {e}")
 
+        # ✅ DELETE
         with col2:
             if st.button("Delete Member"):
                 try:
-                    supabase.table("customers").delete().eq("id", selected_id).execute()
+                    supabase.table("members").delete().eq("id", selected_id).execute()
 
                     st.warning("Deleted ⚠️")
 
                     st.cache_data.clear()
                     st.rerun()
 
-                except:
-                    st.error("Delete failed")
+                except Exception as e:
+                    st.error(f"Delete failed: {e}")
 # ========================= COLLECTION =========================
 elif menu == "Collections":
 
