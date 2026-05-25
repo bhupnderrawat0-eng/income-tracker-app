@@ -577,196 +577,120 @@ elif menu == "loans":
 
     st.subheader("💰 Loan Management")
 
-    # ✅ CACHE DATA
+    # ================= LOAD DATA =================
     @st.cache_data(ttl=60)
     def load_all_data():
         try:
-            customers = supabase.table("customers").select("name").execute().data
+            members = supabase.table("members").select("*").execute().data
         except:
-            customers = []
+            members = []
 
         try:
             loans = supabase.table("loans").select("*").execute().data
         except:
             loans = []
 
-        try:
-            payments = supabase.table("loan_payments").select("*").execute().data
-        except:
-            payments = []
+        return members, loans
 
-        return customers, loans, payments
+    members_data, loans_data = load_all_data()
 
-    customers_data, loans_data, payments_data = load_all_data()
-
-    customers = pd.DataFrame(customers_data)
+    members = pd.DataFrame(members_data)
     loans_df = pd.DataFrame(loans_data)
-    payments_df = pd.DataFrame(payments_data)
 
-    # ===== ADD LOAN =====
+    # ================= ADD LOAN =================
     st.markdown("### ➕ Add Loan")
 
-    if customers.empty:
-        st.warning("No customers found")
+    if members.empty:
+        st.warning("No members found")
     else:
-        cust = st.selectbox("Customer", customers["name"])
+        selected_member_id = st.selectbox(
+            "Member",
+            members["id"],
+            format_func=lambda x: members[members["id"] == x]["name"].values[0]
+        )
+
         loan_amt = st.number_input("Loan Amount", min_value=0.0)
-        interest_rate = st.number_input("Interest % per month", value=1.0)
-        loan_date = st.date_input("Loan Start Date")
+        note = st.text_input("Note")
 
         if not is_viewer:
-            if st.button("Add Loan", key="add_loan_btn"):
+            if st.button("Add Loan"):
                 try:
                     supabase.table("loans").insert({
-                        "customer_name": cust,
+                        "member_id": selected_member_id,
                         "amount": loan_amt,
-                        "interest_rate": interest_rate,
-                        "start_date": loan_date.strftime("%Y-%m-%d")
+                        "note": note
                     }).execute()
 
                     st.success("Loan Added ✅")
 
-                    st.cache_data.clear()  # ✅ refresh
+                    st.cache_data.clear()
                     st.rerun()
 
-                except:
-                    st.error("Error adding loan")
+                except Exception as e:
+                    st.error(f"Error adding loan: {e}")
 
     st.markdown("---")
 
-    # ===== SHOW EXISTING LOANS =====
-    if not loans_df.empty:
-        st.markdown("📌 Existing loans:")
-        for _, row in loans_df.iterrows():
-            st.write(f"Loan ID: {row['id']} | {row['customer_name']} | ₹{row['amount']}")
+    # ================= SHOW LOANS =================
+    if not loans_df.empty and not members.empty:
 
-    # ===== SELECT LOAN =====
-    if loans_df.empty:
-        st.info("No loans available")
-        st.stop()
+        member_map = dict(zip(members["id"], members["name"]))
+        loans_df["member_name"] = loans_df["member_id"].map(member_map)
 
-    loans_df["label"] = loans_df.apply(
-        lambda x: f"{x['customer_name']} | Loan #{int(x['id'])} | ₹{x['amount']}",
-        axis=1
-    )
+        loans_df["label"] = (
+            loans_df["member_name"].fillna("Unknown")
+            + " | Loan #"
+            + loans_df["id"].astype(str)
+            + " | ₹"
+            + loans_df["amount"].astype(str)
+        )
 
-    selected = st.selectbox("Select Loan", loans_df["label"])
-    loan_id = int(selected.split("|")[1].replace("Loan #", "").strip())
+        selected = st.selectbox("Select Loan", loans_df["label"])
+        row = loans_df[loans_df["label"] == selected].iloc[0]
 
-    loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
+        # ================= DISPLAY =================
+        st.markdown("### 📊 Loan Details")
+        st.write(f"Member: {row['member_name']}")
+        st.write(f"Amount: ₹{row['amount']}")
+        st.write(f"Note: {row.get('note', '')}")
 
-    if loan_row.empty:
-        st.error("Loan not found")
-        st.stop()
+        new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
+        new_note = st.text_input("Edit Note", value=row.get("note", ""))
 
-    loan = loan_row.iloc[0]
+        col1, col2 = st.columns(2)
 
-    # ===== ADD PAYMENT =====
-    st.markdown("### ➕ Add Payment")
+        # ✅ UPDATE
+        with col1:
+            if not is_viewer:
+                if st.button("Update Loan"):
+                    try:
+                        supabase.table("loans").update({
+                            "amount": new_amt,
+                            "note": new_note
+                        }).eq("id", row["id"]).execute()
 
-    if not is_viewer:
-        pay_amt = st.number_input("Payment Amount", min_value=0.0)
-        pay_date = st.date_input("Payment Date")
+                        st.success("Updated ✅")
 
-        if st.button("Add Payment", key="add_payment_btn"):
-            if pay_amt > 0:
-                try:
-                    supabase.table("loan_payments").insert({
-                        "loan_id": loan_id,
-                        "amount": pay_amt,
-                        "date": pay_date.strftime("%Y-%m-%d")
-                    }).execute()
+                        st.cache_data.clear()
+                        st.rerun()
 
-                    st.success("Payment Added ✅")
+                    except Exception as e:
+                        st.error(f"Update failed: {e}")
 
-                    st.cache_data.clear()  # ✅ refresh
-                    st.rerun()
+        # ✅ DELETE
+        with col2:
+            if is_admin:
+                if st.button("Delete Loan"):
+                    try:
+                        supabase.table("loans").delete().eq("id", row["id"]).execute()
 
-                except:
-                    st.error("Error adding payment")
+                        st.warning("Deleted ⚠️")
 
-    # ===== SUMMARY + MONTHLY SYSTEM =====
-    from datetime import datetime
+                        st.cache_data.clear()
+                        st.rerun()
 
-    principal = loan["amount"]
-    rate = loan["interest_rate"]
-
-    cust_payments = payments_df[payments_df["loan_id"] == loan_id].sort_values("date")
-
-    total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
-
-    start_date = loan["start_date"]
-    if isinstance(start_date, str):
-        start_date = datetime.strptime(start_date, "%Y-%m-%d")
-
-    today = datetime.today()
-
-    # ✅ PAYMENT MAP (optimized)
-    payment_map = {}
-    for _, p in cust_payments.iterrows():
-        key = p["date"][:7]
-        payment_map[key] = payment_map.get(key, 0) + p["amount"]
-
-    # ===== MONTHLY BREAKDOWN =====
-    timeline = []
-    current_date = start_date
-    running_principal = principal
-
-    while current_date <= today:
-
-        month_str = current_date.strftime("%Y-%m")
-
-        principal_before = running_principal
-        interest = (principal_before * rate) / 100
-        payment = payment_map.get(month_str, 0)
-
-        balance_after = principal_before + interest - payment
-        running_principal = balance_after
-
-        timeline.append({
-            "Month": current_date.strftime("%b %Y"),
-            "Principal": round(principal_before, 2),
-            "Interest": round(interest, 2),
-            "Payment": payment,
-            "Balance": round(balance_after, 2)
-        })
-
-        # faster month increment
-        if current_date.month == 12:
-            current_date = current_date.replace(year=current_date.year + 1, month=1)
-        else:
-            current_date = current_date.replace(month=current_date.month + 1)
-
-    total_interest = sum(x["Interest"] for x in timeline)
-    balance = timeline[-1]["Balance"] if timeline else principal
-
-    # ===== DISPLAY =====
-    st.markdown("### 📊 Loan Summary")
-    st.write(f"Principal: ₹{principal}")
-    st.write(f"Total Paid: ₹{total_paid}")
-    st.write(f"Total Interest: ₹{round(total_interest, 2)}")
-    st.write(f"Balance: ₹{round(balance, 2)}")
-
-    st.markdown("### 📅 Monthly Breakdown")
-    timeline_df = pd.DataFrame(timeline)
-    st.dataframe(timeline_df)
-
-    # ===== DELETE =====
-    st.markdown("---")
-
-    if is_admin:
-        if st.button("Delete Loan", key="delete_loan_btn"):
-            try:
-                supabase.table("loans").delete().eq("id", loan_id).execute()
-                supabase.table("loan_payments").delete().eq("loan_id", loan_id).execute()
-
-                st.success("Loan Deleted 🗑️")
-
-                st.cache_data.clear()  # ✅ refresh
-                st.rerun()
-
-            except:
-                st.error("Delete failed")
+                    except Exception as e:
+                        st.error(f"Delete failed: {e}")
 # ================= DONATIONS =================
 elif menu == "Donations":
 
