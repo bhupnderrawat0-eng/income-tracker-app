@@ -819,7 +819,7 @@ elif menu == "Expenses":
 
     st.subheader("💸 Expense Management")
 
-    # ✅ CACHE DATA
+    # ================= LOAD DATA =================
     @st.cache_data(ttl=60)
     def load_expenses():
         try:
@@ -829,21 +829,18 @@ elif menu == "Expenses":
 
     # ===== ADD EXPENSE =====
     if not is_viewer:
-        exp_type = st.text_input("Expense Type")
+
+        note = st.text_input("Expense Note")
         date = st.date_input("Date")
         amt = st.number_input("Amount", min_value=0.0)
 
-        # ✅ NEW FIELD
-        note = st.text_input("Note (optional)")
-
-        if st.button("Save Expense", key="save_expense"):
-            if exp_type and amt > 0:
+        if st.button("Save Expense"):
+            if amt > 0:
                 try:
                     supabase.table("expenses").insert({
-                        "type": exp_type.strip(),
                         "amount": amt,
-                        "date": date.strftime("%Y-%m-%d"),
-                        "note": note
+                        "note": note,
+                        "date": date.strftime("%Y-%m-%d")
                     }).execute()
 
                     st.success("Expense Saved ✅")
@@ -854,23 +851,23 @@ elif menu == "Expenses":
                 except Exception as e:
                     st.error(f"Error saving expense: {e}")
             else:
-                st.warning("Enter valid details ⚠️")
+                st.warning("Enter valid amount ⚠️")
     else:
         st.info("View Only Mode 👁️")
 
     st.markdown("---")
 
-    # ===== SHOW DATA =====
+    # ================= SHOW DATA =================
     data = load_expenses()
     df = pd.DataFrame(data)
 
     st.dataframe(df)
 
-    # ===== EDIT / DELETE =====
+    # ================= EDIT / DELETE =================
     if not df.empty:
 
         df["label"] = (
-            df["type"]
+            df["note"].fillna("No Note")
             + " | ₹"
             + df["amount"].astype(str)
             + " | "
@@ -878,14 +875,10 @@ elif menu == "Expenses":
         )
 
         selected = st.selectbox("Select Expense", df["label"])
-
         row = df[df["label"] == selected].iloc[0]
 
-        new_type = st.text_input("Edit Type", value=row["type"])
         new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
         new_date = st.date_input("Edit Date", value=pd.to_datetime(row["date"]))
-
-        # ✅ EDIT NOTE
         new_note = st.text_input("Edit Note", value=row.get("note", ""))
 
         col1, col2 = st.columns(2)
@@ -893,10 +886,9 @@ elif menu == "Expenses":
         # ===== UPDATE =====
         with col1:
             if not is_viewer:
-                if st.button("Update Expense", key="update_expense"):
+                if st.button("Update Expense"):
                     try:
                         supabase.table("expenses").update({
-                            "type": new_type.strip(),
                             "amount": new_amt,
                             "date": new_date.strftime("%Y-%m-%d"),
                             "note": new_note
@@ -907,13 +899,13 @@ elif menu == "Expenses":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except:
-                        st.error("Update failed")
+                    except Exception as e:
+                        st.error(f"Update failed: {e}")
 
         # ===== DELETE =====
         with col2:
             if is_admin:
-                if st.button("Delete Expense", key="delete_expense"):
+                if st.button("Delete Expense"):
                     try:
                         supabase.table("expenses").delete().eq("id", row["id"]).execute()
 
@@ -922,8 +914,8 @@ elif menu == "Expenses":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except:
-                        st.error("Delete failed")
+                    except Exception as e:
+                        st.error(f"Delete failed: {e}")
 # ================= REPORT =================
 elif menu == "Reports":
 
