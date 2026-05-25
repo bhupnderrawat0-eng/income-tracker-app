@@ -921,9 +921,9 @@ elif menu == "Reports":
 
     st.subheader("📊 Advanced Reports")
 
-    # ✅ CACHE ALL DATA
+    # ================= LOAD DATA =================
     @st.cache_data(ttl=60)
-    def load_all_reports_data():
+    def load_all():
         try:
             collections = supabase.table("collections").select("*").execute().data
         except:
@@ -940,217 +940,127 @@ elif menu == "Reports":
             donations = []
 
         try:
-            customers = supabase.table("customers").select("*").execute().data
+            members = supabase.table("members").select("*").execute().data
         except:
-            customers = []
+            members = []
 
-        return collections, expenses, donations, customers
+        return collections, expenses, donations, members
 
-    collections_data, expenses_data, donations_data, customers_data = load_all_reports_data()
+    collections_data, expenses_data, donations_data, members_data = load_all()
 
     df = pd.DataFrame(collections_data)
     expense_df = pd.DataFrame(expenses_data)
     donation_df = pd.DataFrame(donations_data)
-    all_customers = pd.DataFrame(customers_data)
+    members_df = pd.DataFrame(members_data)
 
+    # ================= DATE FILTER =================
+    col1, col2 = st.columns(2)
+    from_date = col1.date_input("From Date")
+    to_date = col2.date_input("To Date")
+
+    # ================= CONVERT DATE =================
     if not df.empty:
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        df = df[(df["date"] >= pd.to_datetime(from_date)) & (df["date"] <= pd.to_datetime(to_date))]
 
-        # ================= MONTH FILTER =================
-        month_list = sorted(df["month"].unique())
-        selected_month = st.selectbox("Select Month", month_list)
+    if not expense_df.empty:
+        expense_df["date"] = pd.to_datetime(expense_df["date"], errors="coerce")
+        expense_df = expense_df[(expense_df["date"] >= pd.to_datetime(from_date)) & (expense_df["date"] <= pd.to_datetime(to_date))]
 
-        df_month = df[df["month"] == selected_month]
+    if not donation_df.empty:
+        donation_df["date"] = pd.to_datetime(donation_df["date"], errors="coerce")
+        donation_df = donation_df[(donation_df["date"] >= pd.to_datetime(from_date)) & (donation_df["date"] <= pd.to_datetime(to_date))]
 
-        # ================= SUMMARY =================
-        st.markdown("### 📅 Monthly Summary")
+    # ================= SUMMARY =================
+    st.markdown("### 📅 Summary")
 
-        total_collection = df_month["amount"].sum()
-        total_expense = expense_df["amount"].sum() if not expense_df.empty else 0
-        total_donation = donation_df["amount"].sum() if not donation_df.empty else 0
+    total_collection = df["amount"].sum() if not df.empty else 0
+    total_expense = expense_df["amount"].sum() if not expense_df.empty else 0
+    total_donation = donation_df["amount"].sum() if not donation_df.empty else 0
 
-        balance = total_collection + total_donation - total_expense
+    balance = total_collection + total_donation - total_expense
 
-        c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Collection", f"₹ {total_collection}")
+    c2.metric("Donations", f"₹ {total_donation}")
+    c3.metric("Expenses", f"₹ {total_expense}")
+    c4.metric("Balance", f"₹ {balance}")
 
-        c1.metric("Collection", f"₹ {total_collection}")
-        c2.metric("Donations", f"₹ {total_donation}")
-        c3.metric("Expenses", f"₹ {total_expense}")
-        c4.metric("Balance", f"₹ {balance}")
+    # ================= MEMBER REPORT =================
+    st.markdown("### 👤 Member-wise Collection")
 
-        # ================= CUSTOMER REPORT =================
-        st.markdown("### 👤 Customer-wise Report")
-        customer_summary = df_month.groupby("name")["amount"].sum().reset_index()
-        st.dataframe(customer_summary)
+    if not df.empty and not members_df.empty:
+
+        member_map = dict(zip(members_df["id"], members_df["name"]))
+        df["member_name"] = df["member_id"].map(member_map)
+
+        report_df = df.groupby("member_name")["amount"].sum().reset_index()
+
+        st.dataframe(report_df)
 
     else:
-        st.info("No collection data available yet")
+        st.info("No data available")
 
-    # =========================================================
-    # 🚀 NEW ADVANCED REPORTS (ADD-ON)
-    # =========================================================
-
+    # ================= DOWNLOAD =================
     st.markdown("---")
-    st.markdown("## 🚀 Advanced Download Reports")
-
-    from reportlab.platypus import SimpleDocTemplate, Table
-    from io import BytesIO
-
-    col1, col2 = st.columns(2)
-    from_date = col1.date_input("From Date", key="r_from")
-    to_date = col2.date_input("To Date", key="r_to")
+    st.markdown("## 📥 Download Reports")
 
     tab1, tab2 = st.tabs(["👤 Member Report", "💸 Finance Report"])
 
-    # ================= MEMBER REPORT =================
+    # ===== MEMBER REPORT =====
     with tab1:
+        if not df.empty:
 
-        try:
-            members_df = all_customers.copy()
+            csv = report_df.to_csv(index=False).encode("utf-8")
 
-            col_df = pd.DataFrame(collections_data)
-            col_df["date"] = pd.to_datetime(col_df["date"], errors="coerce")
-
-            col_df = col_df[
-                (col_df["date"] >= pd.to_datetime(from_date)) &
-                (col_df["date"] <= pd.to_datetime(to_date))
-            ]
-
-            loan_data = supabase.table("loans").select("*").execute().data
-            pay_data = supabase.table("loan_payments").select("*").execute().data
-
-            loan_df = pd.DataFrame(loan_data)
-            pay_df = pd.DataFrame(pay_data)
-
-            report = []
-
-            for _, m in members_df.iterrows():
-
-                mid = m["id"]
-                name = m["name"]
-
-                # ✅ COLLECTION (SEPARATE)
-                if "member_id" in col_df.columns:
-                    total_collection = col_df[col_df["member_id"] == mid]["amount"].sum()
-                else:
-                    total_collection = 0
-
-                # ✅ LOANS
-                if "member_id" in loan_df.columns:
-                    user_loans = loan_df[loan_df["member_id"] == mid]
-                else:
-                    user_loans = pd.DataFrame()
-
-                principal = user_loans["amount"].sum() if not user_loans.empty else 0
-
-                total_payment = 0
-                total_interest = 0
-
-                for _, loan in user_loans.iterrows():
-                    lid = loan["id"]
-                    rate = loan["interest_rate"]
-
-                    if "loan_id" in pay_df.columns:
-                        lp = pay_df[pay_df["loan_id"] == lid]
-                    else:
-                        lp = pd.DataFrame()
-
-                    paid = lp["amount"].sum() if not lp.empty else 0
-                    interest = (loan["amount"] * rate / 100)
-
-                    total_payment += paid
-                    total_interest += interest
-
-                balance = principal + total_interest - total_payment
-
-                report.append({
-                    "Member": name,
-                    "Total Collection": total_collection,
-                    "Loan Principal": principal,
-                    "Loan Interest": round(total_interest, 2),
-                    "Loan Payment": total_payment,
-                    "Loan Balance": round(balance, 2)
-                })
-
-            report_df = pd.DataFrame(report)
-            st.dataframe(report_df)
-
-            # ===== EXCEL =====
             st.download_button(
-                "⬇️ Download Excel",
-                report_df.to_csv(index=False),
-                "member_report.csv"
+                "⬇️ Download Member Report (CSV)",
+                data=csv,
+                file_name="member_report.csv",
+                use_container_width=True
             )
 
-            # ===== PDF =====
-            buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer)
-            table_data = [report_df.columns.tolist()] + report_df.values.tolist()
-            table = Table(table_data)
-            doc.build([table])
-            buffer.seek(0)
+        else:
+            st.info("No member data")
 
-            st.download_button("📄 Download PDF", buffer, "member_report.pdf")
-
-        except Exception as e:
-            st.error(f"Report error: {e}")
-
-    # ================= FINANCE REPORT =================
+    # ===== FINANCE REPORT =====
     with tab2:
 
-        try:
-            combined = []
+        combined = []
 
-            for _, r in donation_df.iterrows():
-                combined.append({
-                    "Date": r["date"],
-                    "Type": "Donation",
-                    "Amount": r["amount"],
-                    "Note": r.get("note", "")
-                })
+        for _, r in donation_df.iterrows():
+            combined.append({
+                "Date": r["date"],
+                "Type": "Donation",
+                "Amount": r["amount"],
+                "Note": r.get("note", "")
+            })
 
-            for _, r in expense_df.iterrows():
-                combined.append({
-                    "Date": r["date"],
-                    "Type": "Expense",
-                    "Amount": r["amount"],
-                    "Note": r.get("note", "")
-                })
+        for _, r in expense_df.iterrows():
+            combined.append({
+                "Date": r["date"],
+                "Type": "Expense",
+                "Amount": r["amount"],
+                "Note": r.get("note", "")
+            })
 
-            fin_df = pd.DataFrame(combined)
+        fin_df = pd.DataFrame(combined)
 
-            if not fin_df.empty:
+        if not fin_df.empty:
 
-                fin_df["Date"] = pd.to_datetime(fin_df["Date"], errors="coerce")
+            csv = fin_df.to_csv(index=False).encode("utf-8")
 
-                fin_df = fin_df[
-                    (fin_df["Date"] >= pd.to_datetime(from_date)) &
-                    (fin_df["Date"] <= pd.to_datetime(to_date))
-                ]
+            st.dataframe(fin_df)
 
-                st.dataframe(fin_df)
+            st.download_button(
+                "⬇️ Download Finance Report (CSV)",
+                data=csv,
+                file_name="finance_report.csv",
+                use_container_width=True
+            )
 
-                # ===== EXCEL =====
-                st.download_button(
-                    "⬇️ Download Excel",
-                    fin_df.to_csv(index=False),
-                    "finance_report.csv"
-                )
-
-                # ===== PDF =====
-                buffer = BytesIO()
-                doc = SimpleDocTemplate(buffer)
-                table_data = [fin_df.columns.tolist()] + fin_df.values.tolist()
-                table = Table(table_data)
-                doc.build([table])
-                buffer.seek(0)
-
-                st.download_button("📄 Download PDF", buffer, "finance_report.pdf")
-
-            else:
-                st.info("No data found")
-
-        except Exception as e:
-            st.error(f"Finance report error: {e}")
+        else:
+            st.info("No finance data")
 # ================= USERS =================
 if menu == "Users":
 
