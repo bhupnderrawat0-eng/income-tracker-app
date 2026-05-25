@@ -696,58 +696,76 @@ elif menu == "Donations":
 
     st.subheader("🎁 Donations Management")
 
-    # ✅ CACHE DATA
+    # ================= LOAD DATA =================
     @st.cache_data(ttl=60)
-    def load_donations():
+    def load_data():
         try:
-            return supabase.table("donations").select("*").execute().data
+            members = supabase.table("members").select("*").execute().data
         except:
-            return []
+            members = []
 
-    # ===== ADD DONATION =====
+        try:
+            donations = supabase.table("donations").select("*").execute().data
+        except:
+            donations = []
+
+        return members, donations
+
+    members_data, donations_data = load_data()
+
+    members = pd.DataFrame(members_data)
+    df = pd.DataFrame(donations_data)
+
+    # ================= ADD DONATION =================
     if not is_viewer:
-        donor = st.text_input("Donor Name")
-        date = st.date_input("Date")
-        amt = st.number_input("Amount", min_value=0.0)
 
-        # ✅ NEW FIELD
-        note = st.text_input("Note (optional)")
+        if members.empty:
+            st.warning("No members found")
+        else:
+            selected_member_id = st.selectbox(
+                "Member",
+                members["id"],
+                format_func=lambda x: members[members["id"] == x]["name"].values[0]
+            )
 
-        if st.button("Save Donation", key="save_donation"):
-            if donor and amt > 0:
-                try:
-                    supabase.table("donations").insert({
-                        "name": donor.strip(),
-                        "amount": amt,
-                        "date": date.strftime("%Y-%m-%d"),
-                        "note": note
-                    }).execute()
+            date = st.date_input("Date")
+            amt = st.number_input("Amount", min_value=0.0)
+            note = st.text_input("Note (optional)")
 
-                    st.success("Donation Saved ✅")
+            if st.button("Save Donation"):
+                if amt > 0:
+                    try:
+                        supabase.table("donations").insert({
+                            "member_id": selected_member_id,
+                            "amount": amt,
+                            "date": date.strftime("%Y-%m-%d"),
+                            "note": note
+                        }).execute()
 
-                    st.cache_data.clear()
-                    st.rerun()
+                        st.success("Donation Saved ✅")
 
-                except Exception as e:
-                    st.error(f"Error saving donation: {e}")
-            else:
-                st.warning("Enter valid details ⚠️")
+                        st.cache_data.clear()
+                        st.rerun()
+
+                    except Exception as e:
+                        st.error(f"Error saving donation: {e}")
+                else:
+                    st.warning("Enter valid amount ⚠️")
     else:
         st.info("View Only Mode 👁️")
 
     st.markdown("---")
 
-    # ===== SHOW DATA =====
-    data = load_donations()
-    df = pd.DataFrame(data)
+    # ================= DISPLAY =================
+    if not df.empty and not members.empty:
 
-    st.dataframe(df)
+        member_map = dict(zip(members["id"], members["name"]))
+        df["member_name"] = df["member_id"].map(member_map)
 
-    # ===== EDIT / DELETE =====
-    if not df.empty:
+        st.dataframe(df)
 
         df["label"] = (
-            df["name"]
+            df["member_name"].fillna("Unknown")
             + " | ₹"
             + df["amount"].astype(str)
             + " | "
@@ -755,25 +773,20 @@ elif menu == "Donations":
         )
 
         selected = st.selectbox("Select Donation", df["label"])
-
         row = df[df["label"] == selected].iloc[0]
 
-        new_name = st.text_input("Edit Name", value=row["name"])
         new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
         new_date = st.date_input("Edit Date", value=pd.to_datetime(row["date"]))
-
-        # ✅ EDIT NOTE
         new_note = st.text_input("Edit Note", value=row.get("note", ""))
 
         col1, col2 = st.columns(2)
 
-        # ===== UPDATE =====
+        # ✅ UPDATE
         with col1:
             if not is_viewer:
-                if st.button("Update Donation", key="update_donation"):
+                if st.button("Update Donation"):
                     try:
                         supabase.table("donations").update({
-                            "name": new_name.strip(),
                             "amount": new_amt,
                             "date": new_date.strftime("%Y-%m-%d"),
                             "note": new_note
@@ -784,13 +797,13 @@ elif menu == "Donations":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except:
-                        st.error("Update failed")
+                    except Exception as e:
+                        st.error(f"Update failed: {e}")
 
-        # ===== DELETE =====
+        # ✅ DELETE
         with col2:
             if is_admin:
-                if st.button("Delete Donation", key="delete_donation"):
+                if st.button("Delete Donation"):
                     try:
                         supabase.table("donations").delete().eq("id", row["id"]).execute()
 
@@ -799,8 +812,8 @@ elif menu == "Donations":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except:
-                        st.error("Delete failed")
+                    except Exception as e:
+                        st.error(f"Delete failed: {e}")
 # ================= EXPENSES =================
 elif menu == "Expenses":
 
