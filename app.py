@@ -462,15 +462,15 @@ elif menu == "Collections":
 
     st.subheader("🔥 Collection Management")
 
-    # ✅ LOAD MEMBERS (ID BASED)
+    # ================= LOAD MEMBERS =================
     @st.cache_data(ttl=60)
     def load_members():
         try:
-            return supabase.table("customers").select("id,name,start_date").execute().data
+            return supabase.table("members").select("*").execute().data
         except:
             return []
 
-    # ✅ LOAD COLLECTIONS
+    # ================= LOAD COLLECTIONS =================
     @st.cache_data(ttl=60)
     def load_collections():
         try:
@@ -491,30 +491,18 @@ elif menu == "Collections":
             format_func=lambda x: members[members["id"] == x]["name"].values[0]
         )
 
-        month = st.selectbox(
-            "Month",
-            [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
-        )
-
         payment_date = st.date_input("Payment Date")
         amt = st.number_input("Amount")
-
-        # ✅ NEW FIELD
         note = st.text_input("Note (optional)")
 
         if not is_viewer:
             if st.button("Save Collection"):
-
-                start_date = members[members["id"] == selected_member_id]["start_date"].values[0]
-
                 try:
                     supabase.table("collections").insert({
-                        "member_id": int(selected_member_id),
-                        "month": month,
-                        "start_date": start_date,
-                        "date": payment_date.strftime("%Y-%m-%d"),
+                        "member_id": selected_member_id,  # ✅ FIX (no int)
                         "amount": amt,
-                        "note": note
+                        "note": note,
+                        "date": payment_date.strftime("%Y-%m-%d")
                     }).execute()
 
                     st.success("Collection Saved ✅")
@@ -525,13 +513,13 @@ elif menu == "Collections":
                 except Exception as e:
                     st.error(f"Error saving collection: {e}")
 
-    # ===== LOAD DATA =====
+    # ================= LOAD DATA =================
     data = load_collections()
     df = pd.DataFrame(data)
 
     if not df.empty and not members.empty:
 
-        # ✅ MAP MEMBER NAME (important)
+        # ✅ MAP MEMBER NAME
         member_map = dict(zip(members["id"], members["name"]))
         df["member_name"] = df["member_id"].map(member_map)
 
@@ -540,8 +528,6 @@ elif menu == "Collections":
         # ✅ LABEL FIX
         df["label"] = (
             df["member_name"].fillna("Unknown")
-            + " | "
-            + df["month"]
             + " | ₹"
             + df["amount"].astype(str)
         )
@@ -554,6 +540,7 @@ elif menu == "Collections":
 
         col1, col2 = st.columns(2)
 
+        # ✅ UPDATE
         with col1:
             if not is_viewer:
                 if st.button("Update Collection"):
@@ -568,9 +555,10 @@ elif menu == "Collections":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except:
-                        st.error("Update failed")
+                    except Exception as e:
+                        st.error(f"Update failed: {e}")
 
+        # ✅ DELETE
         with col2:
             if is_admin:
                 if st.button("Delete Collection"):
@@ -582,8 +570,8 @@ elif menu == "Collections":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except:
-                        st.error("Delete failed")
+                    except Exception as e:
+                        st.error(f"Delete failed: {e}")
 # ========================= LOANS =========================
 elif menu == "loans":
 
