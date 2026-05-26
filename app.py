@@ -13,8 +13,11 @@ SUPABASE_KEY = "sb_publishable_FwNyrhViDcmux8hRRidMmA_Ta4EGAyf"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ================= SAFE LOAD =================
-# ❌ Removed unnecessary preload (performance optimization)
-loans_df = pd.DataFrame()
+try:
+    loans_data = supabase.table("loans").select("*").execute()
+    loans_df = pd.DataFrame(loans_data.data)
+except:
+    loans_df = pd.DataFrame()
 
 # ================= PASSWORD =================
 def hash_pass(p):
@@ -102,13 +105,13 @@ div.stButton > button {
     transition: all 0.25s ease;
 }
 
-/* ===== BUTTON HOVER ===== */
+/* ===== BUTTON HOVER (controlled) ===== */
 div.stButton > button:hover {
     transform: translateY(-2px);
     box-shadow: 0 0 12px rgba(124,58,237,0.4);
 }
 
-/* ===== FORM BUTTON ===== */
+/* ===== FORM BUTTON (LOGIN SAFE) ===== */
 div.stForm button {
     background: linear-gradient(135deg,#16a34a,#22c55e) !important;
     color: white !important;
@@ -130,6 +133,13 @@ div.stForm button:hover {
     padding: 15px;
     border-radius: 14px;
     border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.25s ease;
+}
+
+/* ===== METRIC HOVER ===== */
+[data-testid="metric-container"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 15px rgba(124,58,237,0.3);
 }
 
 /* ===== DATAFRAME ===== */
@@ -137,6 +147,43 @@ div.stForm button:hover {
     background: rgba(255,255,255,0.02);
     border-radius: 12px;
     padding: 5px;
+}
+
+/* ===== CHART AREA ===== */
+canvas {
+    background: rgba(255,255,255,0.02) !important;
+    border-radius: 10px;
+}
+
+/* ===== FADE ANIMATION ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+}
+
+/* ===== MOBILE FIX ===== */
+html, body, .stApp {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -220,15 +267,13 @@ if not st.session_state.get("logged_in", False):
                     st.error(f"Login Error: {e}")
 
     st.stop()
-
 # ================= ROLE SETUP =================
 role = st.session_state.get("role", None)
 
 is_admin = role == "Admin"
 is_editor = role == "Editor"
 is_viewer = role == "Viewer"
-
-# ================= DEVICE DETECTION =================
+# ================= DEVICE DETECTION (FINAL FIX) =================
 user_agent = st.context.headers.get("user-agent", "").lower()
 
 if "android" in user_agent or "iphone" in user_agent:
@@ -238,11 +283,12 @@ else:
 
 # ================= ROLE BASED MENU =================
 if is_admin:
-    menu_list = ["Dashboard","Members","Collections","loans","Donations","Expenses","Reports","Users","AI"]
+    menu_list = ["Dashboard","Customers","Collections","loans","Donations","Expenses","Reports","Users","AI"]
 elif is_editor:
-    menu_list = ["Dashboard","Members","Collections","loans","Donations","Expenses","Reports"]
+    menu_list = ["Dashboard","Customers","Collections","loans","Donations","Expenses","Reports"]
 else:
     menu_list = ["Dashboard","Reports"]
+
 
 # ================= MENU =================
 if not is_mobile:
@@ -263,7 +309,6 @@ else:
         menu_list,
         horizontal=True
     )
-
 # ================= USER BAR =================
 col_user, col_logout = st.columns([3,1])
 
@@ -272,10 +317,11 @@ with col_user:
 
 with col_logout:
     if st.button("Logout"):
-        st.session_state.clear()   # 🔥 improved logout (better than just False)
+        st.session_state.logged_in = False
         st.rerun()
 
 st.markdown("---")
+
 
 # ================= HEADER =================
 col1, col2 = st.columns([4,1])
@@ -299,13 +345,13 @@ if menu == "Dashboard":
 
     import plotly.express as px
 
-    # ✅ CACHE FUNCTION (IMPROVED SAFE SUM)
+    # ✅ CACHE FUNCTION (BIG SPEED BOOST)
     @st.cache_data(ttl=60)
     def get_sum_cached(table_name):
         try:
             data = supabase.table(table_name).select("amount").execute()
             if data.data:
-                return sum(item.get("amount", 0) or 0 for item in data.data)
+                return sum(item["amount"] for item in data.data)
             return 0
         except:
             return 0
@@ -317,7 +363,7 @@ if menu == "Dashboard":
         except:
             return []
 
-    # ✅ FAST SUM
+    # ✅ FAST SUM (no pandas)
     total_col = get_sum_cached("collections")
     total_loan = get_sum_cached("loans")
     total_don = get_sum_cached("donations")
@@ -344,8 +390,7 @@ if menu == "Dashboard":
         if data:
             df = pd.DataFrame(data)
 
-            # ✅ safer date handling
-            df["date"] = pd.to_datetime(df["date"], errors="coerce")
+            df["date"] = pd.to_datetime(df["date"])
 
             fig = px.line(
                 df,
@@ -368,72 +413,63 @@ if menu == "Dashboard":
     except Exception as e:
         st.error(f"Chart Error: {e}")
 # ========================= MEMBERS =========================
-elif menu == "Members":
+elif menu == "Customers":
 
-    import uuid
-
-    st.subheader("👥 Member Management")
+    st.subheader("👤 Member Management")
 
     name = st.text_input("Member Name")
     mobile = st.text_input("Mobile")
+    start_date = st.date_input("Start Date")
 
     if st.button("Add Member"):
-        if name:
-            try:
-                member_id = str(uuid.uuid4())[:8]
-
-                supabase.table("members").insert({
-                    "id": member_id,
-                    "name": name.strip(),
-                    "mobile": mobile
-                }).execute()
-
-                st.success("Member Added ✅")
-
-                st.cache_data.clear()
-                st.rerun()
-
-            except Exception as e:
-                st.error(f"Error adding member: {e}")
-        else:
-            st.warning("Enter member name")
-
-    # ================= LOAD MEMBERS =================
-    @st.cache_data(ttl=60)
-    def load_members():
         try:
-            return supabase.table("members").select("*").execute().data
+            supabase.table("customers").insert({
+                "name": name,
+                "mobile": mobile,
+                "start_date": start_date.strftime("%Y-%m-%d")
+            }).execute()
+
+            st.success("Member Added ✅")
+
+            st.cache_data.clear()
+            st.rerun()
+
+        except:
+            st.error("Error adding member")
+
+    # ✅ CACHE DATA
+    @st.cache_data(ttl=60)
+    def load_customers():
+        try:
+            return supabase.table("customers").select("*").execute().data
         except:
             return []
 
-    data = load_members()
+    data = load_customers()
     df = pd.DataFrame(data)
 
     st.dataframe(df)
 
-    # ================= EDIT / DELETE =================
     if not df.empty:
-
-        selected_id = st.selectbox(
-            "Select Member",
-            df["id"],
-            format_func=lambda x: df[df["id"] == x]["name"].values[0]
-        )
-
+        selected_id = st.selectbox("Select Member", df["id"])
         row = df[df["id"] == selected_id].iloc[0]
 
         new_name = st.text_input("Edit Name", value=row["name"])
         new_mobile = st.text_input("Edit Mobile", value=row["mobile"])
+        new_start = st.date_input(
+            "Edit Start Date",
+            value=pd.to_datetime(row["start_date"])
+        )
 
         col1, col2 = st.columns(2)
 
-        # ✅ UPDATE
         with col1:
             if st.button("Update Member"):
                 try:
-                    supabase.table("members").update({
-                        "name": new_name.strip(),
-                        "mobile": new_mobile
+                    supabase.table("customers").update({
+                        "name": new_name,
+                        "mobile": new_mobile,
+                        "start_date": new_start.strftime("%Y-%m-%d")
                     }).eq("id", selected_id).execute()
 
                     st.success("Updated ✅")
@@ -441,36 +477,35 @@ elif menu == "Members":
                     st.cache_data.clear()
                     st.rerun()
 
-                except Exception as e:
-                    st.error(f"Update failed: {e}")
+                except:
+                    st.error("Update failed")
 
-        # ✅ DELETE
         with col2:
             if st.button("Delete Member"):
                 try:
-                    supabase.table("members").delete().eq("id", selected_id).execute()
+                    supabase.table("customers").delete().eq("id", selected_id).execute()
 
                     st.warning("Deleted ⚠️")
 
                     st.cache_data.clear()
                     st.rerun()
 
-                except Exception as e:
-                    st.error(f"Delete failed: {e}")
+                except:
+                    st.error("Delete failed")
 # ========================= COLLECTION =========================
 elif menu == "Collections":
 
     st.subheader("🔥 Collection Management")
 
-    # ================= LOAD MEMBERS =================
+    # ✅ CACHE CUSTOMERS
     @st.cache_data(ttl=60)
-    def load_members():
+    def load_customers():
         try:
-            return supabase.table("members").select("*").execute().data
+            return supabase.table("customers").select("name,start_date").execute().data
         except:
             return []
 
-    # ================= LOAD COLLECTIONS =================
+    # ✅ CACHE COLLECTIONS
     @st.cache_data(ttl=60)
     def load_collections():
         try:
@@ -478,31 +513,38 @@ elif menu == "Collections":
         except:
             return []
 
-    members_data = load_members()
-    members = pd.DataFrame(members_data)
+    customers_data = load_customers()
+    customers = pd.DataFrame(customers_data)
 
-    if members.empty:
+    if customers.empty:
         st.warning("No members available")
     else:
-        # ✅ SELECT MEMBER (ID backend, name frontend)
-        selected_member_id = st.selectbox(
-            "Member",
-            members["id"],
-            format_func=lambda x: members[members["id"] == x]["name"].values[0]
+        cust = st.selectbox("Member", customers["name"])
+
+        month = st.selectbox(
+            "Month",
+            [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
         )
 
         payment_date = st.date_input("Payment Date")
         amt = st.number_input("Amount")
-        note = st.text_input("Note (optional)")
+
+        # ✅ NOTE FIELD ADDED
+        note = st.text_input("📝 Note / Comment", key="collection_note")
 
         if not is_viewer:
             if st.button("Save Collection"):
+
+                start_date = customers[customers["name"] == cust]["start_date"].values[0]
+
                 try:
                     supabase.table("collections").insert({
-                        "member_id": selected_member_id,  # ✅ FIX (no int)
+                        "name": cust,
+                        "month": month,
+                        "start_date": start_date,
+                        "date": payment_date.strftime("%Y-%m-%d"),
                         "amount": amt,
-                        "note": note,
-                        "date": payment_date.strftime("%Y-%m-%d")
+                        "note": note   # ✅ added
                     }).execute()
 
                     st.success("Collection Saved ✅")
@@ -510,44 +552,32 @@ elif menu == "Collections":
                     st.cache_data.clear()
                     st.rerun()
 
-                except Exception as e:
-                    st.error(f"Error saving collection: {e}")
+                except:
+                    st.error("Error saving collection")
 
-    # ================= LOAD DATA =================
+    # LOAD COLLECTION DATA
     data = load_collections()
     df = pd.DataFrame(data)
 
-    if not df.empty and not members.empty:
+    st.dataframe(df)
 
-        # ✅ MAP MEMBER NAME
-        member_map = dict(zip(members["id"], members["name"]))
-        df["member_name"] = df["member_id"].map(member_map)
+    if not df.empty:
 
-        st.dataframe(df)
-
-        # ✅ LABEL FIX
-        df["label"] = (
-            df["member_name"].fillna("Unknown")
-            + " | ₹"
-            + df["amount"].astype(str)
-        )
+        df["label"] = df["name"] + " | " + df["month"] + " | ₹" + df["amount"].astype(str)
 
         selected = st.selectbox("Select Entry", df["label"])
         row = df[df["label"] == selected].iloc[0]
 
         new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
-        new_note = st.text_input("Edit Note", value=row.get("note", ""))
 
         col1, col2 = st.columns(2)
 
-        # ✅ UPDATE
         with col1:
             if not is_viewer:
                 if st.button("Update Collection"):
                     try:
                         supabase.table("collections").update({
-                            "amount": new_amt,
-                            "note": new_note
+                            "amount": new_amt
                         }).eq("id", row["id"]).execute()
 
                         st.success("Updated ✅")
@@ -555,10 +585,9 @@ elif menu == "Collections":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except Exception as e:
-                        st.error(f"Update failed: {e}")
+                    except:
+                        st.error("Update failed")
 
-        # ✅ DELETE
         with col2:
             if is_admin:
                 if st.button("Delete Collection"):
@@ -570,55 +599,62 @@ elif menu == "Collections":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except Exception as e:
-                        st.error(f"Delete failed: {e}")
+                    except:
+                        st.error("Delete failed")
 # ========================= LOANS =========================
 elif menu == "loans":
 
     st.subheader("💰 Loan Management")
 
-    # ================= LOAD DATA =================
+    # ✅ CACHE DATA
     @st.cache_data(ttl=60)
     def load_all_data():
         try:
-            members = supabase.table("members").select("*").execute().data
+            customers = supabase.table("customers").select("name").execute().data
         except:
-            members = []
+            customers = []
 
         try:
             loans = supabase.table("loans").select("*").execute().data
         except:
             loans = []
 
-        return members, loans
+        try:
+            payments = supabase.table("loan_payments").select("*").execute().data
+        except:
+            payments = []
 
-    members_data, loans_data = load_all_data()
+        return customers, loans, payments
 
-    members = pd.DataFrame(members_data)
+    customers_data, loans_data, payments_data = load_all_data()
+
+    customers = pd.DataFrame(customers_data)
     loans_df = pd.DataFrame(loans_data)
+    payments_df = pd.DataFrame(payments_data)
 
-    # ================= ADD LOAN =================
+    # ===== ADD LOAN =====
     st.markdown("### ➕ Add Loan")
 
-    if members.empty:
+    if customers.empty:
         st.warning("No members found")
     else:
-        selected_member_id = st.selectbox(
-            "Member",
-            members["id"],
-            format_func=lambda x: members[members["id"] == x]["name"].values[0]
-        )
-
+        cust = st.selectbox("Member", customers["name"])
         loan_amt = st.number_input("Loan Amount", min_value=0.0)
-        note = st.text_input("Note")
+        interest_rate = st.number_input("Interest % per month", value=1.0)
+        loan_date = st.date_input("Loan Start Date")
+
+        # ✅ NOTE FIELD
+        note = st.text_input("📝 Note / Comment", key="loan_note")
 
         if not is_viewer:
-            if st.button("Add Loan"):
+            if st.button("Add Loan", key="add_loan_btn"):
                 try:
                     supabase.table("loans").insert({
-                        "member_id": selected_member_id,
+                        "customer_name": cust,
                         "amount": loan_amt,
-                        "note": note
+                        "interest_rate": interest_rate,
+                        "start_date": loan_date.strftime("%Y-%m-%d"),
+                        "note": note   # ✅ added
                     }).execute()
 
                     st.success("Loan Added ✅")
@@ -626,170 +662,221 @@ elif menu == "loans":
                     st.cache_data.clear()
                     st.rerun()
 
-                except Exception as e:
-                    st.error(f"Error adding loan: {e}")
+                except:
+                    st.error("Error adding loan")
 
     st.markdown("---")
 
-    # ================= SHOW LOANS =================
-    if not loans_df.empty and not members.empty:
+    # ===== SHOW EXISTING LOANS =====
+    if not loans_df.empty:
+        st.markdown("📌 Existing loans:")
+        for _, row in loans_df.iterrows():
+            st.write(f"Loan ID: {row['id']} | {row['customer_name']} | ₹{row['amount']}")
 
-        member_map = dict(zip(members["id"], members["name"]))
-        loans_df["member_name"] = loans_df["member_id"].map(member_map)
+    # ===== SELECT LOAN =====
+    if loans_df.empty:
+        st.info("No loans available")
+        st.stop()
 
-        loans_df["label"] = (
-            loans_df["member_name"].fillna("Unknown")
-            + " | Loan #"
-            + loans_df["id"].astype(str)
-            + " | ₹"
-            + loans_df["amount"].astype(str)
-        )
+    loans_df["label"] = loans_df.apply(
+        lambda x: f"{x['customer_name']} | Loan #{int(x['id'])} | ₹{x['amount']}",
+        axis=1
+    )
 
-        selected = st.selectbox("Select Loan", loans_df["label"])
-        row = loans_df[loans_df["label"] == selected].iloc[0]
+    selected = st.selectbox("Select Loan", loans_df["label"])
+    loan_id = int(selected.split("|")[1].replace("Loan #", "").strip())
 
-        # ================= DISPLAY =================
-        st.markdown("### 📊 Loan Details")
-        st.write(f"Member: {row['member_name']}")
-        st.write(f"Amount: ₹{row['amount']}")
-        st.write(f"Note: {row.get('note', '')}")
+    loan_row = loans_df[loans_df["id"].astype(int) == loan_id]
 
-        new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
-        new_note = st.text_input("Edit Note", value=row.get("note", ""))
+    if loan_row.empty:
+        st.error("Loan not found")
+        st.stop()
 
-        col1, col2 = st.columns(2)
+    loan = loan_row.iloc[0]
 
-        # ✅ UPDATE
-        with col1:
-            if not is_viewer:
-                if st.button("Update Loan"):
-                    try:
-                        supabase.table("loans").update({
-                            "amount": new_amt,
-                            "note": new_note
-                        }).eq("id", row["id"]).execute()
+    # ===== ADD PAYMENT =====
+    st.markdown("### ➕ Add Payment")
 
-                        st.success("Updated ✅")
+    if not is_viewer:
+        pay_amt = st.number_input("Payment Amount", min_value=0.0)
+        pay_date = st.date_input("Payment Date")
 
-                        st.cache_data.clear()
-                        st.rerun()
+        # ✅ NOTE FIELD FOR PAYMENT
+        pay_note = st.text_input("📝 Payment Note", key="loan_payment_note")
 
-                    except Exception as e:
-                        st.error(f"Update failed: {e}")
+        if st.button("Add Payment", key="add_payment_btn"):
+            if pay_amt > 0:
+                try:
+                    supabase.table("loan_payments").insert({
+                        "loan_id": loan_id,
+                        "amount": pay_amt,
+                        "date": pay_date.strftime("%Y-%m-%d"),
+                        "note": pay_note   # ✅ added
+                    }).execute()
 
-        # ✅ DELETE
-        with col2:
-            if is_admin:
-                if st.button("Delete Loan"):
-                    try:
-                        supabase.table("loans").delete().eq("id", row["id"]).execute()
+                    st.success("Payment Added ✅")
 
-                        st.warning("Deleted ⚠️")
+                    st.cache_data.clear()
+                    st.rerun()
 
-                        st.cache_data.clear()
-                        st.rerun()
+                except:
+                    st.error("Error adding payment")
 
-                    except Exception as e:
-                        st.error(f"Delete failed: {e}")
+    # ===== SUMMARY + MONTHLY SYSTEM =====
+    from datetime import datetime
+
+    principal = loan["amount"]
+    rate = loan["interest_rate"]
+
+    cust_payments = payments_df[payments_df["loan_id"] == loan_id].sort_values("date")
+
+    total_paid = cust_payments["amount"].sum() if not cust_payments.empty else 0
+
+    start_date = loan["start_date"]
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, "%Y-%m-%d")
+
+    today = datetime.today()
+
+    payment_map = {}
+    for _, p in cust_payments.iterrows():
+        key = p["date"][:7]
+        payment_map[key] = payment_map.get(key, 0) + p["amount"]
+
+    timeline = []
+    current_date = start_date
+    running_principal = principal
+
+    while current_date <= today:
+
+        month_str = current_date.strftime("%Y-%m")
+
+        principal_before = running_principal
+        interest = (principal_before * rate) / 100
+        payment = payment_map.get(month_str, 0)
+
+        balance_after = principal_before + interest - payment
+        running_principal = balance_after
+
+        timeline.append({
+            "Month": current_date.strftime("%b %Y"),
+            "Principal": round(principal_before, 2),
+            "Interest": round(interest, 2),
+            "Payment": payment,
+            "Balance": round(balance_after, 2)
+        })
+
+        if current_date.month == 12:
+            current_date = current_date.replace(year=current_date.year + 1, month=1)
+        else:
+            current_date = current_date.replace(month=current_date.month + 1)
+
+    total_interest = sum(x["Interest"] for x in timeline)
+    balance = timeline[-1]["Balance"] if timeline else principal
+
+    # ===== DISPLAY =====
+    st.markdown("### 📊 Loan Summary")
+    st.write(f"Principal: ₹{principal}")
+    st.write(f"Total Paid: ₹{total_paid}")
+    st.write(f"Total Interest: ₹{round(total_interest, 2)}")
+    st.write(f"Balance: ₹{round(balance, 2)}")
+
+    st.markdown("### 📅 Monthly Breakdown")
+    timeline_df = pd.DataFrame(timeline)
+    st.dataframe(timeline_df)
+
+    # ===== DELETE =====
+    st.markdown("---")
+
+    if is_admin:
+        if st.button("Delete Loan", key="delete_loan_btn"):
+            try:
+                supabase.table("loans").delete().eq("id", loan_id).execute()
+                supabase.table("loan_payments").delete().eq("loan_id", loan_id).execute()
+
+                st.success("Loan Deleted 🗑️")
+
+                st.cache_data.clear()
+                st.rerun()
+
+            except:
+                st.error("Delete failed")
 # ================= DONATIONS =================
 elif menu == "Donations":
 
     st.subheader("🎁 Donations Management")
 
-    # ================= LOAD DATA =================
+    # ✅ CACHE DATA
     @st.cache_data(ttl=60)
-    def load_data():
+    def load_donations():
         try:
-            members = supabase.table("members").select("*").execute().data
+            return supabase.table("donations").select("*").execute().data
         except:
-            members = []
+            return []
 
-        try:
-            donations = supabase.table("donations").select("*").execute().data
-        except:
-            donations = []
-
-        return members, donations
-
-    members_data, donations_data = load_data()
-
-    members = pd.DataFrame(members_data)
-    df = pd.DataFrame(donations_data)
-
-    # ================= ADD DONATION =================
+    # ===== ADD DONATION =====
     if not is_viewer:
+        donor = st.text_input("Donor Name")
+        date = st.date_input("Date")
+        amt = st.number_input("Amount", min_value=0.0)
 
-        if members.empty:
-            st.warning("No members found")
-        else:
-            selected_member_id = st.selectbox(
-                "Member",
-                members["id"],
-                format_func=lambda x: members[members["id"] == x]["name"].values[0]
-            )
+        # ✅ NOTE FIELD ADDED
+        note = st.text_input("📝 Note / Comment", key="donation_note")
 
-            date = st.date_input("Date")
-            amt = st.number_input("Amount", min_value=0.0)
-            note = st.text_input("Note (optional)")
+        if st.button("Save Donation", key="save_donation"):
+            if donor and amt > 0:
+                try:
+                    supabase.table("donations").insert({
+                        "name": donor,
+                        "amount": amt,
+                        "date": date.strftime("%Y-%m-%d"),
+                        "note": note   # ✅ added
+                    }).execute()
 
-            if st.button("Save Donation"):
-                if amt > 0:
-                    try:
-                        supabase.table("donations").insert({
-                            "member_id": selected_member_id,
-                            "amount": amt,
-                            "date": date.strftime("%Y-%m-%d"),
-                            "note": note
-                        }).execute()
+                    st.success("Donation Saved ✅")
 
-                        st.success("Donation Saved ✅")
+                    st.cache_data.clear()
+                    st.rerun()
 
-                        st.cache_data.clear()
-                        st.rerun()
-
-                    except Exception as e:
-                        st.error(f"Error saving donation: {e}")
-                else:
-                    st.warning("Enter valid amount ⚠️")
+                except:
+                    st.error("Error saving donation")
+            else:
+                st.warning("Enter valid details ⚠️")
     else:
         st.info("View Only Mode 👁️")
 
     st.markdown("---")
 
-    # ================= DISPLAY =================
-    if not df.empty and not members.empty:
+    # ===== SHOW DATA =====
+    data = load_donations()
+    df = pd.DataFrame(data)
 
-        member_map = dict(zip(members["id"], members["name"]))
-        df["member_name"] = df["member_id"].map(member_map)
+    st.dataframe(df)
 
-        st.dataframe(df)
+    # ===== EDIT / DELETE =====
+    if not df.empty:
 
-        df["label"] = (
-            df["member_name"].fillna("Unknown")
-            + " | ₹"
-            + df["amount"].astype(str)
-            + " | "
-            + df["date"]
-        )
+        df["label"] = df["name"] + " | ₹" + df["amount"].astype(str) + " | " + df["date"]
 
         selected = st.selectbox("Select Donation", df["label"])
+
         row = df[df["label"] == selected].iloc[0]
 
+        new_name = st.text_input("Edit Name", value=row["name"])
         new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
         new_date = st.date_input("Edit Date", value=pd.to_datetime(row["date"]))
-        new_note = st.text_input("Edit Note", value=row.get("note", ""))
 
         col1, col2 = st.columns(2)
 
-        # ✅ UPDATE
+        # ===== UPDATE =====
         with col1:
             if not is_viewer:
-                if st.button("Update Donation"):
+                if st.button("Update Donation", key="update_donation"):
                     try:
                         supabase.table("donations").update({
+                            "name": new_name,
                             "amount": new_amt,
-                            "date": new_date.strftime("%Y-%m-%d"),
-                            "note": new_note
+                            "date": new_date.strftime("%Y-%m-%d")
                         }).eq("id", row["id"]).execute()
 
                         st.success("Updated ✅")
@@ -797,13 +884,13 @@ elif menu == "Donations":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except Exception as e:
-                        st.error(f"Update failed: {e}")
+                    except:
+                        st.error("Update failed")
 
-        # ✅ DELETE
+        # ===== DELETE =====
         with col2:
             if is_admin:
-                if st.button("Delete Donation"):
+                if st.button("Delete Donation", key="delete_donation"):
                     try:
                         supabase.table("donations").delete().eq("id", row["id"]).execute()
 
@@ -812,14 +899,14 @@ elif menu == "Donations":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except Exception as e:
-                        st.error(f"Delete failed: {e}")
+                    except:
+                        st.error("Delete failed")
 # ================= EXPENSES =================
 elif menu == "Expenses":
 
     st.subheader("💸 Expense Management")
 
-    # ================= LOAD DATA =================
+    # ✅ CACHE DATA
     @st.cache_data(ttl=60)
     def load_expenses():
         try:
@@ -829,18 +916,21 @@ elif menu == "Expenses":
 
     # ===== ADD EXPENSE =====
     if not is_viewer:
-
-        note = st.text_input("Expense Note")
+        exp_type = st.text_input("Expense Type")
         date = st.date_input("Date")
         amt = st.number_input("Amount", min_value=0.0)
 
-        if st.button("Save Expense"):
-            if amt > 0:
+        # ✅ NOTE FIELD ADDED
+        note = st.text_input("📝 Note / Comment", key="expense_note")
+
+        if st.button("Save Expense", key="save_expense"):
+            if exp_type and amt > 0:
                 try:
                     supabase.table("expenses").insert({
+                        "type": exp_type,
                         "amount": amt,
-                        "note": note,
-                        "date": date.strftime("%Y-%m-%d")
+                        "date": date.strftime("%Y-%m-%d"),
+                        "note": note   # ✅ added
                     }).execute()
 
                     st.success("Expense Saved ✅")
@@ -848,50 +938,45 @@ elif menu == "Expenses":
                     st.cache_data.clear()
                     st.rerun()
 
-                except Exception as e:
-                    st.error(f"Error saving expense: {e}")
+                except:
+                    st.error("Error saving expense")
             else:
-                st.warning("Enter valid amount ⚠️")
+                st.warning("Enter valid details ⚠️")
     else:
         st.info("View Only Mode 👁️")
 
     st.markdown("---")
 
-    # ================= SHOW DATA =================
+    # ===== SHOW DATA =====
     data = load_expenses()
     df = pd.DataFrame(data)
 
     st.dataframe(df)
 
-    # ================= EDIT / DELETE =================
+    # ===== EDIT / DELETE =====
     if not df.empty:
 
-        df["label"] = (
-            df["note"].fillna("No Note")
-            + " | ₹"
-            + df["amount"].astype(str)
-            + " | "
-            + df["date"]
-        )
+        df["label"] = df["type"] + " | ₹" + df["amount"].astype(str) + " | " + df["date"]
 
         selected = st.selectbox("Select Expense", df["label"])
+
         row = df[df["label"] == selected].iloc[0]
 
+        new_type = st.text_input("Edit Type", value=row["type"])
         new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
         new_date = st.date_input("Edit Date", value=pd.to_datetime(row["date"]))
-        new_note = st.text_input("Edit Note", value=row.get("note", ""))
 
         col1, col2 = st.columns(2)
 
         # ===== UPDATE =====
         with col1:
             if not is_viewer:
-                if st.button("Update Expense"):
+                if st.button("Update Expense", key="update_expense"):
                     try:
                         supabase.table("expenses").update({
+                            "type": new_type,
                             "amount": new_amt,
-                            "date": new_date.strftime("%Y-%m-%d"),
-                            "note": new_note
+                            "date": new_date.strftime("%Y-%m-%d")
                         }).eq("id", row["id"]).execute()
 
                         st.success("Updated ✅")
@@ -899,13 +984,13 @@ elif menu == "Expenses":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except Exception as e:
-                        st.error(f"Update failed: {e}")
+                    except:
+                        st.error("Update failed")
 
         # ===== DELETE =====
         with col2:
             if is_admin:
-                if st.button("Delete Expense"):
+                if st.button("Delete Expense", key="delete_expense"):
                     try:
                         supabase.table("expenses").delete().eq("id", row["id"]).execute()
 
@@ -914,16 +999,15 @@ elif menu == "Expenses":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except Exception as e:
-                        st.error(f"Delete failed: {e}")
+                    except:
+                        st.error("Delete failed")
 # ================= REPORT =================
 elif menu == "Reports":
 
     st.subheader("📊 Advanced Reports")
 
-    # ================= LOAD DATA =================
     @st.cache_data(ttl=60)
-    def load_all():
+    def load_all_reports_data():
         try:
             collections = supabase.table("collections").select("*").execute().data
         except:
@@ -940,127 +1024,158 @@ elif menu == "Reports":
             donations = []
 
         try:
-            members = supabase.table("members").select("*").execute().data
+            customers = supabase.table("customers").select("*").execute().data
         except:
-            members = []
+            customers = []
 
-        return collections, expenses, donations, members
+        try:
+            loans = supabase.table("loans").select("*").execute().data
+        except:
+            loans = []
 
-    collections_data, expenses_data, donations_data, members_data = load_all()
+        try:
+            payments = supabase.table("loan_payments").select("*").execute().data
+        except:
+            payments = []
 
-    df = pd.DataFrame(collections_data)
+        return collections, expenses, donations, customers, loans, payments
+
+    collections_data, expenses_data, donations_data, customers_data, loans_data, payments_data = load_all_reports_data()
+
+    # 🔒 ORIGINAL DATA SAFE
+    df_original = pd.DataFrame(collections_data)
+
+    df = df_original.copy()
     expense_df = pd.DataFrame(expenses_data)
     donation_df = pd.DataFrame(donations_data)
-    members_df = pd.DataFrame(members_data)
+    all_customers = pd.DataFrame(customers_data)
+    loans_df = pd.DataFrame(loans_data)
+    payments_df = pd.DataFrame(payments_data)
 
     # ================= DATE FILTER =================
-    col1, col2 = st.columns(2)
-    from_date = col1.date_input("From Date")
-    to_date = col2.date_input("To Date")
+    st.markdown("### 📅 Date Filter")
+    from_date = st.date_input("From Date")
+    to_date = st.date_input("To Date")
 
-    # ================= CONVERT DATE =================
     if not df.empty:
-        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        df["date"] = pd.to_datetime(df["date"])
         df = df[(df["date"] >= pd.to_datetime(from_date)) & (df["date"] <= pd.to_datetime(to_date))]
 
-    if not expense_df.empty:
-        expense_df["date"] = pd.to_datetime(expense_df["date"], errors="coerce")
-        expense_df = expense_df[(expense_df["date"] >= pd.to_datetime(from_date)) & (expense_df["date"] <= pd.to_datetime(to_date))]
+    if not df.empty:
 
-    if not donation_df.empty:
-        donation_df["date"] = pd.to_datetime(donation_df["date"], errors="coerce")
-        donation_df = donation_df[(donation_df["date"] >= pd.to_datetime(from_date)) & (donation_df["date"] <= pd.to_datetime(to_date))]
+        # ================= MONTH FILTER =================
+        month_list = sorted(df_original["month"].unique())
+        selected_month = st.selectbox("Select Month", month_list)
 
-    # ================= SUMMARY =================
-    st.markdown("### 📅 Summary")
+        df_month = df[df["month"] == selected_month]
 
-    total_collection = df["amount"].sum() if not df.empty else 0
-    total_expense = expense_df["amount"].sum() if not expense_df.empty else 0
-    total_donation = donation_df["amount"].sum() if not donation_df.empty else 0
+        # ================= SUMMARY =================
+        st.markdown("### 📅 Monthly Summary")
 
-    balance = total_collection + total_donation - total_expense
+        total_collection = df_month["amount"].sum()
+        total_expense = expense_df["amount"].sum() if not expense_df.empty else 0
+        total_donation = donation_df["amount"].sum() if not donation_df.empty else 0
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Collection", f"₹ {total_collection}")
-    c2.metric("Donations", f"₹ {total_donation}")
-    c3.metric("Expenses", f"₹ {total_expense}")
-    c4.metric("Balance", f"₹ {balance}")
+        balance = total_collection + total_donation - total_expense
 
-    # ================= MEMBER REPORT =================
-    st.markdown("### 👤 Member-wise Collection")
+        c1, c2, c3, c4 = st.columns(4)
 
-    if not df.empty and not members_df.empty:
+        c1.metric("Collection", f"₹ {total_collection}")
+        c2.metric("Donations", f"₹ {total_donation}")
+        c3.metric("Expenses", f"₹ {total_expense}")
+        c4.metric("Balance", f"₹ {balance}")
 
-        member_map = dict(zip(members_df["id"], members_df["name"]))
-        df["member_name"] = df["member_id"].map(member_map)
+        # ================= CUSTOMER REPORT =================
+        st.markdown("### 👤 Customer-wise Report")
+        customer_summary = df_month.groupby("name")["amount"].sum().reset_index()
+        st.dataframe(customer_summary)
 
-        report_df = df.groupby("member_name")["amount"].sum().reset_index()
+        # ================= LOAN REPORT =================
+        st.markdown("### 💰 Loan Report")
 
-        st.dataframe(report_df)
+        if not loans_df.empty:
+            report = []
+            for _, loan in loans_df.iterrows():
+                loan_id = loan["id"]
+                principal = loan["amount"]
+                rate = loan["interest_rate"]
+
+                loan_payments = payments_df[payments_df["loan_id"] == loan_id]
+                paid = loan_payments["amount"].sum() if not loan_payments.empty else 0
+
+                interest = (principal * rate) / 100
+                balance_loan = principal + interest - paid
+
+                report.append({
+                    "Member": loan["customer_name"],
+                    "Principal": principal,
+                    "Interest": round(interest,2),
+                    "Paid": paid,
+                    "Balance": round(balance_loan,2),
+                    "Note": loan.get("note","")
+                })
+
+            st.dataframe(pd.DataFrame(report))
+
+        # ================= DONATION REPORT =================
+        st.markdown("### 🎁 Donation Report")
+        st.dataframe(donation_df)
+
+        # ================= EXPENSE REPORT =================
+        st.markdown("### 💸 Expense Report")
+        st.dataframe(expense_df)
+
+        # ================= 🔔 SMART REMINDER SYSTEM =================
+        st.markdown("### 🔔 Smart Reminder System")
+
+        paid_customers = df_original[df_original["month"] == selected_month]["name"].unique()
+
+        pending_list = all_customers[
+            ~all_customers["name"].isin(paid_customers)
+        ]
+
+        total_pending = len(pending_list)
+
+        if not pending_list.empty:
+
+            st.warning(f"Pending Members: {total_pending}")
+            st.dataframe(pending_list)
+
+        else:
+            st.success("✅ All customers have paid for this month")
+
+        # ================= ⚠️ RISK =================
+        st.markdown("### ⚠️ Risk Analysis")
+
+        try:
+            all_months = df_original["month"].unique()
+
+            risk_data = []
+
+            for cust in all_customers["name"]:
+                paid_months = df_original[df_original["name"] == cust]["month"].unique()
+                missed = len(set(all_months) - set(paid_months))
+
+                risk_data.append({
+                    "Customer": cust,
+                    "Missed Months": missed
+                })
+
+            st.dataframe(pd.DataFrame(risk_data))
+
+        except:
+            pass
+
+        # ================= DOWNLOAD =================
+        st.markdown("### 📥 Download")
+
+        def convert_df(df):
+            return df.to_csv(index=False).encode('utf-8')
+
+        st.download_button("Download Collections", convert_df(df_month), "collections.csv")
 
     else:
-        st.info("No data available")
-
-    # ================= DOWNLOAD =================
-    st.markdown("---")
-    st.markdown("## 📥 Download Reports")
-
-    tab1, tab2 = st.tabs(["👤 Member Report", "💸 Finance Report"])
-
-    # ===== MEMBER REPORT =====
-    with tab1:
-        if not df.empty:
-
-            csv = report_df.to_csv(index=False).encode("utf-8")
-
-            st.download_button(
-                "⬇️ Download Member Report (CSV)",
-                data=csv,
-                file_name="member_report.csv",
-                use_container_width=True
-            )
-
-        else:
-            st.info("No member data")
-
-    # ===== FINANCE REPORT =====
-    with tab2:
-
-        combined = []
-
-        for _, r in donation_df.iterrows():
-            combined.append({
-                "Date": r["date"],
-                "Type": "Donation",
-                "Amount": r["amount"],
-                "Note": r.get("note", "")
-            })
-
-        for _, r in expense_df.iterrows():
-            combined.append({
-                "Date": r["date"],
-                "Type": "Expense",
-                "Amount": r["amount"],
-                "Note": r.get("note", "")
-            })
-
-        fin_df = pd.DataFrame(combined)
-
-        if not fin_df.empty:
-
-            csv = fin_df.to_csv(index=False).encode("utf-8")
-
-            st.dataframe(fin_df)
-
-            st.download_button(
-                "⬇️ Download Finance Report (CSV)",
-                data=csv,
-                file_name="finance_report.csv",
-                use_container_width=True
-            )
-
-        else:
-            st.info("No finance data")
+        st.info("No collection data available yet")
 # ================= USERS =================
 if menu == "Users":
 
