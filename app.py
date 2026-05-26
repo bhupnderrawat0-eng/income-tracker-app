@@ -413,7 +413,7 @@ if menu == "Dashboard":
     except Exception as e:
         st.error(f"Chart Error: {e}")
 # ========================= MEMBERS =========================
-elif menu == "Customers":
+elif menu == "Members":
 
     st.subheader("👤 Member Management")
 
