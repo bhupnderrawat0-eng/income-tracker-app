@@ -981,11 +981,10 @@ elif menu == "loans":
 
                         "loan_id": loan_id,
 
-                        # ✅ total amount
                         "amount": principal_payment + interest_payment,
 
-                        # ✅ separate fields
                         "principal_paid": principal_payment,
+
                         "interest_paid": interest_payment,
 
                         "date": pay_date.strftime("%Y-%m-%d"),
@@ -1019,9 +1018,13 @@ elif menu == "loans":
 
     # ================= CALCULATIONS =================
 
-    principal = float(loan.get("amount", 0))
+    original_principal = float(
+        loan.get("amount", 0)
+    )
 
-    rate = float(loan.get("interest_rate", 0))
+    rate = float(
+        loan.get("interest_rate", 0)
+    )
 
     total_paid = (
 
@@ -1073,8 +1076,11 @@ elif menu == "loans":
 
     current_date = start_date
 
-    # ✅ running balance
-    running_principal = principal
+    # ✅ actual principal only
+    running_principal = original_principal
+
+    # ✅ displayed balance
+    running_balance = original_principal
 
     while current_date <= today:
 
@@ -1092,26 +1098,27 @@ elif menu == "loans":
             0
         )
 
-        # ================= REDUCE PRINCIPAL =================
+        # ================= PRINCIPAL REDUCE =================
 
         principal_after_payment = max(
             running_principal - principal_payment,
             0
         )
 
-        # ================= INTEREST =================
+        # ================= FIXED INTEREST =================
 
         interest = (
             principal_after_payment * rate
         ) / 100
 
-        # ================= FINAL BALANCE =================
+        # ================= BALANCE =================
 
-        balance_after = (
+        running_balance = (
 
-            principal_after_payment
-            + interest
+            running_balance
+            - principal_payment
             - interest_payment
+            + interest
 
         )
 
@@ -1120,29 +1127,31 @@ elif menu == "loans":
             "Month": current_date.strftime("%b %Y"),
 
             "Principal": round(
-                principal_after_payment,
-                2
+                principal_after_payment
             ),
 
             "Interest": round(
-                interest,
-                2
+                interest
             ),
 
-            "Principal Paid": principal_payment,
+            "Principal Paid": round(
+                principal_payment
+            ),
 
-            "Interest Paid": interest_payment,
+            "Interest Paid": round(
+                interest_payment
+            ),
 
             "Balance": round(
-                balance_after,
-                2
+                running_balance
             )
 
         })
 
-        # ================= NEXT MONTH =================
+        # ✅ only principal carried
+        running_principal = principal_after_payment
 
-        running_principal = balance_after
+        # ================= NEXT MONTH =================
 
         if current_date.month == 12:
 
@@ -1177,7 +1186,7 @@ elif menu == "loans":
 
         if timeline
 
-        else principal
+        else original_principal
 
     )
 
@@ -1185,16 +1194,16 @@ elif menu == "loans":
 
     st.markdown("### 📊 Loan Summary")
 
-    st.write(f"Principal: ₹{principal}")
+    st.write(f"Original Principal: ₹{round(original_principal)}")
 
-    st.write(f"Total Paid: ₹{total_paid}")
+    st.write(f"Total Paid: ₹{round(total_paid)}")
 
     st.write(
-        f"Total Interest: ₹{round(total_interest, 2)}"
+        f"Total Interest: ₹{round(total_interest)}"
     )
 
     st.write(
-        f"Balance: ₹{round(balance, 2)}"
+        f"Balance: ₹{round(balance)}"
     )
 
     # ================= TIMELINE =================
@@ -1208,37 +1217,107 @@ elif menu == "loans":
         use_container_width=True
     )
 
-    # ================= DELETE =================
+    # ================= EDIT LOAN =================
 
     st.markdown("---")
+    st.markdown("### ✏️ Edit Loan")
 
-    if is_admin:
+    edit_loan_amt = st.number_input(
+        "Edit Loan Amount",
+        min_value=0.0,
+        value=float(loan.get("amount", 0)),
+        key="edit_loan_amount"
+    )
 
-        if st.button(
-            "Delete Loan",
-            key="delete_loan_btn"
-        ):
+    edit_interest_rate = st.number_input(
+        "Edit Interest Rate %",
+        min_value=0.0,
+        value=float(loan.get("interest_rate", 0)),
+        key="edit_interest_rate"
+    )
 
-            try:
+    edit_start_date = st.date_input(
+        "Edit Start Date",
+        value=pd.to_datetime(loan.get("start_date")),
+        key="edit_start_date"
+    )
 
-                supabase.table("loans").delete().eq(
-                    "id",
-                    loan_id
-                ).execute()
+    edit_note = st.text_input(
+        "Edit Loan Note",
+        value=loan.get("note", ""),
+        key="edit_loan_note"
+    )
 
-                supabase.table("loan_payments").delete().eq(
-                    "loan_id",
-                    loan_id
-                ).execute()
+    col1, col2 = st.columns(2)
 
-                st.success("Loan Deleted 🗑️")
+    # ================= UPDATE LOAN =================
 
-                st.cache_data.clear()
-                st.rerun()
+    with col1:
 
-            except Exception as e:
+        if not is_viewer:
 
-                st.error(f"Delete failed: {e}")
+            if st.button(
+                "Update Loan",
+                key="update_loan_btn"
+            ):
+
+                try:
+
+                    supabase.table("loans").update({
+
+                        "amount": edit_loan_amt,
+
+                        "interest_rate": edit_interest_rate,
+
+                        "start_date": edit_start_date.strftime("%Y-%m-%d"),
+
+                        "note": edit_note
+
+                    }).eq(
+                        "id",
+                        loan_id
+                    ).execute()
+
+                    st.success("Loan Updated ✅")
+
+                    st.cache_data.clear()
+                    st.rerun()
+
+                except Exception as e:
+
+                    st.error(f"Update failed: {e}")
+
+    # ================= DELETE LOAN =================
+
+    with col2:
+
+        if is_admin:
+
+            if st.button(
+                "Delete Loan",
+                key="delete_loan_btn"
+            ):
+
+                try:
+
+                    supabase.table("loans").delete().eq(
+                        "id",
+                        loan_id
+                    ).execute()
+
+                    supabase.table("loan_payments").delete().eq(
+                        "loan_id",
+                        loan_id
+                    ).execute()
+
+                    st.success("Loan Deleted 🗑️")
+
+                    st.cache_data.clear()
+                    st.rerun()
+
+                except Exception as e:
+
+                    st.error(f"Delete failed: {e}")
 # ================= DONATIONS =================
 elif menu == "Donations":
 
