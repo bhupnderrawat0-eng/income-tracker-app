@@ -773,9 +773,11 @@ elif menu == "Collections":
 # ========================= LOANS =========================
 elif menu == "loans":
 
+    from datetime import datetime
+
     st.subheader("💰 Loan Management")
 
-    # ================= CACHE DATA =================
+    # ================= LOAD DATA =================
 
     @st.cache_data(ttl=60)
     def load_all_data():
@@ -814,7 +816,9 @@ elif menu == "loans":
     else:
 
         member_options = {
+
             f"{row.get('customer_id', 'NO-ID')} | {row['name']}": row
+
             for _, row in members_df.iterrows()
         }
 
@@ -842,8 +846,6 @@ elif menu == "loans":
         loan_date = st.date_input(
             "Loan Start Date"
         )
-
-        # ================= NOTE =================
 
         note = st.text_input(
             "📝 Note / Comment",
@@ -893,25 +895,30 @@ elif menu == "loans":
         for _, row in loans_df.iterrows():
 
             st.write(
+
                 f"{row.get('customer_id', 'NO-ID')} | "
-                f"{row['customer_name']} | "
-                f"₹{row['amount']}"
+                f"{row.get('customer_name', 'Unknown')} | "
+                f"₹{row.get('amount', 0)}"
+
             )
 
-    # ================= SELECT LOAN =================
+    # ================= NO LOANS =================
 
     if loans_df.empty:
 
         st.info("No loans available")
         st.stop()
 
+    # ================= LABEL =================
+
     loans_df["label"] = loans_df.apply(
 
         lambda x:
+
         f"{x.get('customer_id', 'NO-ID')} | "
-        f"{x['customer_name']} | "
+        f"{x.get('customer_name', 'Unknown')} | "
         f"Loan #{x['id']} | "
-        f"₹{x['amount']}",
+        f"₹{x.get('amount', 0)}",
 
         axis=1
     )
@@ -921,22 +928,18 @@ elif menu == "loans":
         loans_df["label"]
     )
 
-    loan_id = int(
-        selected.split("|")[2]
-        .replace("Loan #", "")
-        .strip()
-    )
-
-    loan_row = loans_df[
-        loans_df["id"].astype(int) == loan_id
+    selected_row = loans_df[
+        loans_df["label"] == selected
     ]
 
-    if loan_row.empty:
+    if selected_row.empty:
 
         st.error("Loan not found")
         st.stop()
 
-    loan = loan_row.iloc[0]
+    loan = selected_row.iloc[0]
+
+    loan_id = int(loan["id"])
 
     # ================= ADD PAYMENT =================
 
@@ -985,30 +988,37 @@ elif menu == "loans":
 
                     st.error(f"Error adding payment: {e}")
 
-    # ================= SUMMARY =================
-
-    from datetime import datetime
-
-    principal = loan["amount"]
-    rate = loan["interest_rate"]
+    # ================= SAFE PAYMENTS =================
 
     if payments_df.empty or "loan_id" not in payments_df.columns:
 
-    cust_payments = pd.DataFrame()
+        cust_payments = pd.DataFrame()
 
-else:
+    else:
 
-    cust_payments = payments_df[
-        payments_df["loan_id"] == loan_id
-    ].sort_values("date")
+        cust_payments = payments_df[
+
+            payments_df["loan_id"] == loan_id
+
+        ].sort_values("date")
+
+    # ================= CALCULATIONS =================
+
+    principal = float(loan.get("amount", 0))
+
+    rate = float(loan.get("interest_rate", 0))
 
     total_paid = (
+
         cust_payments["amount"].sum()
+
         if not cust_payments.empty
+
         else 0
+
     )
 
-    start_date = loan["start_date"]
+    start_date = loan.get("start_date")
 
     if isinstance(start_date, str):
 
@@ -1021,14 +1031,19 @@ else:
 
     payment_map = {}
 
-    for _, p in cust_payments.iterrows():
+    if not cust_payments.empty:
 
-        key = p["date"][:7]
+        for _, p in cust_payments.iterrows():
 
-        payment_map[key] = (
-            payment_map.get(key, 0)
-            + p["amount"]
-        )
+            key = str(p["date"])[:7]
+
+            payment_map[key] = (
+
+                payment_map.get(key, 0)
+
+                + p["amount"]
+
+            )
 
     timeline = []
 
@@ -1042,7 +1057,9 @@ else:
         principal_before = running_principal
 
         interest = (
+
             principal_before * rate
+
         ) / 100
 
         payment = payment_map.get(
@@ -1051,9 +1068,11 @@ else:
         )
 
         balance_after = (
+
             principal_before
             + interest
             - payment
+
         )
 
         running_principal = balance_after
@@ -1078,33 +1097,47 @@ else:
                 balance_after,
                 2
             )
+
         })
+
+        # NEXT MONTH
 
         if current_date.month == 12:
 
             current_date = current_date.replace(
+
                 year=current_date.year + 1,
                 month=1
+
             )
 
         else:
 
             current_date = current_date.replace(
+
                 month=current_date.month + 1
+
             )
 
     total_interest = sum(
+
         x["Interest"]
+
         for x in timeline
+
     )
 
     balance = (
+
         timeline[-1]["Balance"]
+
         if timeline
+
         else principal
+
     )
 
-    # ================= DISPLAY =================
+    # ================= SUMMARY =================
 
     st.markdown("### 📊 Loan Summary")
 
