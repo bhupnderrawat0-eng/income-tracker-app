@@ -992,6 +992,12 @@ elif menu == "loans":
     principal = loan["amount"]
     rate = loan["interest_rate"]
 
+    if payments_df.empty or "loan_id" not in payments_df.columns:
+
+    cust_payments = pd.DataFrame()
+
+else:
+
     cust_payments = payments_df[
         payments_df["loan_id"] == loan_id
     ].sort_values("date")
