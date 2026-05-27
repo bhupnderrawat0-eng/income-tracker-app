@@ -415,61 +415,128 @@ if menu == "Dashboard":
 # ========================= MEMBERS =========================
 elif menu == "Members":
 
+    import uuid
+
     st.subheader("👤 Member Management")
 
     name = st.text_input("Member Name")
     mobile = st.text_input("Mobile")
     start_date = st.date_input("Start Date")
+    notes = st.text_area("Notes")
+
+    # ================= ADD MEMBER =================
 
     if st.button("Add Member"):
+
+        if not name.strip():
+            st.warning("Please enter member name")
+            st.stop()
+
         try:
-            supabase.table("customers").insert({
-                "name": name,
-                "mobile": mobile,
-                "start_date": start_date.strftime("%Y-%m-%d")
+
+            customer_id = "MEM-" + str(uuid.uuid4())[:6].upper()
+
+            supabase.table("members").insert({
+                "customer_id": customer_id,
+                "name": name.strip(),
+                "mobile": mobile.strip(),
+                "start_date": start_date.strftime("%Y-%m-%d"),
+                "notes": notes.strip()
             }).execute()
 
-            st.success("Member Added ✅")
+            st.success(f"Member Added ✅ ({customer_id})")
 
             st.cache_data.clear()
             st.rerun()
 
-        except:
-            st.error("Error adding member")
+        except Exception as e:
+            st.error(f"Error adding member: {e}")
 
-    # ✅ CACHE DATA
+    # ================= CACHE DATA =================
+
     @st.cache_data(ttl=60)
-    def load_customers():
+    def load_members():
         try:
-            return supabase.table("customers").select("*").execute().data
+            return supabase.table("members").select("*").execute().data
         except:
             return []
 
-    data = load_customers()
+    data = load_members()
     df = pd.DataFrame(data)
 
-    st.dataframe(df)
+    # ================= SHOW DATA =================
 
     if not df.empty:
-        selected_id = st.selectbox("Select Member", df["id"])
+
+        show_columns = [
+            col for col in [
+                "customer_id",
+                "name",
+                "mobile",
+                "start_date",
+                "notes"
+            ]
+            if col in df.columns
+        ]
+
+        st.dataframe(
+            df[show_columns],
+            use_container_width=True
+        )
+
+        # ================= SELECT MEMBER =================
+
+        member_options = {
+            f"{row.get('customer_id', 'NO-ID')} | {row['name']}": row["id"]
+            for _, row in df.iterrows()
+        }
+
+        selected_member = st.selectbox(
+            "Select Member",
+            list(member_options.keys())
+        )
+
+        selected_id = member_options[selected_member]
+
         row = df[df["id"] == selected_id].iloc[0]
 
-        new_name = st.text_input("Edit Name", value=row["name"])
-        new_mobile = st.text_input("Edit Mobile", value=row["mobile"])
+        # ================= EDIT SECTION =================
+
+        new_name = st.text_input(
+            "Edit Name",
+            value=row["name"]
+        )
+
+        new_mobile = st.text_input(
+            "Edit Mobile",
+            value=row["mobile"]
+        )
+
         new_start = st.date_input(
             "Edit Start Date",
             value=pd.to_datetime(row["start_date"])
         )
 
+        new_notes = st.text_area(
+            "Edit Notes",
+            value=row.get("notes", "")
+        )
+
         col1, col2 = st.columns(2)
 
+        # ================= UPDATE =================
+
         with col1:
+
             if st.button("Update Member"):
+
                 try:
-                    supabase.table("customers").update({
-                        "name": new_name,
-                        "mobile": new_mobile,
-                        "start_date": new_start.strftime("%Y-%m-%d")
+
+                    supabase.table("members").update({
+                        "name": new_name.strip(),
+                        "mobile": new_mobile.strip(),
+                        "start_date": new_start.strftime("%Y-%m-%d"),
+                        "notes": new_notes.strip()
                     }).eq("id", selected_id).execute()
 
                     st.success("Updated ✅")
@@ -477,21 +544,29 @@ elif menu == "Members":
                     st.cache_data.clear()
                     st.rerun()
 
-                except:
-                    st.error("Update failed")
+                except Exception as e:
+                    st.error(f"Update failed: {e}")
+
+        # ================= DELETE =================
 
         with col2:
+
             if st.button("Delete Member"):
+
                 try:
-                    supabase.table("customers").delete().eq("id", selected_id).execute()
+
+                    supabase.table("members").delete().eq(
+                        "id",
+                        selected_id
+                    ).execute()
 
                     st.warning("Deleted ⚠️")
 
                     st.cache_data.clear()
                     st.rerun()
 
-                except:
-                    st.error("Delete failed")
+                except Exception as e:
+                    st.error(f"Delete failed: {e}")
 # ========================= COLLECTION =========================
 elif menu == "Collections":
 
