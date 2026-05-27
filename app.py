@@ -434,9 +434,12 @@ elif menu == "Members":
 
         try:
 
-            customer_id = "MEM-" + str(uuid.uuid4())[:6].upper()
+            unique_id = str(uuid.uuid4())
+
+            customer_id = "MEM-" + unique_id[:6].upper()
 
             supabase.table("members").insert({
+                "id": unique_id,
                 "customer_id": customer_id,
                 "name": name.strip(),
                 "mobile": mobile.strip(),
