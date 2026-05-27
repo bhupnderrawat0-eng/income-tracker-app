@@ -575,15 +575,17 @@ elif menu == "Collections":
 
     st.subheader("🔥 Collection Management")
 
-    # ✅ CACHE CUSTOMERS
+    # ================= LOAD MEMBERS =================
+
     @st.cache_data(ttl=60)
-    def load_customers():
+    def load_members():
         try:
-            return supabase.table("customers").select("name,start_date").execute().data
+            return supabase.table("members").select("*").execute().data
         except:
             return []
 
-    # ✅ CACHE COLLECTIONS
+    # ================= LOAD COLLECTIONS =================
+
     @st.cache_data(ttl=60)
     def load_collections():
         try:
@@ -591,13 +593,35 @@ elif menu == "Collections":
         except:
             return []
 
-    customers_data = load_customers()
-    customers = pd.DataFrame(customers_data)
+    members_data = load_members()
+    members_df = pd.DataFrame(members_data)
 
-    if customers.empty:
+    # ================= MEMBER SELECTION =================
+
+    if members_df.empty:
+
         st.warning("No members available")
+
     else:
-        cust = st.selectbox("Member", customers["name"])
+
+        member_options = {
+            f"{row.get('customer_id', 'NO-ID')} | {row['name']}": row
+            for _, row in members_df.iterrows()
+        }
+
+        selected_member = st.selectbox(
+            "Member",
+            list(member_options.keys())
+        )
+
+        member_row = member_options[selected_member]
+
+        member_name = member_row["name"]
+        member_id = member_row["id"]
+        customer_id = member_row.get("customer_id", "")
+        start_date = member_row.get("start_date", "")
+
+        # ================= FORM =================
 
         month = st.selectbox(
             "Month",
@@ -605,24 +629,33 @@ elif menu == "Collections":
         )
 
         payment_date = st.date_input("Payment Date")
+
         amt = st.number_input("Amount")
 
-        # ✅ NOTE FIELD ADDED
-        note = st.text_input("📝 Note / Comment", key="collection_note")
+        note = st.text_input(
+            "📝 Note / Comment",
+            key="collection_note"
+        )
+
+        # ================= SAVE =================
 
         if not is_viewer:
+
             if st.button("Save Collection"):
 
-                start_date = customers[customers["name"] == cust]["start_date"].values[0]
-
                 try:
+
                     supabase.table("collections").insert({
-                        "name": cust,
+
+                        "member_id": member_id,
+                        "customer_id": customer_id,
+                        "name": member_name,
                         "month": month,
                         "start_date": start_date,
                         "date": payment_date.strftime("%Y-%m-%d"),
                         "amount": amt,
-                        "note": note   # ✅ added
+                        "note": note
+
                     }).execute()
 
                     st.success("Collection Saved ✅")
@@ -630,32 +663,81 @@ elif menu == "Collections":
                     st.cache_data.clear()
                     st.rerun()
 
-                except:
-                    st.error("Error saving collection")
+                except Exception as e:
+                    st.error(f"Error saving collection: {e}")
 
-    # LOAD COLLECTION DATA
+    # ================= LOAD DATA =================
+
     data = load_collections()
     df = pd.DataFrame(data)
 
-    st.dataframe(df)
+    # ================= SHOW DATA =================
 
     if not df.empty:
 
-        df["label"] = df["name"] + " | " + df["month"] + " | ₹" + df["amount"].astype(str)
+        show_columns = [
+            col for col in [
+                "customer_id",
+                "name",
+                "month",
+                "amount",
+                "date",
+                "note"
+            ]
+            if col in df.columns
+        ]
 
-        selected = st.selectbox("Select Entry", df["label"])
+        st.dataframe(
+            df[show_columns],
+            use_container_width=True
+        )
+
+        # ================= SELECT ENTRY =================
+
+        df["label"] = (
+            df["customer_id"].fillna("NO-ID")
+            + " | "
+            + df["name"]
+            + " | "
+            + df["month"]
+            + " | ₹"
+            + df["amount"].astype(str)
+        )
+
+        selected = st.selectbox(
+            "Select Entry",
+            df["label"]
+        )
+
         row = df[df["label"] == selected].iloc[0]
 
-        new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
+        new_amt = st.number_input(
+            "Edit Amount",
+            value=float(row["amount"])
+        )
+
+        new_note = st.text_input(
+            "Edit Note",
+            value=row.get("note", "")
+        )
 
         col1, col2 = st.columns(2)
 
+        # ================= UPDATE =================
+
         with col1:
+
             if not is_viewer:
+
                 if st.button("Update Collection"):
+
                     try:
+
                         supabase.table("collections").update({
-                            "amount": new_amt
+
+                            "amount": new_amt,
+                            "note": new_note
+
                         }).eq("id", row["id"]).execute()
 
                         st.success("Updated ✅")
@@ -663,22 +745,31 @@ elif menu == "Collections":
                         st.cache_data.clear()
                         st.rerun()
 
-                    except:
-                        st.error("Update failed")
+                    except Exception as e:
+                        st.error(f"Update failed: {e}")
+
+        # ================= DELETE =================
 
         with col2:
+
             if is_admin:
+
                 if st.button("Delete Collection"):
+
                     try:
-                        supabase.table("collections").delete().eq("id", row["id"]).execute()
+
+                        supabase.table("collections").delete().eq(
+                            "id",
+                            row["id"]
+                        ).execute()
 
                         st.warning("Deleted ⚠️")
 
                         st.cache_data.clear()
                         st.rerun()
 
-                    except:
-                        st.error("Delete failed")
+                    except Exception as e:
+                        st.error(f"Delete failed: {e}")
 # ========================= LOANS =========================
 elif menu == "loans":
 
