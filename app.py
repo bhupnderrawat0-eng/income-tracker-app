@@ -947,9 +947,16 @@ elif menu == "loans":
 
     if not is_viewer:
 
-        pay_amt = st.number_input(
-            "Payment Amount",
-            min_value=0.0
+        principal_payment = st.number_input(
+            "Principal Amount Paid",
+            min_value=0.0,
+            key="principal_payment"
+        )
+
+        interest_payment = st.number_input(
+            "Interest Amount Paid",
+            min_value=0.0,
+            key="interest_payment"
         )
 
         pay_date = st.date_input(
@@ -966,15 +973,23 @@ elif menu == "loans":
             key="add_payment_btn"
         ):
 
-            if pay_amt > 0:
+            if principal_payment > 0 or interest_payment > 0:
 
                 try:
 
                     supabase.table("loan_payments").insert({
 
                         "loan_id": loan_id,
-                        "amount": pay_amt,
+
+                        # ✅ total amount
+                        "amount": principal_payment + interest_payment,
+
+                        # ✅ separate fields
+                        "principal_paid": principal_payment,
+                        "interest_paid": interest_payment,
+
                         "date": pay_date.strftime("%Y-%m-%d"),
+
                         "note": pay_note
 
                     }).execute()
@@ -1029,7 +1044,8 @@ elif menu == "loans":
 
     today = datetime.today()
 
-    payment_map = {}
+    principal_payment_map = {}
+    interest_payment_map = {}
 
     if not cust_payments.empty:
 
@@ -1037,11 +1053,19 @@ elif menu == "loans":
 
             key = str(p["date"])[:7]
 
-            payment_map[key] = (
+            principal_payment_map[key] = (
 
-                payment_map.get(key, 0)
+                principal_payment_map.get(key, 0)
 
-                + p["amount"]
+                + float(p.get("principal_paid", 0))
+
+            )
+
+            interest_payment_map[key] = (
+
+                interest_payment_map.get(key, 0)
+
+                + float(p.get("interest_paid", 0))
 
             )
 
@@ -1056,26 +1080,39 @@ elif menu == "loans":
 
         month_str = current_date.strftime("%Y-%m")
 
-        # ✅ current month payment
-        payment = payment_map.get(
+        # ================= PAYMENTS =================
+
+        principal_payment = principal_payment_map.get(
             month_str,
             0
         )
 
-        # ✅ payment first reduce hoga
-        principal_after_payment = max(
-            running_principal - payment,
+        interest_payment = interest_payment_map.get(
+            month_str,
             0
         )
 
-        # ✅ interest remaining balance pe lagega
+        # ================= REDUCE PRINCIPAL =================
+
+        principal_after_payment = max(
+            running_principal - principal_payment,
+            0
+        )
+
+        # ================= INTEREST =================
+
         interest = (
             principal_after_payment * rate
         ) / 100
 
-        # ✅ final balance
+        # ================= FINAL BALANCE =================
+
         balance_after = (
-            principal_after_payment + interest
+
+            principal_after_payment
+            + interest
+            - interest_payment
+
         )
 
         timeline.append({
@@ -1092,7 +1129,9 @@ elif menu == "loans":
                 2
             ),
 
-            "Payment": payment,
+            "Principal Paid": principal_payment,
+
+            "Interest Paid": interest_payment,
 
             "Balance": round(
                 balance_after,
@@ -1101,10 +1140,9 @@ elif menu == "loans":
 
         })
 
-        # ✅ next month carry
-        running_principal = balance_after
-
         # ================= NEXT MONTH =================
+
+        running_principal = balance_after
 
         if current_date.month == 12:
 
