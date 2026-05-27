@@ -1004,144 +1004,144 @@ elif menu == "loans":
 
     # ================= CALCULATIONS =================
 
-principal = float(loan.get("amount", 0))
+    principal = float(loan.get("amount", 0))
 
-rate = float(loan.get("interest_rate", 0))
+    rate = float(loan.get("interest_rate", 0))
 
-total_paid = (
+    total_paid = (
 
-    cust_payments["amount"].sum()
+        cust_payments["amount"].sum()
 
-    if not cust_payments.empty
+        if not cust_payments.empty
 
-    else 0
+        else 0
 
-)
-
-start_date = loan.get("start_date")
-
-if isinstance(start_date, str):
-
-    start_date = datetime.strptime(
-        start_date,
-        "%Y-%m-%d"
     )
 
-today = datetime.today()
+    start_date = loan.get("start_date")
 
-payment_map = {}
+    if isinstance(start_date, str):
 
-if not cust_payments.empty:
-
-    for _, p in cust_payments.iterrows():
-
-        key = str(p["date"])[:7]
-
-        payment_map[key] = (
-
-            payment_map.get(key, 0)
-
-            + p["amount"]
-
+        start_date = datetime.strptime(
+            start_date,
+            "%Y-%m-%d"
         )
 
-timeline = []
+    today = datetime.today()
 
-current_date = start_date
+    payment_map = {}
 
-# ✅ running balance
-running_principal = principal
+    if not cust_payments.empty:
 
-while current_date <= today:
+        for _, p in cust_payments.iterrows():
 
-    month_str = current_date.strftime("%Y-%m")
+            key = str(p["date"])[:7]
 
-    # ✅ current payment
-    payment = payment_map.get(
-        month_str,
-        0
+            payment_map[key] = (
+
+                payment_map.get(key, 0)
+
+                + p["amount"]
+
+            )
+
+    timeline = []
+
+    current_date = start_date
+
+    # ✅ running balance
+    running_principal = principal
+
+    while current_date <= today:
+
+        month_str = current_date.strftime("%Y-%m")
+
+        # ✅ current month payment
+        payment = payment_map.get(
+            month_str,
+            0
+        )
+
+        # ✅ payment first reduce hoga
+        principal_after_payment = max(
+            running_principal - payment,
+            0
+        )
+
+        # ✅ interest remaining balance pe lagega
+        interest = (
+            principal_after_payment * rate
+        ) / 100
+
+        # ✅ final balance
+        balance_after = (
+            principal_after_payment + interest
+        )
+
+        timeline.append({
+
+            "Month": current_date.strftime("%b %Y"),
+
+            "Principal": round(
+                principal_after_payment,
+                2
+            ),
+
+            "Interest": round(
+                interest,
+                2
+            ),
+
+            "Payment": payment,
+
+            "Balance": round(
+                balance_after,
+                2
+            )
+
+        })
+
+        # ✅ next month carry
+        running_principal = balance_after
+
+        # ================= NEXT MONTH =================
+
+        if current_date.month == 12:
+
+            current_date = current_date.replace(
+
+                year=current_date.year + 1,
+                month=1
+
+            )
+
+        else:
+
+            current_date = current_date.replace(
+
+                month=current_date.month + 1
+
+            )
+
+    # ================= FINAL TOTALS =================
+
+    total_interest = sum(
+
+        x["Interest"]
+
+        for x in timeline
+
     )
 
-    # ✅ first payment reduce hoga
-    principal_after_payment = max(
-        running_principal - payment,
-        0
+    balance = (
+
+        timeline[-1]["Balance"]
+
+        if timeline
+
+        else principal
+
     )
-
-    # ✅ interest current outstanding pe lagega
-    interest = (
-        principal_after_payment * rate
-    ) / 100
-
-    # ✅ final balance
-    balance_after = (
-        principal_after_payment + interest
-    )
-
-    timeline.append({
-
-        "Month": current_date.strftime("%b %Y"),
-
-        "Principal": round(
-            principal_after_payment,
-            2
-        ),
-
-        "Interest": round(
-            interest,
-            2
-        ),
-
-        "Payment": payment,
-
-        "Balance": round(
-            balance_after,
-            2
-        )
-
-    })
-
-    # ✅ next month carry forward
-    running_principal = balance_after
-
-    # ================= NEXT MONTH =================
-
-    if current_date.month == 12:
-
-        current_date = current_date.replace(
-
-            year=current_date.year + 1,
-            month=1
-
-        )
-
-    else:
-
-        current_date = current_date.replace(
-
-            month=current_date.month + 1
-
-        )
-
-# ================= FINAL TOTALS =================
-
-total_interest = sum(
-
-    x["Interest"]
-
-    for x in timeline
-
-)
-
-balance = (
-
-    timeline[-1]["Balance"]
-
-    if timeline
-
-    else principal
-
-)
 
     # ================= SUMMARY =================
 
