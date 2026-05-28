@@ -1518,44 +1518,43 @@ elif menu == "Expenses":
 
                     except:
                         st.error("Delete failed")
-# ================= REPORTS =================
+================= REPORTS =================
+
 elif menu == "Reports":
 
-    from datetime import datetime
+from datetime import datetime
+import io
 
-    st.subheader("📊 Smart Finance Reports Dashboard")
+st.subheader("📊 Smart Finance Reports Dashboard")
 
-    # ================= LOAD DATA =================
+# =====================================================
+# ================= LOAD DATA =========================
+# =====================================================
 
-    @st.cache_data(ttl=60)
-    def load_reports():
+@st.cache_data(ttl=60)
+def load_reports():
 
-        def safe_fetch(table):
+    def safe_fetch(table):
 
-            try:
-                data = supabase.table(table).select("*").execute().data
-                return pd.DataFrame(data)
+        try:
 
-            except:
-                return pd.DataFrame()
+            data = supabase.table(table).select("*").execute().data
 
-        members_df = safe_fetch("members")
-        collections_df = safe_fetch("collections")
-        loans_df = safe_fetch("loans")
-        payments_df = safe_fetch("loan_payments")
-        donations_df = safe_fetch("donations")
-        expenses_df = safe_fetch("expenses")
+            return pd.DataFrame(data)
 
-        return (
-            members_df,
-            collections_df,
-            loans_df,
-            payments_df,
-            donations_df,
-            expenses_df
-        )
+        except:
 
-    (
+            return pd.DataFrame()
+
+    members_df = safe_fetch("members")
+    collections_df = safe_fetch("collections")
+    loans_df = safe_fetch("loans")
+    payments_df = safe_fetch("loan_payments")
+    donations_df = safe_fetch("donations")
+    expenses_df = safe_fetch("expenses")
+
+    return (
+
         members_df,
         collections_df,
         loans_df,
@@ -1563,715 +1562,762 @@ elif menu == "Reports":
         donations_df,
         expenses_df
 
-    ) = load_reports()
+    )
 
-    # ================= EMPTY FIX =================
+(
+    members_df,
+    collections_df,
+    loans_df,
+    payments_df,
+    donations_df,
+    expenses_df
 
-    if members_df.empty:
+) = load_reports()
 
-        members_df = pd.DataFrame(
-            columns=["id", "name"]
+# =====================================================
+# ================= MEMBER MAP ========================
+# =====================================================
+
+if members_df.empty:
+
+    members_df = pd.DataFrame(
+        columns=["id", "name"]
+    )
+
+member_map = {}
+
+if not members_df.empty:
+
+    for _, row in members_df.iterrows():
+
+        member_map[row["id"]] = row["name"]
+
+# =====================================================
+# ================= EXPORT FUNCTION ===================
+# =====================================================
+
+def export_excel(df):
+
+    output = io.BytesIO()
+
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+
+        df.to_excel(
+            writer,
+            index=False,
+            sheet_name="Report"
         )
 
-    # ================= MEMBER MAP =================
+    return output.getvalue()
 
-    member_map = {}
+# =====================================================
+# ================= TABS ==============================
+# =====================================================
 
-    if not members_df.empty:
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
 
-        for _, row in members_df.iterrows():
+    "💰 Collections",
+    "🏦 Loans",
+    "🎁 Donations",
+    "💸 Expenses",
+    "🔔 Reminders"
 
-            member_map[row["id"]] = row["name"]
+])
 
-    # ================= TABS =================
+# =====================================================
+# ================= COLLECTION REPORT =================
+# =====================================================
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+with tab1:
 
-        "💰 Collections",
-        "🏦 Loans",
-        "🎁 Donations",
-        "💸 Expenses",
-        "🔔 Reminders"
+    st.markdown("## 💰 Collections Report")
 
-    ])
+    if collections_df.empty:
 
-    # =========================================================
-    # ================= COLLECTIONS REPORT ====================
-    # =========================================================
+        st.warning("No collections data found.")
 
-    with tab1:
+    else:
 
-        st.markdown("## 💰 Collections Report")
+        # ================= CLEAN DATA =================
 
-        if collections_df.empty:
+        collections_df["amount"] = pd.to_numeric(
 
-            st.warning("No collections data found.")
+            collections_df.get("amount", 0),
+            errors="coerce"
 
-        else:
+        ).fillna(0)
 
-            # ================= SAFE DATA =================
+        if "member_id" in collections_df.columns:
 
-            if "member_id" in collections_df.columns:
+            collections_df["Member Name"] = collections_df[
+                "member_id"
+            ].map(member_map)
 
-                collections_df["Member Name"] = collections_df[
-                    "member_id"
-                ].map(member_map)
+        if "date" in collections_df.columns:
 
-            collections_df["amount"] = pd.to_numeric(
-
-                collections_df.get("amount", 0),
-
+            collections_df["date"] = pd.to_datetime(
+                collections_df["date"],
                 errors="coerce"
+            )
 
-            ).fillna(0)
+            collections_df["Month"] = collections_df[
+                "date"
+            ].dt.strftime("%b %Y")
 
-            if "date" in collections_df.columns:
+        # ================= FILTERS =================
 
-                collections_df["date"] = pd.to_datetime(
-                    collections_df["date"],
-                    errors="coerce"
-                )
+        c1, c2, c3 = st.columns(3)
 
-                collections_df["Month"] = collections_df[
-                    "date"
-                ].dt.strftime("%b %Y")
+        with c1:
 
-            else:
+            member_filter = st.selectbox(
 
-                collections_df["Month"] = "Unknown"
+                "👤 Member",
 
-            # ================= FILTERS =================
+                ["All"] +
 
-            c1, c2, c3 = st.columns(3)
+                sorted(
+                    collections_df["Member Name"]
+                    .dropna()
+                    .unique()
+                ),
 
-            with c1:
-
-                collection_member = st.selectbox(
-
-                    "👤 Member",
-
-                    ["All"] +
-
-                    list(
-                        collections_df["Member Name"]
-                        .dropna()
-                        .unique()
-                    ),
-
-                    key="collection_member"
-
-                )
-
-            with c2:
-
-                collection_month = st.selectbox(
-
-                    "📅 Month",
-
-                    ["All"] +
-
-                    list(
-                        collections_df["Month"]
-                        .dropna()
-                        .unique()
-                    ),
-
-                    key="collection_month"
-
-                )
-
-            with c3:
-
-                pending_filter = st.selectbox(
-
-                    "📌 Status",
-
-                    ["All", "Paid", "Pending"],
-
-                    key="collection_status"
-
-                )
-
-            # ================= DATE RANGE =================
-
-            if "date" in collections_df.columns:
-
-                min_date = collections_df["date"].min()
-                max_date = collections_df["date"].max()
-
-                if pd.isnull(min_date):
-                    min_date = datetime.today()
-
-                if pd.isnull(max_date):
-                    max_date = datetime.today()
-
-            else:
-
-                min_date = datetime.today()
-                max_date = datetime.today()
-
-            d1, d2 = st.columns(2)
-
-            with d1:
-
-                start_filter = st.date_input(
-
-                    "Start Date",
-
-                    value=min_date,
-
-                    key="collection_start"
-
-                )
-
-            with d2:
-
-                end_filter = st.date_input(
-
-                    "End Date",
-
-                    value=max_date,
-
-                    key="collection_end"
-
-                )
-
-            # ================= FILTER DATA =================
-
-            filtered_df = collections_df.copy()
-
-            if collection_member != "All":
-
-                filtered_df = filtered_df[
-
-                    filtered_df["Member Name"] ==
-                    collection_member
-
-                ]
-
-            if collection_month != "All":
-
-                filtered_df = filtered_df[
-
-                    filtered_df["Month"] ==
-                    collection_month
-
-                ]
-
-            if pending_filter == "Paid":
-
-                filtered_df = filtered_df[
-                    filtered_df["amount"] > 0
-                ]
-
-            if pending_filter == "Pending":
-
-                filtered_df = filtered_df[
-                    filtered_df["amount"] <= 0
-                ]
-
-            if "date" in filtered_df.columns:
-
-                filtered_df = filtered_df[
-
-                    (
-                        filtered_df["date"].dt.date >=
-                        start_filter
-                    )
-
-                    &
-
-                    (
-                        filtered_df["date"].dt.date <=
-                        end_filter
-                    )
-
-                ]
-
-            if filtered_df.empty:
-
-                filtered_df = collections_df.copy()
-
-            # ================= SUMMARY =================
-
-            total_collection = filtered_df[
-                "amount"
-            ].sum()
-
-            total_members = filtered_df[
-                "Member Name"
-            ].nunique()
-
-            avg_collection = filtered_df[
-                "amount"
-            ].mean()
-
-            s1, s2, s3 = st.columns(3)
-
-            with s1:
-
-                st.metric(
-
-                    "💰 Total Collection",
-
-                    f"₹ {total_collection:,.0f}"
-
-                )
-
-            with s2:
-
-                st.metric(
-
-                    "👥 Members",
-
-                    total_members
-
-                )
-
-            with s3:
-
-                st.metric(
-
-                    "📈 Avg Collection",
-
-                    f"₹ {avg_collection:,.0f}"
-
-                )
-
-            # ================= CHART =================
-
-            monthly_summary = filtered_df.groupby(
-                "Month"
-            )["amount"].sum()
-
-            st.markdown("### 📈 Collection Trend")
-
-            st.bar_chart(monthly_summary)
-
-            # ================= TABLE =================
-
-            st.markdown("### 📋 Collection Records")
-
-            st.dataframe(
-
-                filtered_df,
-
-                use_container_width=True
+                key="collection_member"
 
             )
 
-    # =========================================================
-    # ================= LOANS REPORT ==========================
-    # =========================================================
+        with c2:
 
-    with tab2:
+            month_filter = st.selectbox(
 
-        st.markdown("## 🏦 Loans Report")
+                "📅 Month",
 
-        if loans_df.empty:
+                ["All"] +
 
-            st.warning("No loans data found.")
+                sorted(
+                    collections_df["Month"]
+                    .dropna()
+                    .unique()
+                ),
 
-        else:
-
-            # ================= SAFE DATA =================
-
-            if "member_id" in loans_df.columns:
-
-                loans_df["Member Name"] = loans_df[
-                    "member_id"
-                ].map(member_map)
-
-            loans_df["amount"] = pd.to_numeric(
-                loans_df.get("amount", 0),
-                errors="coerce"
-            ).fillna(0)
-
-            loans_df["interest_rate"] = pd.to_numeric(
-                loans_df.get("interest_rate", 0),
-                errors="coerce"
-            ).fillna(0)
-
-            if "start_date" in loans_df.columns:
-
-                loans_df["start_date"] = pd.to_datetime(
-                    loans_df["start_date"],
-                    errors="coerce"
-                )
-
-                loans_df["Month"] = loans_df[
-                    "start_date"
-                ].dt.strftime("%b %Y")
-
-            else:
-
-                loans_df["Month"] = "Unknown"
-
-            # ================= PAYMENT SUMMARY =================
-
-            loans_df["Paid Amount"] = 0
-
-            if not payments_df.empty:
-
-                payments_df["amount"] = pd.to_numeric(
-                    payments_df.get("amount", 0),
-                    errors="coerce"
-                ).fillna(0)
-
-                payment_summary = payments_df.groupby(
-                    "loan_id"
-                )["amount"].sum().reset_index()
-
-                payment_summary.columns = [
-                    "id",
-                    "Paid Amount"
-                ]
-
-                loans_df = loans_df.merge(
-                    payment_summary,
-                    on="id",
-                    how="left"
-                )
-
-                if "Paid Amount_y" in loans_df.columns:
-
-                    loans_df["Paid Amount"] = loans_df[
-                        "Paid Amount_y"
-                    ].fillna(0)
-
-            loans_df["Paid Amount"] = pd.to_numeric(
-                loans_df["Paid Amount"],
-                errors="coerce"
-            ).fillna(0)
-
-            # ================= CALCULATIONS =================
-
-            loans_df["Interest Amount"] = (
-
-                loans_df["amount"] *
-                loans_df["interest_rate"] / 100
+                key="collection_month"
 
             )
 
-            loans_df["Total Loan"] = (
+        with c3:
 
-                loans_df["amount"] +
-                loans_df["Interest Amount"]
+            status_filter = st.selectbox(
 
-            )
+                "📌 Status",
 
-            loans_df["Balance"] = (
+                ["All", "Paid", "Pending"],
 
-                loans_df["Total Loan"] -
-                loans_df["Paid Amount"]
+                key="collection_status"
 
             )
 
-            # ================= FILTERS =================
+        # ================= DATE FILTER =================
 
-            l1, l2, l3 = st.columns(3)
+        min_date = collections_df["date"].min().date()
+        max_date = collections_df["date"].max().date()
 
-            with l1:
+        d1, d2 = st.columns(2)
 
-                loan_member = st.selectbox(
+        with d1:
 
-                    "👤 Member",
+            start_date = st.date_input(
 
-                    ["All"] +
+                "Start Date",
 
-                    list(
-                        loans_df["Member Name"]
-                        .dropna()
-                        .unique()
-                    ),
+                value=min_date,
 
-                    key="loan_member"
-
-                )
-
-            with l2:
-
-                loan_month = st.selectbox(
-
-                    "📅 Month",
-
-                    ["All"] +
-
-                    list(
-                        loans_df["Month"]
-                        .dropna()
-                        .unique()
-                    ),
-
-                    key="loan_month"
-
-                )
-
-            with l3:
-
-                loan_status = st.selectbox(
-
-                    "📌 Status",
-
-                    ["All", "Active", "Closed"],
-
-                    key="loan_status"
-
-                )
-
-            # ================= DATE RANGE =================
-
-            if "start_date" in loans_df.columns:
-
-                min_date = loans_df["start_date"].min()
-                max_date = loans_df["start_date"].max()
-
-                if pd.isnull(min_date):
-                    min_date = datetime.today()
-
-                if pd.isnull(max_date):
-                    max_date = datetime.today()
-
-            else:
-
-                min_date = datetime.today()
-                max_date = datetime.today()
-
-            d1, d2 = st.columns(2)
-
-            with d1:
-
-                loan_start = st.date_input(
-                    "Start Date",
-                    value=min_date,
-                    key="loan_start"
-                )
-
-            with d2:
-
-                loan_end = st.date_input(
-                    "End Date",
-                    value=max_date,
-                    key="loan_end"
-                )
-
-            # ================= FILTER DATA =================
-
-            loan_filtered = loans_df.copy()
-
-            if loan_member != "All":
-
-                loan_filtered = loan_filtered[
-
-                    loan_filtered["Member Name"] ==
-                    loan_member
-
-                ]
-
-            if loan_month != "All":
-
-                loan_filtered = loan_filtered[
-
-                    loan_filtered["Month"] ==
-                    loan_month
-
-                ]
-
-            if loan_status == "Active":
-
-                loan_filtered = loan_filtered[
-                    loan_filtered["Balance"] > 0
-                ]
-
-            if loan_status == "Closed":
-
-                loan_filtered = loan_filtered[
-                    loan_filtered["Balance"] <= 0
-                ]
-
-            if "start_date" in loan_filtered.columns:
-
-                loan_filtered = loan_filtered[
-
-                    (
-                        loan_filtered["start_date"].dt.date >=
-                        loan_start
-                    )
-
-                    &
-
-                    (
-                        loan_filtered["start_date"].dt.date <=
-                        loan_end
-                    )
-
-                ]
-
-            if loan_filtered.empty:
-
-                loan_filtered = loans_df.copy()
-
-            # ================= SUMMARY =================
-
-            total_loan = loan_filtered[
-                "Total Loan"
-            ].sum()
-
-            total_paid = loan_filtered[
-                "Paid Amount"
-            ].sum()
-
-            total_balance = loan_filtered[
-                "Balance"
-            ].sum()
-
-            total_interest = loan_filtered[
-                "Interest Amount"
-            ].sum()
-
-            s1, s2, s3, s4 = st.columns(4)
-
-            with s1:
-
-                st.metric(
-                    "🏦 Total Loan",
-                    f"₹ {total_loan:,.0f}"
-                )
-
-            with s2:
-
-                st.metric(
-                    "💸 Paid",
-                    f"₹ {total_paid:,.0f}"
-                )
-
-            with s3:
-
-                st.metric(
-                    "🔴 Balance",
-                    f"₹ {total_balance:,.0f}"
-                )
-
-            with s4:
-
-                st.metric(
-                    "📈 Interest",
-                    f"₹ {total_interest:,.0f}"
-                )
-
-            # ================= CHART =================
-
-            loan_chart = loan_filtered.groupby(
-                "Month"
-            )["Balance"].sum()
-
-            st.markdown("### 📈 Loan Balance Trend")
-
-            st.bar_chart(loan_chart)
-
-            # ================= TABLE =================
-
-            st.markdown("### 📋 Loan Records")
-
-            st.dataframe(
-
-                loan_filtered[[
-                    "customer_id",
-                    "Member Name",
-                    "amount",
-                    "Interest Amount",
-                    "Paid Amount",
-                    "Balance",
-                    "Month"
-                ]],
-
-                use_container_width=True
+                key="collection_start"
 
             )
 
-    # =========================================================
-    # ================= DONATIONS REPORT =====================
-    # =========================================================
+        with d2:
 
-    with tab3:
+            end_date = st.date_input(
 
-        st.markdown("## 🎁 Donations Report")
+                "End Date",
 
-        if donations_df.empty:
+                value=max_date,
 
-            st.warning("No donations found.")
-
-        else:
-
-            donations_df["amount"] = pd.to_numeric(
-                donations_df.get("amount", 0),
-                errors="coerce"
-            ).fillna(0)
-
-            st.metric(
-
-                "🎁 Total Donations",
-
-                f"₹ {donations_df['amount'].sum():,.0f}"
+                key="collection_end"
 
             )
 
-            st.bar_chart(donations_df["amount"])
+        # ================= APPLY FILTER =================
 
-            st.dataframe(
-                donations_df,
-                use_container_width=True
-            )
+        filtered_df = collections_df.copy()
 
-    # =========================================================
-    # ================= EXPENSES REPORT ======================
-    # =========================================================
+        if member_filter != "All":
 
-    with tab4:
-
-        st.markdown("## 💸 Expenses Report")
-
-        if expenses_df.empty:
-
-            st.warning("No expenses found.")
-
-        else:
-
-            expenses_df["amount"] = pd.to_numeric(
-                expenses_df.get("amount", 0),
-                errors="coerce"
-            ).fillna(0)
-
-            st.metric(
-
-                "💸 Total Expenses",
-
-                f"₹ {expenses_df['amount'].sum():,.0f}"
-
-            )
-
-            st.bar_chart(expenses_df["amount"])
-
-            st.dataframe(
-                expenses_df,
-                use_container_width=True
-            )
-
-    # =========================================================
-    # ================= REMINDERS ============================
-    # =========================================================
-
-    with tab5:
-
-        st.markdown("## 🔔 Reminder Dashboard")
-
-        pending_df = pd.DataFrame()
-
-        if not loans_df.empty:
-
-            pending_df = loans_df[
-                loans_df["Balance"] > 0
+            filtered_df = filtered_df[
+                filtered_df["Member Name"] == member_filter
             ]
+
+        if month_filter != "All":
+
+            filtered_df = filtered_df[
+                filtered_df["Month"] == month_filter
+            ]
+
+        if status_filter == "Paid":
+
+            filtered_df = filtered_df[
+                filtered_df["amount"] > 0
+            ]
+
+        if status_filter == "Pending":
+
+            filtered_df = filtered_df[
+                filtered_df["amount"] <= 0
+            ]
+
+        filtered_df = filtered_df[
+
+            (
+                filtered_df["date"].dt.date >= start_date
+            )
+
+            &
+
+            (
+                filtered_df["date"].dt.date <= end_date
+            )
+
+        ]
+
+        # ================= SUMMARY =================
+
+        total_collection = filtered_df["amount"].sum()
+
+        total_members = filtered_df[
+            "Member Name"
+        ].nunique()
+
+        avg_collection = filtered_df[
+            "amount"
+        ].mean()
+
+        s1, s2, s3 = st.columns(3)
+
+        with s1:
+
+            st.metric(
+                "💰 Total Collection",
+                f"₹ {total_collection:,.0f}"
+            )
+
+        with s2:
+
+            st.metric(
+                "👥 Members",
+                total_members
+            )
+
+        with s3:
+
+            st.metric(
+                "📈 Average",
+                f"₹ {avg_collection:,.0f}"
+            )
+
+        # ================= CHART =================
+
+        st.markdown("### 📈 Collection Trend")
+
+        chart_data = filtered_df.groupby(
+            "Month"
+        )["amount"].sum()
+
+        st.bar_chart(chart_data)
+
+        # ================= TABLE =================
+
+        st.markdown("### 📋 Collection Records")
+
+        st.dataframe(
+            filtered_df,
+            use_container_width=True
+        )
+
+        # ================= EXPORT =================
+
+        csv = filtered_df.to_csv(
+            index=False
+        ).encode("utf-8")
+
+        excel = export_excel(filtered_df)
+
+        e1, e2 = st.columns(2)
+
+        with e1:
+
+            st.download_button(
+
+                "📥 Download CSV",
+
+                csv,
+
+                "collections_report.csv",
+
+                "text/csv"
+
+            )
+
+        with e2:
+
+            st.download_button(
+
+                "📥 Download Excel",
+
+                excel,
+
+                "collections_report.xlsx",
+
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+            )
+
+# =====================================================
+# ================= LOANS REPORT ======================
+# =====================================================
+
+with tab2:
+
+    st.markdown("## 🏦 Loans Report")
+
+    if loans_df.empty:
+
+        st.warning("No loans found.")
+
+    else:
+
+        # ================= CLEAN DATA =================
+
+        loans_df["amount"] = pd.to_numeric(
+            loans_df.get("amount", 0),
+            errors="coerce"
+        ).fillna(0)
+
+        loans_df["interest_rate"] = pd.to_numeric(
+            loans_df.get("interest_rate", 0),
+            errors="coerce"
+        ).fillna(0)
+
+        if "member_id" in loans_df.columns:
+
+            loans_df["Member Name"] = loans_df[
+                "member_id"
+            ].map(member_map)
+
+        loans_df["start_date"] = pd.to_datetime(
+            loans_df["start_date"],
+            errors="coerce"
+        )
+
+        loans_df["Month"] = loans_df[
+            "start_date"
+        ].dt.strftime("%b %Y")
+
+        # ================= PAYMENTS =================
+
+        loans_df["Paid Amount"] = 0
+
+        if not payments_df.empty:
+
+            payments_df["amount"] = pd.to_numeric(
+                payments_df.get("amount", 0),
+                errors="coerce"
+            ).fillna(0)
+
+            payment_summary = payments_df.groupby(
+                "loan_id"
+            )["amount"].sum().reset_index()
+
+            payment_summary.columns = [
+                "id",
+                "Paid Amount"
+            ]
+
+            loans_df = loans_df.merge(
+                payment_summary,
+                on="id",
+                how="left"
+            )
+
+            if "Paid Amount_y" in loans_df.columns:
+
+                loans_df["Paid Amount"] = loans_df[
+                    "Paid Amount_y"
+                ].fillna(0)
+
+        loans_df["Paid Amount"] = pd.to_numeric(
+            loans_df["Paid Amount"],
+            errors="coerce"
+        ).fillna(0)
+
+        # ================= CALCULATIONS =================
+
+        loans_df["Interest Amount"] = (
+
+            loans_df["amount"] *
+            loans_df["interest_rate"] / 100
+
+        )
+
+        loans_df["Total Loan"] = (
+
+            loans_df["amount"] +
+            loans_df["Interest Amount"]
+
+        )
+
+        loans_df["Balance"] = (
+
+            loans_df["Total Loan"] -
+            loans_df["Paid Amount"]
+
+        )
+
+        # ================= FILTERS =================
+
+        l1, l2, l3 = st.columns(3)
+
+        with l1:
+
+            loan_member = st.selectbox(
+
+                "👤 Member",
+
+                ["All"] +
+
+                sorted(
+                    loans_df["Member Name"]
+                    .dropna()
+                    .unique()
+                ),
+
+                key="loan_member"
+
+            )
+
+        with l2:
+
+            loan_month = st.selectbox(
+
+                "📅 Month",
+
+                ["All"] +
+
+                sorted(
+                    loans_df["Month"]
+                    .dropna()
+                    .unique()
+                ),
+
+                key="loan_month"
+
+            )
+
+        with l3:
+
+            loan_status = st.selectbox(
+
+                "📌 Status",
+
+                ["All", "Active", "Closed"],
+
+                key="loan_status"
+
+            )
+
+        # ================= DATE FILTER =================
+
+        min_loan = loans_df["start_date"].min().date()
+        max_loan = loans_df["start_date"].max().date()
+
+        d1, d2 = st.columns(2)
+
+        with d1:
+
+            loan_start = st.date_input(
+
+                "Start Date",
+
+                value=min_loan,
+
+                key="loan_start"
+
+            )
+
+        with d2:
+
+            loan_end = st.date_input(
+
+                "End Date",
+
+                value=max_loan,
+
+                key="loan_end"
+
+            )
+
+        # ================= APPLY FILTER =================
+
+        loan_filtered = loans_df.copy()
+
+        if loan_member != "All":
+
+            loan_filtered = loan_filtered[
+                loan_filtered["Member Name"] == loan_member
+            ]
+
+        if loan_month != "All":
+
+            loan_filtered = loan_filtered[
+                loan_filtered["Month"] == loan_month
+            ]
+
+        if loan_status == "Active":
+
+            loan_filtered = loan_filtered[
+                loan_filtered["Balance"] > 0
+            ]
+
+        if loan_status == "Closed":
+
+            loan_filtered = loan_filtered[
+                loan_filtered["Balance"] <= 0
+            ]
+
+        loan_filtered = loan_filtered[
+
+            (
+                loan_filtered["start_date"].dt.date >= loan_start
+            )
+
+            &
+
+            (
+                loan_filtered["start_date"].dt.date <= loan_end
+            )
+
+        ]
+
+        # ================= SUMMARY =================
+
+        total_loan = loan_filtered[
+            "Total Loan"
+        ].sum()
+
+        total_paid = loan_filtered[
+            "Paid Amount"
+        ].sum()
+
+        total_balance = loan_filtered[
+            "Balance"
+        ].sum()
+
+        total_interest = loan_filtered[
+            "Interest Amount"
+        ].sum()
+
+        s1, s2, s3, s4 = st.columns(4)
+
+        with s1:
+
+            st.metric(
+                "🏦 Total Loan",
+                f"₹ {total_loan:,.0f}"
+            )
+
+        with s2:
+
+            st.metric(
+                "💸 Paid",
+                f"₹ {total_paid:,.0f}"
+            )
+
+        with s3:
+
+            st.metric(
+                "🔴 Balance",
+                f"₹ {total_balance:,.0f}"
+            )
+
+        with s4:
+
+            st.metric(
+                "📈 Interest",
+                f"₹ {total_interest:,.0f}"
+            )
+
+        # ================= CHART =================
+
+        st.markdown("### 📈 Loan Analytics")
+
+        loan_chart = loan_filtered.groupby(
+            "Month"
+        )["Balance"].sum()
+
+        st.bar_chart(loan_chart)
+
+        # ================= TABLE =================
+
+        st.markdown("### 📋 Loan Records")
+
+        st.dataframe(
+
+            loan_filtered[[
+
+                "customer_id",
+                "Member Name",
+                "amount",
+                "Interest Amount",
+                "Paid Amount",
+                "Balance",
+                "Month"
+
+            ]],
+
+            use_container_width=True
+
+        )
+
+        # ================= EXPORT =================
+
+        loan_csv = loan_filtered.to_csv(
+            index=False
+        ).encode("utf-8")
+
+        loan_excel = export_excel(
+            loan_filtered
+        )
+
+        l1, l2 = st.columns(2)
+
+        with l1:
+
+            st.download_button(
+
+                "📥 Loan CSV",
+
+                loan_csv,
+
+                "loan_report.csv",
+
+                "text/csv"
+
+            )
+
+        with l2:
+
+            st.download_button(
+
+                "📥 Loan Excel",
+
+                loan_excel,
+
+                "loan_report.xlsx",
+
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+            )
+
+# =====================================================
+# ================= DONATIONS =========================
+# =====================================================
+
+with tab3:
+
+    st.markdown("## 🎁 Donations Report")
+
+    if donations_df.empty:
+
+        st.warning("No donations found.")
+
+    else:
+
+        donations_df["amount"] = pd.to_numeric(
+            donations_df.get("amount", 0),
+            errors="coerce"
+        ).fillna(0)
+
+        total_donation = donations_df[
+            "amount"
+        ].sum()
+
+        st.metric(
+            "🎁 Total Donations",
+            f"₹ {total_donation:,.0f}"
+        )
+
+        st.bar_chart(
+            donations_df["amount"]
+        )
+
+        st.dataframe(
+            donations_df,
+            use_container_width=True
+        )
+
+# =====================================================
+# ================= EXPENSES ==========================
+# =====================================================
+
+with tab4:
+
+    st.markdown("## 💸 Expenses Report")
+
+    if expenses_df.empty:
+
+        st.warning("No expenses found.")
+
+    else:
+
+        expenses_df["amount"] = pd.to_numeric(
+            expenses_df.get("amount", 0),
+            errors="coerce"
+        ).fillna(0)
+
+        total_expense = expenses_df[
+            "amount"
+        ].sum()
+
+        st.metric(
+            "💸 Total Expenses",
+            f"₹ {total_expense:,.0f}"
+        )
+
+        st.bar_chart(
+            expenses_df["amount"]
+        )
+
+        st.dataframe(
+            expenses_df,
+            use_container_width=True
+        )
+
+# =====================================================
+# ================= REMINDERS =========================
+# =====================================================
+
+with tab5:
+
+    st.markdown("## 🔔 Pending Reminder Dashboard")
+
+    if loans_df.empty:
+
+        st.success("✅ No pending reminders")
+
+    else:
+
+        pending_df = loans_df[
+            loans_df["Balance"] > 0
+        ]
 
         if pending_df.empty:
 
@@ -2286,83 +2332,114 @@ elif menu == "Reports":
             st.dataframe(
 
                 pending_df[[
+
                     "customer_id",
                     "Member Name",
                     "Balance",
                     "Month"
+
                 ]],
 
                 use_container_width=True
 
             )
 
-    # =========================================================
-    # ================= FINAL SUMMARY ========================
-    # =========================================================
+            # ================= AUTO REMINDER =================
 
-    st.markdown("---")
-    st.markdown("## 📊 Overall Financial Summary")
+            for _, row in pending_df.iterrows():
 
-    total_collection = 0
-    total_donations = 0
-    total_expenses = 0
+                st.warning(
 
-    if not collections_df.empty:
+                    f"Reminder: "
+                    f"{row['Member Name']} "
+                    f"has pending balance ₹{row['Balance']:,.0f}"
 
-        total_collection = pd.to_numeric(
-            collections_df.get("amount", 0),
-            errors="coerce"
-        ).fillna(0).sum()
+                )
 
-    if not donations_df.empty:
+# =====================================================
+# ================= FINAL SUMMARY =====================
+# =====================================================
 
-        total_donations = pd.to_numeric(
-            donations_df.get("amount", 0),
-            errors="coerce"
-        ).fillna(0).sum()
+st.markdown("---")
+st.markdown("## 📊 Overall Financial Summary")
 
-    if not expenses_df.empty:
+total_collection = 0
+total_donations = 0
+total_expenses = 0
+total_loan_balance = 0
 
-        total_expenses = pd.to_numeric(
-            expenses_df.get("amount", 0),
-            errors="coerce"
-        ).fillna(0).sum()
+if not collections_df.empty:
 
-    profit = (
-        total_collection +
-        total_donations -
-        total_expenses
+    total_collection = pd.to_numeric(
+        collections_df["amount"],
+        errors="coerce"
+    ).fillna(0).sum()
+
+if not donations_df.empty:
+
+    total_donations = pd.to_numeric(
+        donations_df["amount"],
+        errors="coerce"
+    ).fillna(0).sum()
+
+if not expenses_df.empty:
+
+    total_expenses = pd.to_numeric(
+        expenses_df["amount"],
+        errors="coerce"
+    ).fillna(0).sum()
+
+if not loans_df.empty:
+
+    total_loan_balance = pd.to_numeric(
+        loans_df["Balance"],
+        errors="coerce"
+    ).fillna(0).sum()
+
+profit = (
+
+    total_collection +
+    total_donations -
+    total_expenses
+
+)
+
+f1, f2, f3, f4, f5 = st.columns(5)
+
+with f1:
+
+    st.metric(
+        "💰 Collections",
+        f"₹ {total_collection:,.0f}"
     )
 
-    f1, f2, f3, f4 = st.columns(4)
+with f2:
 
-    with f1:
+    st.metric(
+        "🏦 Loan Balance",
+        f"₹ {total_loan_balance:,.0f}"
+    )
 
-        st.metric(
-            "💰 Collections",
-            f"₹ {total_collection:,.0f}"
-        )
+with f3:
 
-    with f2:
+    st.metric(
+        "🎁 Donations",
+        f"₹ {total_donations:,.0f}"
+    )
 
-        st.metric(
-            "🎁 Donations",
-            f"₹ {total_donations:,.0f}"
-        )
+with f4:
 
-    with f3:
+    st.metric(
+        "💸 Expenses",
+        f"₹ {total_expenses:,.0f}"
+    )
 
-        st.metric(
-            "💸 Expenses",
-            f"₹ {total_expenses:,.0f}"
-        )
+with f5:
 
-    with f4:
-
-        st.metric(
-            "📈 Profit",
-            f"₹ {profit:,.0f}"
-        )
+    st.metric(
+        "📈 Profit",
+        f"₹ {profit:,.0f}"
+    )
 # ================= USERS =================
 if menu == "Users":
 
