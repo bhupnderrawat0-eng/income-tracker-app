@@ -1889,59 +1889,67 @@ with tab2:
 
         # ================= FILTER DATA =================
 
-        loan_filtered = loans_df.copy()
+loan_filtered = loans_df.copy()
 
-        if loan_member != "All":
+if loan_member != "All":
 
-            loan_filtered = loan_filtered[
+    loan_filtered = loan_filtered[
 
-                loan_filtered["Member Name"] ==
-                loan_member
+        loan_filtered["Member Name"] ==
+        loan_member
 
-            ]
+    ]
 
-        if month_filter != "All":
+if month_filter != "All":
 
-            loan_filtered = loan_filtered[
+    loan_filtered = loan_filtered[
 
-                loan_filtered["Month"] ==
-                month_filter
+        loan_filtered["Month"] ==
+        month_filter
 
-            ]
+    ]
 
-        if loan_status == "Active":
+if loan_status == "Active":
 
-            loan_filtered = loan_filtered[
+    loan_filtered = loan_filtered[
 
-                loan_filtered["Balance"] > 0
+        loan_filtered["Balance"] > 0
 
-            ]
+    ]
 
-        if loan_status == "Closed":
+if loan_status == "Closed":
 
-            loan_filtered = loan_filtered[
+    loan_filtered = loan_filtered[
 
-                loan_filtered["Balance"] <= 0
+        loan_filtered["Balance"] <= 0
 
-            ]
+    ]
 
-        if "start_date" in loan_filtered.columns:
+# ================= SAFE DATE FILTER =================
 
-            loan_filtered = loan_filtered[
+if "start_date" in loan_filtered.columns:
 
-                (
-                    loan_filtered["start_date"].dt.date >=
-                    start_filter
-                )
+    loan_filtered = loan_filtered[
 
-                &
+        (
+            loan_filtered["start_date"].dt.date >=
+            start_filter
+        )
 
-                (
-                    loan_filtered["start_date"].dt.date <=
-                    end_filter
-                )
+        &
 
-            ]
+        (
+            loan_filtered["start_date"].dt.date <=
+            end_filter
+        )
+
+    ]
+
+# ================= RESET IF EMPTY =================
+
+if loan_filtered.empty:
+
+    loan_filtered = loans_df.copy()
 
         # ================= SUMMARY =================
 
