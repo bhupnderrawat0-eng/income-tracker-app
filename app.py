@@ -1686,47 +1686,57 @@ with tab2:
 
         if "member_id" in loans_df.columns:
 
-            loans_df["Member Name"] = loans_df["member_id"].map(member_map)
+            loans_df["Member Name"] = loans_df[
+                "member_id"
+            ].map(member_map)
 
         # ================= SAFE NUMERIC =================
 
         loans_df["amount"] = pd.to_numeric(
-            loans_df["amount"],
+            loans_df.get("amount", 0),
             errors="coerce"
         ).fillna(0)
 
         loans_df["interest_rate"] = pd.to_numeric(
-            loans_df["interest_rate"],
+            loans_df.get("interest_rate", 0),
             errors="coerce"
         ).fillna(0)
 
-        # ================= PAYMENTS =================
+        # ================= SAFE PAYMENTS =================
 
-        if not payments_df.empty:
+        if "payments_df" in locals():
 
-            payments_df["amount"] = pd.to_numeric(
-                payments_df["amount"],
-                errors="coerce"
-            ).fillna(0)
+            if not payments_df.empty:
 
-            payment_summary = payments_df.groupby(
-                "loan_id"
-            )["amount"].sum().reset_index()
+                payments_df["amount"] = pd.to_numeric(
+                    payments_df.get("amount", 0),
+                    errors="coerce"
+                ).fillna(0)
 
-            payment_summary.columns = [
-                "id",
-                "Paid Amount"
-            ]
+                payment_summary = payments_df.groupby(
+                    "loan_id"
+                )["amount"].sum().reset_index()
 
-            loans_df = loans_df.merge(
-                payment_summary,
-                on="id",
-                how="left"
-            )
+                payment_summary.columns = [
+                    "id",
+                    "Paid Amount"
+                ]
+
+                loans_df = loans_df.merge(
+                    payment_summary,
+                    on="id",
+                    how="left"
+                )
+
+            else:
+
+                loans_df["Paid Amount"] = 0
 
         else:
 
             loans_df["Paid Amount"] = 0
+
+        # ================= FILL EMPTY =================
 
         loans_df["Paid Amount"] = loans_df[
             "Paid Amount"
@@ -1772,6 +1782,10 @@ with tab2:
                 "start_date"
             ].dt.strftime("%b %Y")
 
+        else:
+
+            loans_df["Month"] = "Unknown"
+
         # ================= FILTERS =================
 
         l1, l2, l3 = st.columns(3)
@@ -1779,32 +1793,49 @@ with tab2:
         with l1:
 
             loan_member = st.selectbox(
+
                 "👤 Member",
+
                 ["All"] +
+
                 list(
                     loans_df["Member Name"]
                     .dropna()
                     .unique()
-                )
+                ),
+
+                key="loan_member_filter"
+
             )
 
         with l2:
 
             month_filter = st.selectbox(
+
                 "📅 Month",
+
                 ["All"] +
+
                 list(
                     loans_df["Month"]
                     .dropna()
                     .unique()
-                )
+                ),
+
+                key="loan_month_filter"
+
             )
 
         with l3:
 
             loan_status = st.selectbox(
+
                 "📌 Status",
-                ["All", "Active", "Closed"]
+
+                ["All", "Active", "Closed"],
+
+                key="loan_status_filter"
+
             )
 
         # ================= DATE RANGE =================
@@ -1902,24 +1933,28 @@ with tab2:
         s1, s2, s3, s4 = st.columns(4)
 
         with s1:
+
             st.metric(
                 "🏦 Total Loan",
                 f"₹ {total_loan:,.0f}"
             )
 
         with s2:
+
             st.metric(
                 "💸 Paid",
                 f"₹ {total_paid:,.0f}"
             )
 
         with s3:
+
             st.metric(
                 "🔴 Balance",
                 f"₹ {total_balance:,.0f}"
             )
 
         with s4:
+
             st.metric(
                 "📈 Interest",
                 f"₹ {total_interest:,.0f}"
@@ -1956,17 +1991,29 @@ with tab2:
 
         st.markdown("### 📋 Loan Records")
 
+        display_columns = []
+
+        possible_cols = [
+
+            "customer_id",
+            "Member Name",
+            "amount",
+            "Interest Amount",
+            "Paid Amount",
+            "Balance",
+            "Month"
+
+        ]
+
+        for col in possible_cols:
+
+            if col in loan_filtered.columns:
+
+                display_columns.append(col)
+
         st.dataframe(
 
-            loan_filtered[[
-                "customer_id",
-                "Member Name",
-                "amount",
-                "Interest Amount",
-                "Paid Amount",
-                "Balance",
-                "Month"
-            ]],
+            loan_filtered[display_columns],
 
             use_container_width=True
 
