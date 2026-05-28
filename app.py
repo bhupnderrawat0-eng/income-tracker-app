@@ -1518,181 +1518,413 @@ elif menu == "Expenses":
 
                     except:
                         st.error("Delete failed")
-# ================= REPORT =================
+# ================= REPORTS =================
 elif menu == "Reports":
 
-    st.subheader("📊 Advanced Reports")
+    st.subheader("📊 Smart Finance Reports Dashboard")
 
+    # ================= LOAD DATA =================
     @st.cache_data(ttl=60)
-    def load_all_reports_data():
-        try:
-            collections = supabase.table("collections").select("*").execute().data
-        except:
-            collections = []
+    def load_reports():
 
-        try:
-            expenses = supabase.table("expenses").select("*").execute().data
-        except:
-            expenses = []
+        def safe_fetch(table):
+            try:
+                data = supabase.table(table).select("*").execute().data
+                return pd.DataFrame(data)
+            except:
+                return pd.DataFrame()
 
-        try:
-            donations = supabase.table("donations").select("*").execute().data
-        except:
-            donations = []
+        members_df = safe_fetch("members")
+        collections_df = safe_fetch("collections")
+        loans_df = safe_fetch("loans")
+        donations_df = safe_fetch("donations")
+        expenses_df = safe_fetch("expenses")
 
-        try:
-            customers = supabase.table("customers").select("*").execute().data
-        except:
-            customers = []
+        return (
+            members_df,
+            collections_df,
+            loans_df,
+            donations_df,
+            expenses_df
+        )
 
-        try:
-            loans = supabase.table("loans").select("*").execute().data
-        except:
-            loans = []
+    members_df, collections_df, loans_df, donations_df, expenses_df = load_reports()
 
-        try:
-            payments = supabase.table("loan_payments").select("*").execute().data
-        except:
-            payments = []
+    # ================= EMPTY FIX =================
+    if members_df.empty:
+        members_df = pd.DataFrame(columns=["id", "name"])
 
-        return collections, expenses, donations, customers, loans, payments
+    # ================= MEMBER MAP =================
+    member_map = {}
 
-    collections_data, expenses_data, donations_data, customers_data, loans_data, payments_data = load_all_reports_data()
+    if not members_df.empty:
+        for _, row in members_df.iterrows():
+            member_map[row["id"]] = row["name"]
 
-    # 🔒 ORIGINAL DATA SAFE
-    df_original = pd.DataFrame(collections_data)
+    # ================= TABS =================
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "💰 Collections",
+        "🏦 Loans",
+        "🎁 Donations",
+        "💸 Expenses",
+        "🔔 Reminders"
+    ])
 
-    df = df_original.copy()
-    expense_df = pd.DataFrame(expenses_data)
-    donation_df = pd.DataFrame(donations_data)
-    all_customers = pd.DataFrame(customers_data)
-    loans_df = pd.DataFrame(loans_data)
-    payments_df = pd.DataFrame(payments_data)
+    # =========================================================
+    # ================= COLLECTIONS REPORT ====================
+    # =========================================================
+    with tab1:
 
-    # ================= DATE FILTER =================
-    st.markdown("### 📅 Date Filter")
-    from_date = st.date_input("From Date")
-    to_date = st.date_input("To Date")
+        st.markdown("## 💰 Collections Report")
 
-    if not df.empty:
-        df["date"] = pd.to_datetime(df["date"])
-        df = df[(df["date"] >= pd.to_datetime(from_date)) & (df["date"] <= pd.to_datetime(to_date))]
-
-    if not df.empty:
-
-        # ================= MONTH FILTER =================
-        month_list = sorted(df_original["month"].unique())
-        selected_month = st.selectbox("Select Month", month_list)
-
-        df_month = df[df["month"] == selected_month]
-
-        # ================= SUMMARY =================
-        st.markdown("### 📅 Monthly Summary")
-
-        total_collection = df_month["amount"].sum()
-        total_expense = expense_df["amount"].sum() if not expense_df.empty else 0
-        total_donation = donation_df["amount"].sum() if not donation_df.empty else 0
-
-        balance = total_collection + total_donation - total_expense
-
-        c1, c2, c3, c4 = st.columns(4)
-
-        c1.metric("Collection", f"₹ {total_collection}")
-        c2.metric("Donations", f"₹ {total_donation}")
-        c3.metric("Expenses", f"₹ {total_expense}")
-        c4.metric("Balance", f"₹ {balance}")
-
-        # ================= CUSTOMER REPORT =================
-        st.markdown("### 👤 Customer-wise Report")
-        customer_summary = df_month.groupby("name")["amount"].sum().reset_index()
-        st.dataframe(customer_summary)
-
-        # ================= LOAN REPORT =================
-        st.markdown("### 💰 Loan Report")
-
-        if not loans_df.empty:
-            report = []
-            for _, loan in loans_df.iterrows():
-                loan_id = loan["id"]
-                principal = loan["amount"]
-                rate = loan["interest_rate"]
-
-                loan_payments = payments_df[payments_df["loan_id"] == loan_id]
-                paid = loan_payments["amount"].sum() if not loan_payments.empty else 0
-
-                interest = (principal * rate) / 100
-                balance_loan = principal + interest - paid
-
-                report.append({
-                    "Member": loan["customer_name"],
-                    "Principal": principal,
-                    "Interest": round(interest,2),
-                    "Paid": paid,
-                    "Balance": round(balance_loan,2),
-                    "Note": loan.get("note","")
-                })
-
-            st.dataframe(pd.DataFrame(report))
-
-        # ================= DONATION REPORT =================
-        st.markdown("### 🎁 Donation Report")
-        st.dataframe(donation_df)
-
-        # ================= EXPENSE REPORT =================
-        st.markdown("### 💸 Expense Report")
-        st.dataframe(expense_df)
-
-        # ================= 🔔 SMART REMINDER SYSTEM =================
-        st.markdown("### 🔔 Smart Reminder System")
-
-        paid_customers = df_original[df_original["month"] == selected_month]["name"].unique()
-
-        pending_list = all_customers[
-            ~all_customers["name"].isin(paid_customers)
-        ]
-
-        total_pending = len(pending_list)
-
-        if not pending_list.empty:
-
-            st.warning(f"Pending Members: {total_pending}")
-            st.dataframe(pending_list)
-
+        if collections_df.empty:
+            st.warning("No collections data found.")
         else:
-            st.success("✅ All customers have paid for this month")
 
-        # ================= ⚠️ RISK =================
-        st.markdown("### ⚠️ Risk Analysis")
+            # ================= FIX DATA =================
+            if "member_id" in collections_df.columns:
+                collections_df["Member Name"] = collections_df["member_id"].map(member_map)
 
-        try:
-            all_months = df_original["month"].unique()
+            if "amount" in collections_df.columns:
+                collections_df["amount"] = pd.to_numeric(
+                    collections_df["amount"],
+                    errors="coerce"
+                ).fillna(0)
 
-            risk_data = []
+            # ================= FILTERS =================
+            c1, c2, c3 = st.columns(3)
 
-            for cust in all_customers["name"]:
-                paid_months = df_original[df_original["name"] == cust]["month"].unique()
-                missed = len(set(all_months) - set(paid_months))
+            with c1:
+                selected_member = st.selectbox(
+                    "👤 Select Member",
+                    ["All"] + list(collections_df["Member Name"].dropna().unique())
+                )
 
-                risk_data.append({
-                    "Customer": cust,
-                    "Missed Months": missed
-                })
+            with c2:
+                min_amount = st.number_input("Min Amount", 0)
 
-            st.dataframe(pd.DataFrame(risk_data))
+            with c3:
+                max_amount = st.number_input("Max Amount", 1000000, value=1000000)
 
-        except:
-            pass
+            filtered_df = collections_df.copy()
 
-        # ================= DOWNLOAD =================
-        st.markdown("### 📥 Download")
+            if selected_member != "All":
+                filtered_df = filtered_df[
+                    filtered_df["Member Name"] == selected_member
+                ]
 
-        def convert_df(df):
-            return df.to_csv(index=False).encode('utf-8')
+            filtered_df = filtered_df[
+                (filtered_df["amount"] >= min_amount) &
+                (filtered_df["amount"] <= max_amount)
+            ]
 
-        st.download_button("Download Collections", convert_df(df_month), "collections.csv")
+            # ================= SUMMARY =================
+            total_collection = filtered_df["amount"].sum()
 
-    else:
-        st.info("No collection data available yet")
+            total_members = filtered_df["Member Name"].nunique()
+
+            avg_collection = filtered_df["amount"].mean()
+
+            s1, s2, s3 = st.columns(3)
+
+            with s1:
+                st.metric("💰 Total Collection", f"₹ {total_collection:,.0f}")
+
+            with s2:
+                st.metric("👥 Members", total_members)
+
+            with s3:
+                st.metric("📈 Avg Collection", f"₹ {avg_collection:,.0f}")
+
+            # ================= MONTHLY SUMMARY =================
+            if "date" in filtered_df.columns:
+
+                filtered_df["date"] = pd.to_datetime(
+                    filtered_df["date"],
+                    errors="coerce"
+                )
+
+                filtered_df["Month"] = filtered_df["date"].dt.strftime("%b %Y")
+
+                monthly_summary = filtered_df.groupby("Month")["amount"].sum()
+
+                st.markdown("### 📈 Monthly Collection Trend")
+                st.bar_chart(monthly_summary)
+
+            # ================= TABLE =================
+            st.markdown("### 📋 Collections Data")
+
+            st.dataframe(
+                filtered_df,
+                use_container_width=True
+            )
+
+            # ================= DOWNLOAD =================
+            csv = filtered_df.to_csv(index=False).encode("utf-8")
+
+            st.download_button(
+                "📥 Download CSV",
+                csv,
+                "collections_report.csv",
+                "text/csv"
+            )
+
+    # =========================================================
+    # ================= LOANS REPORT ==========================
+    # =========================================================
+    with tab2:
+
+        st.markdown("## 🏦 Loans Report")
+
+        if loans_df.empty:
+            st.warning("No loans data found.")
+        else:
+
+            if "member_id" in loans_df.columns:
+                loans_df["Member Name"] = loans_df["member_id"].map(member_map)
+
+            numeric_cols = [
+                "principal_amount",
+                "interest_amount",
+                "paid_amount"
+            ]
+
+            for col in numeric_cols:
+                if col in loans_df.columns:
+                    loans_df[col] = pd.to_numeric(
+                        loans_df[col],
+                        errors="coerce"
+                    ).fillna(0)
+
+            if "principal_amount" in loans_df.columns and "interest_amount" in loans_df.columns:
+                loans_df["Total Loan"] = (
+                    loans_df["principal_amount"] +
+                    loans_df["interest_amount"]
+                )
+
+            if "paid_amount" in loans_df.columns:
+                loans_df["Balance"] = (
+                    loans_df["Total Loan"] -
+                    loans_df["paid_amount"]
+                )
+
+            # ================= FILTERS =================
+            l1, l2 = st.columns(2)
+
+            with l1:
+                loan_member = st.selectbox(
+                    "👤 Loan Member",
+                    ["All"] + list(loans_df["Member Name"].dropna().unique())
+                )
+
+            with l2:
+                loan_status = st.selectbox(
+                    "📌 Loan Status",
+                    ["All", "Active", "Closed"]
+                )
+
+            loan_filtered = loans_df.copy()
+
+            if loan_member != "All":
+                loan_filtered = loan_filtered[
+                    loan_filtered["Member Name"] == loan_member
+                ]
+
+            if loan_status == "Active":
+                loan_filtered = loan_filtered[
+                    loan_filtered["Balance"] > 0
+                ]
+
+            if loan_status == "Closed":
+                loan_filtered = loan_filtered[
+                    loan_filtered["Balance"] <= 0
+                ]
+
+            # ================= SUMMARY =================
+            total_loan = loan_filtered["Total Loan"].sum()
+
+            total_paid = loan_filtered["paid_amount"].sum()
+
+            total_balance = loan_filtered["Balance"].sum()
+
+            ls1, ls2, ls3 = st.columns(3)
+
+            with ls1:
+                st.metric("🏦 Total Loan", f"₹ {total_loan:,.0f}")
+
+            with ls2:
+                st.metric("✅ Paid", f"₹ {total_paid:,.0f}")
+
+            with ls3:
+                st.metric("🔴 Balance", f"₹ {total_balance:,.0f}")
+
+            # ================= CHART =================
+            chart_df = pd.DataFrame({
+                "Type": ["Loan", "Paid", "Balance"],
+                "Amount": [total_loan, total_paid, total_balance]
+            })
+
+            st.markdown("### 📈 Loan Analytics")
+            st.bar_chart(chart_df.set_index("Type"))
+
+            # ================= TABLE =================
+            st.markdown("### 📋 Loan Records")
+
+            st.dataframe(
+                loan_filtered,
+                use_container_width=True
+            )
+
+    # =========================================================
+    # ================= DONATIONS REPORT =====================
+    # =========================================================
+    with tab3:
+
+        st.markdown("## 🎁 Donations Report")
+
+        if donations_df.empty:
+            st.warning("No donations data found.")
+        else:
+
+            if "amount" in donations_df.columns:
+                donations_df["amount"] = pd.to_numeric(
+                    donations_df["amount"],
+                    errors="coerce"
+                ).fillna(0)
+
+            total_donation = donations_df["amount"].sum()
+
+            st.metric(
+                "🎁 Total Donations",
+                f"₹ {total_donation:,.0f}"
+            )
+
+            st.bar_chart(donations_df["amount"])
+
+            st.dataframe(
+                donations_df,
+                use_container_width=True
+            )
+
+    # =========================================================
+    # ================= EXPENSES REPORT ======================
+    # =========================================================
+    with tab4:
+
+        st.markdown("## 💸 Expenses Report")
+
+        if expenses_df.empty:
+            st.warning("No expenses data found.")
+        else:
+
+            if "amount" in expenses_df.columns:
+                expenses_df["amount"] = pd.to_numeric(
+                    expenses_df["amount"],
+                    errors="coerce"
+                ).fillna(0)
+
+            total_expense = expenses_df["amount"].sum()
+
+            st.metric(
+                "💸 Total Expenses",
+                f"₹ {total_expense:,.0f}"
+            )
+
+            st.bar_chart(expenses_df["amount"])
+
+            st.dataframe(
+                expenses_df,
+                use_container_width=True
+            )
+
+    # =========================================================
+    # ================= REMINDER SYSTEM ======================
+    # =========================================================
+    with tab5:
+
+        st.markdown("## 🔔 Pending & Reminder Dashboard")
+
+        pending_members = []
+
+        if not collections_df.empty:
+
+            if "member_id" in collections_df.columns:
+                collections_df["Member Name"] = collections_df["member_id"].map(member_map)
+
+            for _, row in collections_df.iterrows():
+
+                try:
+                    amount = float(row.get("amount", 0))
+                except:
+                    amount = 0
+
+                if amount <= 0:
+                    pending_members.append({
+                        "Member": row.get("Member Name", ""),
+                        "Pending": amount
+                    })
+
+        pending_df = pd.DataFrame(pending_members)
+
+        if pending_df.empty:
+            st.success("✅ No pending reminders.")
+        else:
+
+            st.error(f"🔴 Total Pending Members: {len(pending_df)}")
+
+            st.dataframe(
+                pending_df,
+                use_container_width=True
+            )
+
+    # =========================================================
+    # ================= FINAL ANALYTICS ======================
+    # =========================================================
+
+    st.markdown("---")
+    st.markdown("## 📊 Overall Financial Summary")
+
+    total_collection = 0
+    total_donation = 0
+    total_expense = 0
+
+    if not collections_df.empty and "amount" in collections_df.columns:
+        total_collection = pd.to_numeric(
+            collections_df["amount"],
+            errors="coerce"
+        ).fillna(0).sum()
+
+    if not donations_df.empty and "amount" in donations_df.columns:
+        total_donation = pd.to_numeric(
+            donations_df["amount"],
+            errors="coerce"
+        ).fillna(0).sum()
+
+    if not expenses_df.empty and "amount" in expenses_df.columns:
+        total_expense = pd.to_numeric(
+            expenses_df["amount"],
+            errors="coerce"
+        ).fillna(0).sum()
+
+    profit = (
+        total_collection +
+        total_donation -
+        total_expense
+    )
+
+    f1, f2, f3, f4 = st.columns(4)
+
+    with f1:
+        st.metric("💰 Collections", f"₹ {total_collection:,.0f}")
+
+    with f2:
+        st.metric("🎁 Donations", f"₹ {total_donation:,.0f}")
+
+    with f3:
+        st.metric("💸 Expenses", f"₹ {total_expense:,.0f}")
+
+    with f4:
+        st.metric("📈 Profit", f"₹ {profit:,.0f}")
 # ================= USERS =================
 if menu == "Users":
 
