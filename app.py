@@ -1674,6 +1674,8 @@ elif menu == "Reports":
 # =========================================================
 with tab2:
 
+    from datetime import datetime
+
     st.markdown("## 🏦 Loans Report")
 
     if loans_df.empty:
@@ -1702,7 +1704,26 @@ with tab2:
             errors="coerce"
         ).fillna(0)
 
-        # ================= SAFE PAYMENTS =================
+        # ================= SAFE DATE =================
+
+        if "start_date" in loans_df.columns:
+
+            loans_df["start_date"] = pd.to_datetime(
+                loans_df["start_date"],
+                errors="coerce"
+            )
+
+            loans_df["Month"] = loans_df[
+                "start_date"
+            ].dt.strftime("%b %Y")
+
+        else:
+
+            loans_df["Month"] = "Unknown"
+
+        # ================= PAYMENTS =================
+
+        loans_df["Paid Amount"] = 0
 
         if "payments_df" in locals():
 
@@ -1728,19 +1749,26 @@ with tab2:
                     how="left"
                 )
 
-            else:
+                # ✅ FIX DUPLICATE COLUMN ISSUE
 
-                loans_df["Paid Amount"] = 0
+                if "Paid Amount_y" in loans_df.columns:
 
-        else:
+                    loans_df["Paid Amount"] = loans_df[
+                        "Paid Amount_y"
+                    ].fillna(0)
 
-            loans_df["Paid Amount"] = 0
+                elif "Paid Amount_x" in loans_df.columns:
 
-        # ================= FILL EMPTY =================
+                    loans_df["Paid Amount"] = loans_df[
+                        "Paid Amount_x"
+                    ].fillna(0)
 
-        loans_df["Paid Amount"] = loans_df[
-            "Paid Amount"
-        ].fillna(0)
+        # ================= CLEAN PAID =================
+
+        loans_df["Paid Amount"] = pd.to_numeric(
+            loans_df["Paid Amount"],
+            errors="coerce"
+        ).fillna(0)
 
         # ================= INTEREST =================
 
@@ -1768,23 +1796,6 @@ with tab2:
             loans_df["Paid Amount"]
 
         )
-
-        # ================= DATE =================
-
-        if "start_date" in loans_df.columns:
-
-            loans_df["start_date"] = pd.to_datetime(
-                loans_df["start_date"],
-                errors="coerce"
-            )
-
-            loans_df["Month"] = loans_df[
-                "start_date"
-            ].dt.strftime("%b %Y")
-
-        else:
-
-            loans_df["Month"] = "Unknown"
 
         # ================= FILTERS =================
 
@@ -1838,6 +1849,24 @@ with tab2:
 
             )
 
+        # ================= SAFE DEFAULT DATES =================
+
+        if "start_date" in loans_df.columns:
+
+            min_date = loans_df["start_date"].min()
+            max_date = loans_df["start_date"].max()
+
+            if pd.isnull(min_date):
+                min_date = datetime.today()
+
+            if pd.isnull(max_date):
+                max_date = datetime.today()
+
+        else:
+
+            min_date = datetime.today()
+            max_date = datetime.today()
+
         # ================= DATE RANGE =================
 
         d1, d2 = st.columns(2)
@@ -1846,6 +1875,7 @@ with tab2:
 
             start_filter = st.date_input(
                 "Start Date Filter",
+                value=min_date,
                 key="loan_start_filter"
             )
 
@@ -1853,6 +1883,7 @@ with tab2:
 
             end_filter = st.date_input(
                 "End Date Filter",
+                value=max_date,
                 key="loan_end_filter"
             )
 
