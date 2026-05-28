@@ -1600,7 +1600,10 @@ def export_excel(df):
 
     output = io.BytesIO()
 
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+    with pd.ExcelWriter(
+        output,
+        engine="openpyxl"
+    ) as writer:
 
         df.to_excel(
             writer,
@@ -1638,8 +1641,6 @@ with tab1:
 
     else:
 
-        # ================= CLEAN DATA =================
-
         collections_df["amount"] = pd.to_numeric(
 
             collections_df.get("amount", 0),
@@ -1663,6 +1664,10 @@ with tab1:
             collections_df["Month"] = collections_df[
                 "date"
             ].dt.strftime("%b %Y")
+
+        else:
+
+            collections_df["Month"] = "Unknown"
 
         # ================= FILTERS =================
 
@@ -1747,7 +1752,7 @@ with tab1:
 
             )
 
-        # ================= APPLY FILTER =================
+        # ================= FILTER DATA =================
 
         filtered_df = collections_df.copy()
 
@@ -1791,7 +1796,9 @@ with tab1:
 
         # ================= SUMMARY =================
 
-        total_collection = filtered_df["amount"].sum()
+        total_collection = filtered_df[
+            "amount"
+        ].sum()
 
         total_members = filtered_df[
             "Member Name"
@@ -1895,8 +1902,6 @@ with tab2:
 
     else:
 
-        # ================= CLEAN DATA =================
-
         loans_df["amount"] = pd.to_numeric(
             loans_df.get("amount", 0),
             errors="coerce"
@@ -1922,7 +1927,7 @@ with tab2:
             "start_date"
         ].dt.strftime("%b %Y")
 
-        # ================= PAYMENTS =================
+        # ================= PAYMENT SUMMARY =================
 
         loans_df["Paid Amount"] = 0
 
@@ -2065,7 +2070,7 @@ with tab2:
 
             )
 
-        # ================= APPLY FILTER =================
+        # ================= FILTER DATA =================
 
         loan_filtered = loans_df.copy()
 
@@ -2197,9 +2202,9 @@ with tab2:
             loan_filtered
         )
 
-        l1, l2 = st.columns(2)
+        lx1, lx2 = st.columns(2)
 
-        with l1:
+        with lx1:
 
             st.download_button(
 
@@ -2213,7 +2218,7 @@ with tab2:
 
             )
 
-        with l2:
+        with lx2:
 
             st.download_button(
 
@@ -2228,7 +2233,7 @@ with tab2:
             )
 
 # =====================================================
-# ================= DONATIONS =========================
+# ================= DONATIONS REPORT ==================
 # =====================================================
 
 with tab3:
@@ -2265,7 +2270,7 @@ with tab3:
         )
 
 # =====================================================
-# ================= EXPENSES ==========================
+# ================= EXPENSES REPORT ===================
 # =====================================================
 
 with tab4:
@@ -2307,7 +2312,7 @@ with tab4:
 
 with tab5:
 
-    st.markdown("## 🔔 Pending Reminder Dashboard")
+    st.markdown("## 🔔 Reminder Dashboard")
 
     if loans_df.empty:
 
@@ -2343,18 +2348,6 @@ with tab5:
                 use_container_width=True
 
             )
-
-            # ================= AUTO REMINDER =================
-
-            for _, row in pending_df.iterrows():
-
-                st.warning(
-
-                    f"Reminder: "
-                    f"{row['Member Name']} "
-                    f"has pending balance ₹{row['Balance']:,.0f}"
-
-                )
 
 # =====================================================
 # ================= FINAL SUMMARY =====================
