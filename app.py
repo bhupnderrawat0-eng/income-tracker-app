@@ -1518,7 +1518,7 @@ elif menu == "Expenses":
 
                     except:
                         st.error("Delete failed")
-================= REPORTS =================
+# ================= REPORTS =================
 elif menu == "Reports":
 
 from datetime import datetime
