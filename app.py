@@ -283,9 +283,9 @@ else:
 
 # ================= ROLE BASED MENU =================
 if is_admin:
-    menu_list = ["Dashboard","Members","Collections","loans","Donations","Expenses","Reports","Users","AI"]
+    menu_list = ["Dashboard","Members","Collections",,"Collection Rates","loans","Donations","Expenses","Reports","Users","AI"]
 elif is_editor:
-    menu_list = ["Dashboard","Members","Collections","loans","Donations","Expenses","Reports"]
+    menu_list = ["Dashboard","Members","Collections",,"Collection Rates","loans","Donations","Expenses","Reports"]
 else:
     menu_list = ["Dashboard","Reports"]
 
@@ -787,6 +787,66 @@ elif menu == "Collections":
 
                     except Exception as e:
                         st.error(f"Delete failed: {e}")
+# ========================= COLLECTION RATES =========================
+elif menu == "Collection Rates":
+
+    st.subheader("💰 Collection Rate Management")
+
+    @st.cache_data(ttl=60)
+    def load_rates():
+        try:
+            return supabase.table("collection_rates").select("*").order(
+                "effective_from",
+                desc=True
+            ).execute().data
+        except:
+            return []
+
+    amount = st.number_input(
+        "Collection Amount",
+        min_value=0.0,
+        value=200.0,
+        step=50.0
+    )
+
+    effective_from = st.date_input(
+        "Effective From"
+    )
+
+    if st.button("Add New Rate"):
+
+        try:
+
+            supabase.table("collection_rates").insert({
+                "amount": amount,
+                "effective_from": effective_from.strftime("%Y-%m-%d")
+            }).execute()
+
+            st.success("Rate Added Successfully ✅")
+
+            st.cache_data.clear()
+            st.rerun()
+
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+    rates = load_rates()
+
+    if rates:
+
+        rates_df = pd.DataFrame(rates)
+
+        st.markdown("### 📋 Rate History")
+
+        st.dataframe(
+            rates_df[
+                [
+                    "amount",
+                    "effective_from"
+                ]
+            ],
+            use_container_width=True
+        )
 # ========================= LOANS =========================
 elif menu == "loans":
 
