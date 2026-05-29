@@ -799,6 +799,7 @@ else:
 
                     except Exception as e:
                         st.error(f"Delete failed: {e}")
+                        
 # ========================= COLLECTION RATES =========================
 elif menu == "Collection Rates":
 
