@@ -422,6 +422,14 @@ elif menu == "Members":
     name = st.text_input("Member Name")
     mobile = st.text_input("Mobile")
     start_date = st.date_input("Start Date")
+
+    monthly_amount = st.number_input(
+        "Monthly Collection Amount",
+        min_value=0.0,
+        value=200.0,
+        step=50.0
+    )
+
     notes = st.text_area("Notes")
 
     # ================= ADD MEMBER =================
@@ -443,6 +451,7 @@ elif menu == "Members":
                 "customer_id": customer_id,
                 "name": name.strip(),
                 "mobile": mobile.strip(),
+                "monthly_amount": monthly_amount,
                 "start_date": start_date.strftime("%Y-%m-%d"),
                 "notes": notes.strip()
             }).execute()
@@ -476,6 +485,7 @@ elif menu == "Members":
                 "customer_id",
                 "name",
                 "mobile",
+                "monthly_amount",
                 "start_date",
                 "notes"
             ]
@@ -512,7 +522,13 @@ elif menu == "Members":
 
         new_mobile = st.text_input(
             "Edit Mobile",
-            value=row["mobile"]
+            value=row.get("mobile", "")
+        )
+
+        new_monthly_amount = st.number_input(
+            "Edit Monthly Amount",
+            min_value=0.0,
+            value=float(row.get("monthly_amount", 200))
         )
 
         new_start = st.date_input(
@@ -538,6 +554,7 @@ elif menu == "Members":
                     supabase.table("members").update({
                         "name": new_name.strip(),
                         "mobile": new_mobile.strip(),
+                        "monthly_amount": new_monthly_amount,
                         "start_date": new_start.strftime("%Y-%m-%d"),
                         "notes": new_notes.strip()
                     }).eq("id", selected_id).execute()
