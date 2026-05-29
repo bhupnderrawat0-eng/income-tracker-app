@@ -615,73 +615,85 @@ elif menu == "Collections":
 
     # ================= MEMBER SELECTION =================
 
-    if members_df.empty:
+if members_df.empty:
 
-        st.warning("No members available")
+    st.warning("No members available")
 
-    else:
+else:
 
-        member_options = {
-            f"{row.get('customer_id', 'NO-ID')} | {row['name']}": row
-            for _, row in members_df.iterrows()
-        }
+    member_options = {
+        f"{row.get('customer_id', 'NO-ID')} | {row['name']}": row
+        for _, row in members_df.iterrows()
+    }
 
-        selected_member = st.selectbox(
-            "Member",
-            list(member_options.keys())
-        )
+    selected_member = st.selectbox(
+        "Member",
+        list(member_options.keys())
+    )
 
-        member_row = member_options[selected_member]
+    member_row = member_options[selected_member]
 
-        member_name = member_row["name"]
-        member_id = member_row["id"]
-        customer_id = member_row.get("customer_id", "")
-        start_date = member_row.get("start_date", "")
+    member_name = member_row["name"]
+    member_id = member_row["id"]
+    customer_id = member_row.get("customer_id", "")
+    start_date = member_row.get("start_date", "")
 
-        # ================= FORM =================
+    expected_amount = member_row.get(
+        "monthly_amount",
+        200
+    )
 
-        month = st.selectbox(
-            "Month",
-            [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
-        )
+    # ================= FORM =================
 
-        payment_date = st.date_input("Payment Date")
+    month = st.selectbox(
+        "Month",
+        [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
+    )
 
-        amt = st.number_input("Amount")
+    payment_date = st.date_input("Payment Date")
 
-        note = st.text_input(
-            "📝 Note / Comment",
-            key="collection_note"
-        )
+    amt = st.number_input(
+        "Amount",
+        min_value=0.0,
+        value=float(expected_amount)
+    )
 
-        # ================= SAVE =================
+    note = st.text_input(
+        "📝 Note / Comment",
+        key="collection_note"
+    )
 
-        if not is_viewer:
+    # ================= SAVE =================
 
-            if st.button("Save Collection"):
+    if not is_viewer:
 
-                try:
+        if st.button("Save Collection"):
 
-                    supabase.table("collections").insert({
+            try:
 
-                        "member_id": member_id,
-                        "customer_id": customer_id,
-                        "name": member_name,
-                        "month": month,
-                        "start_date": start_date,
-                        "date": payment_date.strftime("%Y-%m-%d"),
-                        "amount": amt,
-                        "note": note
+                supabase.table("collections").insert({
 
-                    }).execute()
+                    "member_id": member_id,
+                    "customer_id": customer_id,
+                    "name": member_name,
+                    "month": month,
+                    "start_date": start_date,
 
-                    st.success("Collection Saved ✅")
+                    "expected_amount": expected_amount,
 
-                    st.cache_data.clear()
-                    st.rerun()
+                    "date": payment_date.strftime("%Y-%m-%d"),
+                    "amount": amt,
+                    "note": note
 
-                except Exception as e:
-                    st.error(f"Error saving collection: {e}")
+                }).execute()
+
+                st.success("Collection Saved ✅")
+
+                st.cache_data.clear()
+                st.rerun()
+
+            except Exception as e:
+                st.error(f"Error saving collection: {e}")
 
     # ================= LOAD DATA =================
 
