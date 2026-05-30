@@ -787,12 +787,14 @@ elif menu == "Collection Rates":
     @st.cache_data(ttl=60)
     def load_rates():
         try:
-            return supabase.table("collection_rates").select("*").order(
-                "effective_from",
-                desc=True
-            ).execute().data
+            return supabase.table("collection_rates") \
+                .select("*") \
+                .order("effective_from", desc=True) \
+                .execute().data
         except:
             return []
+
+    # ================= ADD RATE =================
 
     amount = st.number_input(
         "Collection Amount",
@@ -809,18 +811,40 @@ elif menu == "Collection Rates":
 
         try:
 
-            supabase.table("collection_rates").insert({
-                "amount": amount,
-                "effective_from": effective_from.strftime("%Y-%m-%d")
-            }).execute()
+            existing = supabase.table("collection_rates") \
+                .select("*") \
+                .eq(
+                    "effective_from",
+                    effective_from.strftime("%Y-%m-%d")
+                ) \
+                .execute()
 
-            st.success("Rate Added Successfully ✅")
+            if existing.data:
 
-            st.cache_data.clear()
-            st.rerun()
+                st.warning(
+                    "⚠️ Rate already exists for this effective date"
+                )
+
+            else:
+
+                supabase.table("collection_rates").insert({
+
+                    "amount": amount,
+                    "effective_from":
+                    effective_from.strftime("%Y-%m-%d")
+
+                }).execute()
+
+                st.success("Rate Added Successfully ✅")
+
+                st.cache_data.clear()
+                st.rerun()
 
         except Exception as e:
+
             st.error(f"Error: {e}")
+
+    # ================= HISTORY =================
 
     rates = load_rates()
 
@@ -839,6 +863,149 @@ elif menu == "Collection Rates":
             ],
             use_container_width=True
         )
+
+        # ================= EDIT SECTION =================
+
+        rates_df["label"] = (
+
+            "₹"
+            + rates_df["amount"].astype(str)
+            + " | "
+            + rates_df["effective_from"].astype(str)
+
+        )
+
+        selected_rate = st.selectbox(
+            "Select Rate",
+            rates_df["label"]
+        )
+
+        row = rates_df[
+            rates_df["label"] == selected_rate
+        ].iloc[0]
+
+        edit_amount = st.number_input(
+            "Edit Amount",
+            min_value=0.0,
+            value=float(row["amount"]),
+            key="edit_rate_amount"
+        )
+
+        edit_date = st.date_input(
+            "Edit Effective Date",
+            value=pd.to_datetime(
+                row["effective_from"]
+            ),
+            key="edit_rate_date"
+        )
+
+        col1, col2 = st.columns(2)
+
+        # ================= UPDATE =================
+
+        with col1:
+
+            if not is_viewer:
+
+                if st.button("Update Rate"):
+
+                    try:
+
+                        duplicate = supabase.table(
+                            "collection_rates"
+                        ).select("*") \
+                        .eq(
+                            "effective_from",
+                            edit_date.strftime("%Y-%m-%d")
+                        ) \
+                        .execute()
+
+                        if duplicate.data:
+
+                            same_record = False
+
+                            for item in duplicate.data:
+
+                                if item["id"] == row["id"]:
+                                    same_record = True
+
+                            if not same_record:
+
+                                st.warning(
+                                    "⚠️ Another rate already exists for this date"
+                                )
+
+                            else:
+
+                                supabase.table(
+                                    "collection_rates"
+                                ).update({
+
+                                    "amount": edit_amount,
+
+                                    "effective_from":
+                                    edit_date.strftime("%Y-%m-%d")
+
+                                }).eq(
+                                    "id",
+                                    row["id"]
+                                ).execute()
+
+                                st.success("Updated ✅")
+
+                                st.cache_data.clear()
+                                st.rerun()
+
+                        else:
+
+                            supabase.table(
+                                "collection_rates"
+                            ).update({
+
+                                "amount": edit_amount,
+
+                                "effective_from":
+                                edit_date.strftime("%Y-%m-%d")
+
+                            }).eq(
+                                "id",
+                                row["id"]
+                            ).execute()
+
+                            st.success("Updated ✅")
+
+                            st.cache_data.clear()
+                            st.rerun()
+
+                    except Exception as e:
+
+                        st.error(f"Update failed: {e}")
+
+        # ================= DELETE =================
+
+        with col2:
+
+            if is_admin:
+
+                if st.button("Delete Rate"):
+
+                    try:
+
+                        supabase.table(
+                            "collection_rates"
+                        ).delete().eq(
+                            "id",
+                            row["id"]
+                        ).execute()
+
+                        st.warning("Deleted ⚠️")
+
+                        st.cache_data.clear()
+                        st.rerun()
+
+                    except Exception as e:
+
+                        st.error(f"Delete failed: {e}")
 # ========================= LOANS =========================
 elif menu == "loans":
 
