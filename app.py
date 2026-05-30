@@ -633,23 +633,38 @@ elif menu == "Collections":
         customer_id = member_row.get("customer_id", "")
         start_date = member_row.get("start_date", "")
 
-        expected_amount = member_row.get(
-            "monthly_amount",
-            200
-        )
-
         month = st.selectbox(
-            "Month",
-            [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
-        )
+    "Month",
+    [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
+)
 
-        payment_date = st.date_input("Payment Date")
+selected_month_date = datetime.datetime.strptime(
+    month,
+    "%B %Y"
+).date()
 
-        amt = st.number_input(
-            "Amount",
-            min_value=0.0,
-            value=float(expected_amount)
-        )
+expected_amount = 0
+
+try:
+
+    rates = supabase.table(
+        "collection_rates"
+    ).select("*").order(
+        "effective_from"
+    ).execute().data
+
+    for rate in rates:
+
+        rate_date = datetime.datetime.strptime(
+            rate["effective_from"],
+            "%Y-%m-%d"
+        ).date()
+
+        if rate_date <= selected_month_date:
+            expected_amount = float(rate["amount"])
+
+except:
+    expected_amount = 0
 
         note = st.text_input(
             "📝 Note / Comment",
