@@ -1831,264 +1831,264 @@ elif menu == "Reports":
 
     with tab1:
 
-    st.markdown("## 💰 Collections Report")
+        st.markdown("## 💰 Collections Report")
 
-    if collections_df.empty:
+        if collections_df.empty:
 
-        st.warning("No collections found.")
-
-    else:
-
-        collections_df["amount"] = pd.to_numeric(
-            collections_df.get("amount", 0),
-            errors="coerce"
-        ).fillna(0)
-
-        collections_df["expected_amount"] = pd.to_numeric(
-            collections_df.get("expected_amount", 0),
-            errors="coerce"
-        ).fillna(0)
-
-        if "member_id" in collections_df.columns:
-
-            collections_df["Member Name"] = (
-                collections_df["member_id"]
-                .map(member_map)
-            )
-
-        collections_df["date"] = pd.to_datetime(
-            collections_df["date"],
-            errors="coerce"
-        )
-
-        collections_df["Month"] = (
-            collections_df["date"]
-            .dt.strftime("%b %Y")
-        )
-
-        # ================= FILTERS =================
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-
-            member_filter = st.selectbox(
-                "👤 Member",
-                ["All"] +
-                sorted(
-                    collections_df["Member Name"]
-                    .dropna()
-                    .unique()
-                )
-            )
-
-        with c2:
-
-            month_filter = st.selectbox(
-                "📅 Month",
-                ["All"] +
-                sorted(
-                    collections_df["Month"]
-                    .dropna()
-                    .unique()
-                )
-            )
-
-        d1, d2 = st.columns(2)
-
-        with d1:
-
-            start_date = st.date_input(
-                "Start Date",
-                collections_df["date"].min().date()
-            )
-
-        with d2:
-
-            end_date = st.date_input(
-                "End Date",
-                collections_df["date"].max().date()
-            )
-
-        filtered_df = collections_df.copy()
-
-        if member_filter != "All":
-
-            filtered_df = filtered_df[
-                filtered_df["Member Name"] ==
-                member_filter
-            ]
-
-        if month_filter != "All":
-
-            filtered_df = filtered_df[
-                filtered_df["Month"] ==
-                month_filter
-            ]
-
-        filtered_df = filtered_df[
-            (
-                filtered_df["date"].dt.date >=
-                start_date
-            )
-            &
-            (
-                filtered_df["date"].dt.date <=
-                end_date
-            )
-        ]
-
-        # ================= SUMMARY =================
-
-        expected_total = filtered_df[
-            "expected_amount"
-        ].sum()
-
-        collected_total = filtered_df[
-            "amount"
-        ].sum()
-
-        pending_total = max(
-            expected_total -
-            collected_total,
-            0
-        )
-
-        efficiency = 0
-
-        if expected_total > 0:
-
-            efficiency = (
-                collected_total /
-                expected_total
-            ) * 100
-
-        s1, s2, s3, s4 = st.columns(4)
-
-        with s1:
-            st.metric(
-                "🎯 Expected",
-                f"₹ {expected_total:,.0f}"
-            )
-
-        with s2:
-            st.metric(
-                "💰 Collected",
-                f"₹ {collected_total:,.0f}"
-            )
-
-        with s3:
-            st.metric(
-                "⚠️ Pending",
-                f"₹ {pending_total:,.0f}"
-            )
-
-        with s4:
-            st.metric(
-                "📈 Efficiency",
-                f"{efficiency:.1f}%"
-            )
-
-        # ================= TREND =================
-
-        st.markdown("### 📈 Collection Trend")
-
-        trend_df = filtered_df.groupby(
-            "Month"
-        )["amount"].sum()
-
-        st.bar_chart(trend_df)
-
-        # ================= MEMBER SUMMARY =================
-
-        st.markdown("### 👥 Member Summary")
-
-        member_summary = filtered_df.groupby(
-            "Member Name"
-        ).agg({
-
-            "expected_amount": "sum",
-            "amount": "sum"
-
-        }).reset_index()
-
-        member_summary["Pending"] = (
-
-            member_summary["expected_amount"] -
-            member_summary["amount"]
-
-        )
-
-        st.dataframe(
-            member_summary,
-            use_container_width=True
-        )
-
-        # ================= DEFAULTERS =================
-
-        st.markdown("### 🚨 Defaulters")
-
-        defaulters = member_summary[
-            member_summary["Pending"] > 0
-        ]
-
-        if defaulters.empty:
-
-            st.success(
-                "✅ No pending collections"
-            )
+            st.warning("No collections found.")
 
         else:
 
+            collections_df["amount"] = pd.to_numeric(
+                collections_df.get("amount", 0),
+                errors="coerce"
+            ).fillna(0)
+
+            collections_df["expected_amount"] = pd.to_numeric(
+                collections_df.get("expected_amount", 0),
+                errors="coerce"
+            ).fillna(0)
+
+            if "member_id" in collections_df.columns:
+
+                collections_df["Member Name"] = (
+                    collections_df["member_id"]
+                    .map(member_map)
+                )
+
+            collections_df["date"] = pd.to_datetime(
+                collections_df["date"],
+                errors="coerce"
+            )
+
+            collections_df["Month"] = (
+                collections_df["date"]
+                .dt.strftime("%b %Y")
+            )
+
+            # ================= FILTERS =================
+
+            c1, c2 = st.columns(2)
+
+            with c1:
+
+                member_filter = st.selectbox(
+                    "👤 Member",
+                    ["All"] +
+                    sorted(
+                        collections_df["Member Name"]
+                        .dropna()
+                        .unique()
+                    )
+                )
+
+            with c2:
+
+                month_filter = st.selectbox(
+                    "📅 Month",
+                    ["All"] +
+                    sorted(
+                        collections_df["Month"]
+                        .dropna()
+                        .unique()
+                    )
+                )
+
+            d1, d2 = st.columns(2)
+
+            with d1:
+
+                start_date = st.date_input(
+                    "Start Date",
+                    collections_df["date"].min().date()
+                )
+
+            with d2:
+
+                end_date = st.date_input(
+                    "End Date",
+                    collections_df["date"].max().date()
+                )
+
+            filtered_df = collections_df.copy()
+
+            if member_filter != "All":
+
+                filtered_df = filtered_df[
+                    filtered_df["Member Name"] ==
+                    member_filter
+                ]
+
+            if month_filter != "All":
+
+                filtered_df = filtered_df[
+                    filtered_df["Month"] ==
+                    month_filter
+                ]
+
+            filtered_df = filtered_df[
+                (
+                    filtered_df["date"].dt.date >=
+                    start_date
+                )
+                &
+                (
+                    filtered_df["date"].dt.date <=
+                    end_date
+                )
+            ]
+
+            # ================= SUMMARY =================
+
+            expected_total = filtered_df[
+                "expected_amount"
+            ].sum()
+
+            collected_total = filtered_df[
+                "amount"
+            ].sum()
+
+            pending_total = max(
+                expected_total -
+                collected_total,
+                0
+            )
+
+            efficiency = 0
+
+            if expected_total > 0:
+
+                efficiency = (
+                    collected_total /
+                    expected_total
+                ) * 100
+
+            s1, s2, s3, s4 = st.columns(4)
+
+            with s1:
+                st.metric(
+                    "🎯 Expected",
+                    f"₹ {expected_total:,.0f}"
+                )
+
+            with s2:
+                st.metric(
+                    "💰 Collected",
+                    f"₹ {collected_total:,.0f}"
+                )
+
+            with s3:
+                st.metric(
+                    "⚠️ Pending",
+                    f"₹ {pending_total:,.0f}"
+                )
+
+            with s4:
+                st.metric(
+                    "📈 Efficiency",
+                    f"{efficiency:.1f}%"
+                )
+
+            # ================= TREND =================
+
+            st.markdown("### 📈 Collection Trend")
+
+            trend_df = filtered_df.groupby(
+                "Month"
+            )["amount"].sum()
+
+            st.bar_chart(trend_df)
+
+            # ================= MEMBER SUMMARY =================
+
+            st.markdown("### 👥 Member Summary")
+
+            member_summary = filtered_df.groupby(
+                "Member Name"
+            ).agg({
+
+                "expected_amount": "sum",
+                "amount": "sum"
+
+            }).reset_index()
+
+            member_summary["Pending"] = (
+
+                member_summary["expected_amount"] -
+                member_summary["amount"]
+
+            )
+
             st.dataframe(
-                defaulters,
+                member_summary,
                 use_container_width=True
             )
 
-        # ================= EXPORTS =================
+            # ================= DEFAULTERS =================
 
-        st.markdown("### ⬇️ Export")
+            st.markdown("### 🚨 Defaulters")
 
-        csv = filtered_df.to_csv(
-            index=False
-        ).encode("utf-8")
+            defaulters = member_summary[
+                member_summary["Pending"] > 0
+            ]
 
-        st.download_button(
-            "📄 Download CSV",
-            csv,
-            "collections_report.csv",
-            "text/csv"
-        )
+            if defaulters.empty:
 
-        excel_buffer = BytesIO()
+                st.success(
+                    "✅ No pending collections"
+                )
 
-        with pd.ExcelWriter(
-            excel_buffer,
-            engine="openpyxl"
-        ) as writer:
+            else:
 
-            filtered_df.to_excel(
-                writer,
+                st.dataframe(
+                    defaulters,
+                    use_container_width=True
+                )
+
+            # ================= EXPORTS =================
+
+            st.markdown("### ⬇️ Export")
+
+            csv = filtered_df.to_csv(
                 index=False
+            ).encode("utf-8")
+
+            st.download_button(
+                "📄 Download CSV",
+                csv,
+                "collections_report.csv",
+                "text/csv"
             )
 
-        st.download_button(
-            "📊 Download Excel",
-            excel_buffer.getvalue(),
-            "collections_report.xlsx",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+            excel_buffer = BytesIO()
 
-        # ================= TABLE =================
+            with pd.ExcelWriter(
+                excel_buffer,
+                engine="openpyxl"
+            ) as writer:
 
-        st.markdown(
-            "### 📋 Collection Records"
-        )
+                filtered_df.to_excel(
+                    writer,
+                    index=False
+                )
 
-        st.dataframe(
-            filtered_df,
-            use_container_width=True
-        )
+            st.download_button(
+                "📊 Download Excel",
+                excel_buffer.getvalue(),
+                "collections_report.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+            # ================= TABLE =================
+
+            st.markdown(
+                "### 📋 Collection Records"
+            )
+
+            st.dataframe(
+                filtered_df,
+                use_container_width=True
+            )
 
     # =========================================================
     # ================= LOANS REPORT ==========================
