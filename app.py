@@ -658,6 +658,21 @@ elif menu == "Collections":
                     expected_amount = float(rate["amount"])
         except:
             expected_amount = 0
+        payment_date = st.date_input(
+            "Payment Date"
+        )
+
+        st.number_input(
+            "Expected Amount",
+            value=float(expected_amount),
+            disabled=True
+        )
+
+        amt = st.number_input(
+            "Collected Amount",
+            min_value=0.0,
+            value=float(expected_amount)
+        )
 
         note = st.text_input(
             "📝 Note / Comment",
