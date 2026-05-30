@@ -588,7 +588,6 @@ elif menu == "Members":
                 except Exception as e:
                     st.error(f"Delete failed: {e}")
 # ========================= COLLECTION =========================
-
 elif menu == "Collections":
 
     st.subheader("🔥 Collection Management")
@@ -611,11 +610,8 @@ elif menu == "Collections":
     members_df = pd.DataFrame(members_data)
 
     if members_df.empty:
-
         st.warning("No members available")
-
     else:
-
         member_options = {
             f"{row.get('customer_id', 'NO-ID')} | {row['name']}": row
             for _, row in members_df.iterrows()
@@ -634,37 +630,34 @@ elif menu == "Collections":
         start_date = member_row.get("start_date", "")
 
         month = st.selectbox(
-    "Month",
-    [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
-)
+            "Month",
+            [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
+        )
 
-selected_month_date = datetime.datetime.strptime(
-    month,
-    "%B %Y"
-).date()
-
-expected_amount = 0
-
-try:
-
-    rates = supabase.table(
-        "collection_rates"
-    ).select("*").order(
-        "effective_from"
-    ).execute().data
-
-    for rate in rates:
-
-        rate_date = datetime.datetime.strptime(
-            rate["effective_from"],
-            "%Y-%m-%d"
+        selected_month_date = datetime.datetime.strptime(
+            month,
+            "%B %Y"
         ).date()
 
-        if rate_date <= selected_month_date:
-            expected_amount = float(rate["amount"])
+        expected_amount = 0
 
-except:
-    expected_amount = 0
+        try:
+            rates = supabase.table(
+                "collection_rates"
+            ).select("*").order(
+                "effective_from"
+            ).execute().data
+
+            for rate in rates:
+                rate_date = datetime.datetime.strptime(
+                    rate["effective_from"],
+                    "%Y-%m-%d"
+                ).date()
+
+                if rate_date <= selected_month_date:
+                    expected_amount = float(rate["amount"])
+        except:
+            expected_amount = 0
 
         note = st.text_input(
             "📝 Note / Comment",
@@ -672,13 +665,9 @@ except:
         )
 
         if not is_viewer:
-
             if st.button("Save Collection"):
-
                 try:
-
                     supabase.table("collections").insert({
-
                         "member_id": member_id,
                         "customer_id": customer_id,
                         "name": member_name,
@@ -688,14 +677,11 @@ except:
                         "date": payment_date.strftime("%Y-%m-%d"),
                         "amount": amt,
                         "note": note
-
                     }).execute()
 
                     st.success("Collection Saved ✅")
-
                     st.cache_data.clear()
                     st.rerun()
-
                 except Exception as e:
                     st.error(f"Error saving collection: {e}")
 
@@ -703,7 +689,6 @@ except:
         df = pd.DataFrame(data)
 
         if not df.empty:
-
             show_columns = [
                 col for col in [
                     "customer_id",
@@ -751,46 +736,32 @@ except:
             col1, col2 = st.columns(2)
 
             with col1:
-
                 if not is_viewer:
-
                     if st.button("Update Collection"):
-
                         try:
-
                             supabase.table("collections").update({
-
                                 "amount": new_amt,
                                 "note": new_note
-
                             }).eq("id", row["id"]).execute()
 
                             st.success("Updated ✅")
-
                             st.cache_data.clear()
                             st.rerun()
-
                         except Exception as e:
                             st.error(f"Update failed: {e}")
 
             with col2:
-
                 if is_admin:
-
                     if st.button("Delete Collection"):
-
                         try:
-
                             supabase.table("collections").delete().eq(
                                 "id",
                                 row["id"]
                             ).execute()
 
                             st.warning("Deleted ⚠️")
-
                             st.cache_data.clear()
                             st.rerun()
-
                         except Exception as e:
                             st.error(f"Delete failed: {e}")
 
