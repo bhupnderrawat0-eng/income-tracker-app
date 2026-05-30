@@ -781,10 +781,10 @@ else:
 # ========================= COLLECTION RATES =========================
 elif menu == "Collection Rates":
 
-    st.subheader("💰 Collection Rate Management")
+st.subheader("💰 Collection Rate Management")
 
-    @st.cache_data(ttl=60)
-    def load_rates():
+@st.cache_data(ttl=60)
+def load_rates():
         try:
             return supabase.table("collection_rates").select("*").order(
                 "effective_from",
@@ -793,18 +793,18 @@ elif menu == "Collection Rates":
         except:
             return []
 
-    amount = st.number_input(
+amount = st.number_input(
         "Collection Amount",
         min_value=0.0,
         value=200.0,
         step=50.0
     )
 
-    effective_from = st.date_input(
+effective_from = st.date_input(
         "Effective From"
     )
 
-    if st.button("Add New Rate"):
+if st.button("Add New Rate"):
 
         try:
 
@@ -821,9 +821,9 @@ elif menu == "Collection Rates":
         except Exception as e:
             st.error(f"Error: {e}")
 
-    rates = load_rates()
+rates = load_rates()
 
-    if rates:
+if rates:
 
         rates_df = pd.DataFrame(rates)
 
