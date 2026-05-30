@@ -778,14 +778,13 @@ else:
 
                     except Exception as e:
                         st.error(f"Delete failed: {e}")
-
 # ========================= COLLECTION RATES =========================
-    elif menu == "Collection Rates":
+elif menu == "Collection Rates":
 
-        st.subheader("💰 Collection Rate Management")
+    st.subheader("💰 Collection Rate Management")
 
-        @st.cache_data(ttl=60)
-        def load_rates():
+    @st.cache_data(ttl=60)
+    def load_rates():
         try:
             return supabase.table("collection_rates").select("*").order(
                 "effective_from",
