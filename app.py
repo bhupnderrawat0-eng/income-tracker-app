@@ -591,200 +591,201 @@ elif menu == "Members":
 
 elif menu == "Collections":
 
-st.subheader("🔥 Collection Management")
+    st.subheader("🔥 Collection Management")
 
-@st.cache_data(ttl=60)
-def load_members():
-    try:
-        return supabase.table("members").select("*").execute().data
-    except:
-        return []
+    @st.cache_data(ttl=60)
+    def load_members():
+        try:
+            return supabase.table("members").select("*").execute().data
+        except:
+            return []
 
-@st.cache_data(ttl=60)
-def load_collections():
-    try:
-        return supabase.table("collections").select("*").execute().data
-    except:
-        return []
+    @st.cache_data(ttl=60)
+    def load_collections():
+        try:
+            return supabase.table("collections").select("*").execute().data
+        except:
+            return []
 
-members_data = load_members()
-members_df = pd.DataFrame(members_data)
+    members_data = load_members()
+    members_df = pd.DataFrame(members_data)
 
-if members_df.empty:
+    if members_df.empty:
 
-    st.warning("No members available")
+        st.warning("No members available")
 
-else:
+    else:
 
-    member_options = {
-        f"{row.get('customer_id', 'NO-ID')} | {row['name']}": row
-        for _, row in members_df.iterrows()
-    }
+        member_options = {
+            f"{row.get('customer_id', 'NO-ID')} | {row['name']}": row
+            for _, row in members_df.iterrows()
+        }
 
-    selected_member = st.selectbox(
-        "Member",
-        list(member_options.keys())
-    )
+        selected_member = st.selectbox(
+            "Member",
+            list(member_options.keys())
+        )
 
-    member_row = member_options[selected_member]
+        member_row = member_options[selected_member]
 
-    member_name = member_row["name"]
-    member_id = member_row["id"]
-    customer_id = member_row.get("customer_id", "")
-    start_date = member_row.get("start_date", "")
+        member_name = member_row["name"]
+        member_id = member_row["id"]
+        customer_id = member_row.get("customer_id", "")
+        start_date = member_row.get("start_date", "")
 
-    expected_amount = member_row.get(
-        "monthly_amount",
-        200
-    )
+        expected_amount = member_row.get(
+            "monthly_amount",
+            200
+        )
 
-    month = st.selectbox(
-        "Month",
-        [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
-    )
+        month = st.selectbox(
+            "Month",
+            [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
+        )
 
-    payment_date = st.date_input("Payment Date")
+        payment_date = st.date_input("Payment Date")
 
-    amt = st.number_input(
-        "Amount",
-        min_value=0.0,
-        value=float(expected_amount)
-    )
+        amt = st.number_input(
+            "Amount",
+            min_value=0.0,
+            value=float(expected_amount)
+        )
 
-    note = st.text_input(
-        "📝 Note / Comment",
-        key="collection_note"
-    )
+        note = st.text_input(
+            "📝 Note / Comment",
+            key="collection_note"
+        )
 
-    if not is_viewer:
+        if not is_viewer:
 
-        if st.button("Save Collection"):
+            if st.button("Save Collection"):
 
-            try:
+                try:
 
-                supabase.table("collections").insert({
+                    supabase.table("collections").insert({
 
-                    "member_id": member_id,
-                    "customer_id": customer_id,
-                    "name": member_name,
-                    "month": month,
-                    "start_date": start_date,
-                    "expected_amount": expected_amount,
-                    "date": payment_date.strftime("%Y-%m-%d"),
-                    "amount": amt,
-                    "note": note
+                        "member_id": member_id,
+                        "customer_id": customer_id,
+                        "name": member_name,
+                        "month": month,
+                        "start_date": start_date,
+                        "expected_amount": expected_amount,
+                        "date": payment_date.strftime("%Y-%m-%d"),
+                        "amount": amt,
+                        "note": note
 
-                }).execute()
+                    }).execute()
 
-                st.success("Collection Saved ✅")
+                    st.success("Collection Saved ✅")
 
-                st.cache_data.clear()
-                st.rerun()
+                    st.cache_data.clear()
+                    st.rerun()
 
-            except Exception as e:
-                st.error(f"Error saving collection: {e}")
+                except Exception as e:
+                    st.error(f"Error saving collection: {e}")
 
-    data = load_collections()
-    df = pd.DataFrame(data)
+        data = load_collections()
+        df = pd.DataFrame(data)
 
-    if not df.empty:
+        if not df.empty:
 
-        show_columns = [
-            col for col in [
-                "customer_id",
-                "name",
-                "month",
-                "amount",
-                "date",
-                "note"
+            show_columns = [
+                col for col in [
+                    "customer_id",
+                    "name",
+                    "month",
+                    "amount",
+                    "date",
+                    "note"
+                ]
+                if col in df.columns
             ]
-            if col in df.columns
-        ]
 
-        st.dataframe(
-            df[show_columns],
-            use_container_width=True
-        )
+            st.dataframe(
+                df[show_columns],
+                use_container_width=True
+            )
 
-        df["label"] = (
-            df["customer_id"].fillna("NO-ID")
-            + " | "
-            + df["name"]
-            + " | "
-            + df["month"]
-            + " | ₹"
-            + df["amount"].astype(str)
-        )
+            df["label"] = (
+                df["customer_id"].fillna("NO-ID")
+                + " | "
+                + df["name"]
+                + " | "
+                + df["month"]
+                + " | ₹"
+                + df["amount"].astype(str)
+            )
 
-        selected = st.selectbox(
-            "Select Entry",
-            df["label"]
-        )
+            selected = st.selectbox(
+                "Select Entry",
+                df["label"]
+            )
 
-        row = df[df["label"] == selected].iloc[0]
+            row = df[df["label"] == selected].iloc[0]
 
-        new_amt = st.number_input(
-            "Edit Amount",
-            value=float(row["amount"])
-        )
+            new_amt = st.number_input(
+                "Edit Amount",
+                value=float(row["amount"])
+            )
 
-        new_note = st.text_input(
-            "Edit Note",
-            value=row.get("note", "")
-        )
+            new_note = st.text_input(
+                "Edit Note",
+                value=row.get("note", "")
+            )
 
-        col1, col2 = st.columns(2)
+            col1, col2 = st.columns(2)
 
-        with col1:
+            with col1:
 
-            if not is_viewer:
+                if not is_viewer:
 
-                if st.button("Update Collection"):
+                    if st.button("Update Collection"):
 
-                    try:
+                        try:
 
-                        supabase.table("collections").update({
+                            supabase.table("collections").update({
 
-                            "amount": new_amt,
-                            "note": new_note
+                                "amount": new_amt,
+                                "note": new_note
 
-                        }).eq("id", row["id"]).execute()
+                            }).eq("id", row["id"]).execute()
 
-                        st.success("Updated ✅")
+                            st.success("Updated ✅")
 
-                        st.cache_data.clear()
-                        st.rerun()
+                            st.cache_data.clear()
+                            st.rerun()
 
-                    except Exception as e:
-                        st.error(f"Update failed: {e}")
+                        except Exception as e:
+                            st.error(f"Update failed: {e}")
 
-        with col2:
+            with col2:
 
-            if is_admin:
+                if is_admin:
 
-                if st.button("Delete Collection"):
+                    if st.button("Delete Collection"):
 
-                    try:
+                        try:
 
-                        supabase.table("collections").delete().eq(
-                            "id",
-                            row["id"]
-                        ).execute()
+                            supabase.table("collections").delete().eq(
+                                "id",
+                                row["id"]
+                            ).execute()
 
-                        st.warning("Deleted ⚠️")
+                            st.warning("Deleted ⚠️")
 
-                        st.cache_data.clear()
-                        st.rerun()
+                            st.cache_data.clear()
+                            st.rerun()
 
-                    except Exception as e:
-                        st.error(f"Delete failed: {e}")
+                        except Exception as e:
+                            st.error(f"Delete failed: {e}")
+
 # ========================= COLLECTION RATES =========================
 elif menu == "Collection Rates":
 
-st.subheader("💰 Collection Rate Management")
+    st.subheader("💰 Collection Rate Management")
 
-@st.cache_data(ttl=60)
-def load_rates():
+    @st.cache_data(ttl=60)
+    def load_rates():
         try:
             return supabase.table("collection_rates").select("*").order(
                 "effective_from",
@@ -793,18 +794,18 @@ def load_rates():
         except:
             return []
 
-amount = st.number_input(
+    amount = st.number_input(
         "Collection Amount",
         min_value=0.0,
         value=200.0,
         step=50.0
     )
 
-effective_from = st.date_input(
+    effective_from = st.date_input(
         "Effective From"
     )
 
-if st.button("Add New Rate"):
+    if st.button("Add New Rate"):
 
         try:
 
@@ -821,9 +822,9 @@ if st.button("Add New Rate"):
         except Exception as e:
             st.error(f"Error: {e}")
 
-rates = load_rates()
+    rates = load_rates()
 
-if rates:
+    if rates:
 
         rates_df = pd.DataFrame(rates)
 
