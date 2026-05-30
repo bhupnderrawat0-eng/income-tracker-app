@@ -587,7 +587,7 @@ elif menu == "Members":
 
                 except Exception as e:
                     st.error(f"Delete failed: {e}")
-========================= COLLECTION =========================
+# ========================= COLLECTION =========================
 
 elif menu == "Collections":
 
