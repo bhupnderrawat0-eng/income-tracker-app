@@ -587,33 +587,28 @@ elif menu == "Members":
 
                 except Exception as e:
                     st.error(f"Delete failed: {e}")
-# ========================= COLLECTION =========================
+========================= COLLECTION =========================
+
 elif menu == "Collections":
 
-    st.subheader("🔥 Collection Management")
+st.subheader("🔥 Collection Management")
 
-    # ================= LOAD MEMBERS =================
+@st.cache_data(ttl=60)
+def load_members():
+    try:
+        return supabase.table("members").select("*").execute().data
+    except:
+        return []
 
-    @st.cache_data(ttl=60)
-    def load_members():
-        try:
-            return supabase.table("members").select("*").execute().data
-        except:
-            return []
+@st.cache_data(ttl=60)
+def load_collections():
+    try:
+        return supabase.table("collections").select("*").execute().data
+    except:
+        return []
 
-    # ================= LOAD COLLECTIONS =================
-
-    @st.cache_data(ttl=60)
-    def load_collections():
-        try:
-            return supabase.table("collections").select("*").execute().data
-        except:
-            return []
-
-    members_data = load_members()
-    members_df = pd.DataFrame(members_data)
-
-    # ================= MEMBER SELECTION =================
+members_data = load_members()
+members_df = pd.DataFrame(members_data)
 
 if members_df.empty:
 
@@ -643,8 +638,6 @@ else:
         200
     )
 
-    # ================= FORM =================
-
     month = st.selectbox(
         "Month",
         [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
@@ -663,8 +656,6 @@ else:
         key="collection_note"
     )
 
-    # ================= SAVE =================
-
     if not is_viewer:
 
         if st.button("Save Collection"):
@@ -678,9 +669,7 @@ else:
                     "name": member_name,
                     "month": month,
                     "start_date": start_date,
-
                     "expected_amount": expected_amount,
-
                     "date": payment_date.strftime("%Y-%m-%d"),
                     "amount": amt,
                     "note": note
@@ -695,12 +684,8 @@ else:
             except Exception as e:
                 st.error(f"Error saving collection: {e}")
 
-    # ================= LOAD DATA =================
-
     data = load_collections()
     df = pd.DataFrame(data)
-
-    # ================= SHOW DATA =================
 
     if not df.empty:
 
@@ -720,8 +705,6 @@ else:
             df[show_columns],
             use_container_width=True
         )
-
-        # ================= SELECT ENTRY =================
 
         df["label"] = (
             df["customer_id"].fillna("NO-ID")
@@ -752,8 +735,6 @@ else:
 
         col1, col2 = st.columns(2)
 
-        # ================= UPDATE =================
-
         with col1:
 
             if not is_viewer:
@@ -777,8 +758,6 @@ else:
                     except Exception as e:
                         st.error(f"Update failed: {e}")
 
-        # ================= DELETE =================
-
         with col2:
 
             if is_admin:
@@ -799,67 +778,61 @@ else:
 
                     except Exception as e:
                         st.error(f"Delete failed: {e}")
-                        
-# ========================= COLLECTION RATES =========================
+
+========================= COLLECTION RATES =========================
+
 elif menu == "Collection Rates":
 
-    st.subheader("💰 Collection Rate Management")
+st.subheader("💰 Collection Rate Management")
 
-    @st.cache_data(ttl=60)
-    def load_rates():
-        try:
-            return supabase.table("collection_rates").select("*").order(
-                "effective_from",
-                desc=True
-            ).execute().data
-        except:
-            return []
+@st.cache_data(ttl=60)
+def load_rates():
+    try:
+        return supabase.table("collection_rates").select("*").order(
+            "effective_from",
+            desc=True
+        ).execute().data
+    except:
+        return []
 
-    amount = st.number_input(
-        "Collection Amount",
-        min_value=0.0,
-        value=200.0,
-        step=50.0
+amount = st.number_input(
+    "Collection Amount",
+    min_value=0.0,
+    value=200.0,
+    step=50.0
+)
+
+effective_from = st.date_input("Effective From")
+
+if st.button("Add New Rate"):
+
+    try:
+
+        supabase.table("collection_rates").insert({
+            "amount": amount,
+            "effective_from": effective_from.strftime("%Y-%m-%d")
+        }).execute()
+
+        st.success("Rate Added Successfully ✅")
+
+        st.cache_data.clear()
+        st.rerun()
+
+    except Exception as e:
+        st.error(f"Error: {e}")
+
+rates = load_rates()
+
+if rates:
+
+    rates_df = pd.DataFrame(rates)
+
+    st.markdown("### 📋 Rate History")
+
+    st.dataframe(
+        rates_df[["amount", "effective_from"]],
+        use_container_width=True
     )
-
-    effective_from = st.date_input(
-        "Effective From"
-    )
-
-    if st.button("Add New Rate"):
-
-        try:
-
-            supabase.table("collection_rates").insert({
-                "amount": amount,
-                "effective_from": effective_from.strftime("%Y-%m-%d")
-            }).execute()
-
-            st.success("Rate Added Successfully ✅")
-
-            st.cache_data.clear()
-            st.rerun()
-
-        except Exception as e:
-            st.error(f"Error: {e}")
-
-    rates = load_rates()
-
-    if rates:
-
-        rates_df = pd.DataFrame(rates)
-
-        st.markdown("### 📋 Rate History")
-
-        st.dataframe(
-            rates_df[
-                [
-                    "amount",
-                    "effective_from"
-                ]
-            ],
-            use_container_width=True
-        )
 # ========================= LOANS =========================
 elif menu == "loans":
 
