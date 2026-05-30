@@ -2390,7 +2390,7 @@ elif menu == "Reports":
             f"₹ {profit:,.0f}"
         )
 # ================= USERS =================
-elif menu == "Users":
+if menu == "Users":
 
     st.subheader("👥 User Management")
 
