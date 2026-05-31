@@ -1775,11 +1775,9 @@ elif menu == "Reports":
     def load_reports():
 
         def safe_fetch(table):
-
             try:
                 data = supabase.table(table).select("*").execute().data
                 return pd.DataFrame(data)
-
             except:
                 return pd.DataFrame()
 
@@ -1806,7 +1804,6 @@ elif menu == "Reports":
         payments_df,
         donations_df,
         expenses_df
-
     ) = load_reports()
 
     # ================= MEMBER MAP =================
@@ -1814,21 +1811,17 @@ elif menu == "Reports":
     member_map = {}
 
     if not members_df.empty:
-
         for _, row in members_df.iterrows():
-
             member_map[row["id"]] = row.get("name", "Unknown")
 
     # ================= TABS =================
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-
         "💰 Collections",
         "🏦 Loans",
         "🎁 Donations",
         "💸 Expenses",
         "🔔 Reminders"
-
     ])
 
     # =========================================================
@@ -1840,11 +1833,8 @@ elif menu == "Reports":
         st.markdown("## 💰 Collections Report")
 
         if collections_df.empty:
-
             st.warning("No collections found.")
-
         else:
-
             from io import BytesIO
 
             collections_df["amount"] = pd.to_numeric(
@@ -1858,7 +1848,6 @@ elif menu == "Reports":
             ).fillna(0)
 
             if "member_id" in collections_df.columns:
-
                 collections_df["Member Name"] = (
                     collections_df["member_id"]
                     .map(member_map)
@@ -1870,7 +1859,6 @@ elif menu == "Reports":
             )
 
             if "month" in collections_df.columns:
-
                 collections_df["Month"] = (
                     collections_df["month"]
                 )
@@ -1880,36 +1868,24 @@ elif menu == "Reports":
             c1, c2 = st.columns(2)
 
             with c1:
-
                 member_filter = st.selectbox(
-
                     "👤 Member",
-
-                    ["All"] +
-
-                    sorted(
+                    ["All"] + sorted(
                         collections_df["Member Name"]
                         .dropna()
                         .unique()
                     ),
-
                     key="collection_member"
                 )
 
             with c2:
-
                 month_filter = st.selectbox(
-
                     "📅 Month",
-
-                    ["All"] +
-
-                    sorted(
+                    ["All"] + sorted(
                         collections_df["Month"]
                         .dropna()
                         .unique()
                     ),
-
                     key="collection_month"
                 )
 
@@ -1918,7 +1894,6 @@ elif menu == "Reports":
             d1, d2 = st.columns(2)
 
             with d1:
-
                 start_date = st.date_input(
                     "Start Date",
                     collections_df["date"].min().date(),
@@ -1926,7 +1901,6 @@ elif menu == "Reports":
                 )
 
             with d2:
-
                 end_date = st.date_input(
                     "End Date",
                     collections_df["date"].max().date(),
@@ -1938,133 +1912,64 @@ elif menu == "Reports":
             filtered_df = collections_df.copy()
 
             if member_filter != "All":
-
                 filtered_df = filtered_df[
-                    filtered_df["Member Name"] ==
-                    member_filter
+                    filtered_df["Member Name"] == member_filter
                 ]
 
             if month_filter != "All":
-
                 filtered_df = filtered_df[
-                    filtered_df["Month"] ==
-                    month_filter
+                    filtered_df["Month"] == month_filter
                 ]
 
             filtered_df = filtered_df[
-
-                (
-                    filtered_df["date"].dt.date >=
-                    start_date
-                )
-
+                (filtered_df["date"].dt.date >= start_date)
                 &
-
-                (
-                    filtered_df["date"].dt.date <=
-                    end_date
-                )
-
+                (filtered_df["date"].dt.date <= end_date)
             ]
 
             # ================= SUMMARY =================
 
-            expected_total = filtered_df[
-                "expected_amount"
-            ].sum()
-
-            collected_total = filtered_df[
-                "amount"
-            ].sum()
-
-            pending_total = max(
-                expected_total -
-                collected_total,
-                0
-            )
+            expected_total = filtered_df["expected_amount"].sum()
+            collected_total = filtered_df["amount"].sum()
+            pending_total = max(expected_total - collected_total, 0)
 
             efficiency = 0
-
             if expected_total > 0:
-
-                efficiency = (
-                    collected_total /
-                    expected_total
-                ) * 100
+                efficiency = (collected_total / expected_total) * 100
 
             s1, s2, s3, s4 = st.columns(4)
 
             with s1:
-
-                st.metric(
-                    "🎯 Expected",
-                    f"₹ {expected_total:,.0f}"
-                )
+                st.metric("🎯 Expected", f"₹ {expected_total:,.0f}")
 
             with s2:
-
-                st.metric(
-                    "💰 Collected",
-                    f"₹ {collected_total:,.0f}"
-                )
+                st.metric("💰 Collected", f"₹ {collected_total:,.0f}")
 
             with s3:
-
-                st.metric(
-                    "⚠️ Pending",
-                    f"₹ {pending_total:,.0f}"
-                )
+                st.metric("⚠️ Pending", f"₹ {pending_total:,.0f}")
 
             with s4:
+                st.metric("📈 Efficiency", f"{efficiency:.1f}%")
 
-                st.metric(
-                    "📈 Efficiency",
-                    f"{efficiency:.1f}%"
-                )
-
-            
             # ================= MEMBER SUMMARY =================
 
             st.markdown("### 👥 Member Month Wise Summary")
 
             member_summary = filtered_df.groupby(
-
                 ["Member Name", "Month"]
-
-).agg({
-
-    "expected_amount": "sum",
-    "amount": "sum"
-
-}).reset_index()
+            ).agg({
+                "expected_amount": "sum",
+                "amount": "sum"
+            }).reset_index()
 
             member_summary["Balance"] = (
-
-                member_summary["expected_amount"]
-                -
-                member_summary["amount"]
-
+                member_summary["expected_amount"] - member_summary["amount"]
             )
+            member_summary["Balance"] = member_summary["Balance"].clip(lower=0)
 
-            member_summary["Balance"] = (
-                member_summary["Balance"]
-                .clip(lower=0)
+            member_summary["Status"] = member_summary["Balance"].apply(
+                lambda x: "✅ Paid" if x <= 0 else "⚠️ Pending"
             )
-
-            member_summary["Status"] = (
-
-                member_summary["Balance"]
-
-    .apply(
-
-        lambda x:
-        "✅ Paid"
-        if x <= 0
-        else "⚠️ Pending"
-
-    )
-
-)
 
             member_summary = member_summary.rename(
                 columns={
@@ -2073,31 +1978,18 @@ elif menu == "Reports":
                 }
             )
 
-            st.dataframe(
-                member_summary,
-                use_container_width=True
-            )
+            st.dataframe(member_summary, use_container_width=True)
 
             # ================= DEFAULTERS =================
 
             st.markdown("### 🚨 Defaulters")
 
-            defaulters = member_summary[
-                member_summary["Status"] == "⚠️ Pending"
-            ]
+            defaulters = member_summary[member_summary["Status"] == "⚠️ Pending"]
 
             if defaulters.empty:
-
-                st.success(
-                    "✅ No pending collections"
-                )
-
+                st.success("✅ No pending collections")
             else:
-
-                st.dataframe(
-                    defaulters,
-                    use_container_width=True
-                )
+                st.dataframe(defaulters, use_container_width=True)
 
             # ================= EXPORT =================
 
@@ -2107,16 +1999,9 @@ elif menu == "Reports":
 
             export_df = filtered_df.copy()
 
-            export_df["Balance"] = (
-                export_df["expected_amount"]
-                - export_df["amount"]
-            )
-
+            export_df["Balance"] = export_df["expected_amount"] - export_df["amount"]
             export_df["Status"] = export_df["Balance"].apply(
-                lambda x:
-                "Paid"
-                if x <= 0
-                else "Pending"
+                lambda x: "Paid" if x <= 0 else "Pending"
             )
 
             export_df = export_df.rename(
@@ -2147,29 +2032,17 @@ elif menu == "Reports":
 
             excel_buffer = BytesIO()
 
-            with pd.ExcelWriter(
-                excel_buffer,
-                engine="openpyxl"
-            ) as writer:
-
-                export_df.to_excel(
-                    writer,
-                    index=False,
-                    sheet_name="Collections Report"
-                )
+            with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
+                export_df.to_excel(writer, index=False, sheet_name="Collections Report")
 
             # ===== PDF =====
 
             pdf_buffer = BytesIO()
-
             doc = SimpleDocTemplate(pdf_buffer)
-
             pdf_data = [list(export_df.columns)]
-
             pdf_data += export_df.values.tolist()
 
             table = Table(pdf_data)
-
             table.setStyle(
                 TableStyle([
                     ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
@@ -2177,86 +2050,63 @@ elif menu == "Reports":
                     ("FONTSIZE", (0, 0), (-1, -1), 8),
                 ])
             )
-
             doc.build([table])
 
             # ===== DOWNLOAD =====
 
             st.download_button(
-    label="Download Excel Report",
-    data=excel_buffer.getvalue(),
-    file_name="collections_report.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    use_container_width=True
-)
+                label="Download Excel Report",
+                data=excel_buffer.getvalue(),
+                file_name="collections_report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
 
-st.download_button(
-    label="Download PDF Report",
-    data=pdf_buffer.getvalue(),
-    file_name="collections_report.pdf",
-    mime="application/pdf",
-    use_container_width=True
-)
+            st.download_button(
+                label="Download PDF Report",
+                data=pdf_buffer.getvalue(),
+                file_name="collections_report.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
 
             # ================= RECORDS =================
 
-st.markdown(
-    "### 📋 Collection Records"
-)
+            st.markdown("### 📋 Collection Records")
 
-records_df = filtered_df.copy()
+            records_df = filtered_df.copy()
 
-records_df["Balance"] = (
-    records_df["expected_amount"]
-    -
-    records_df["amount"]
-)
+            records_df["Balance"] = records_df["expected_amount"] - records_df["amount"]
+            records_df["Balance"] = records_df["Balance"].clip(lower=0)
 
-records_df["Balance"] = (
-    records_df["Balance"]
-    .clip(lower=0)
-)
+            records_df["Status"] = records_df["Balance"].apply(
+                lambda x: "✅ Paid" if x <= 0 else "⚠️ Pending"
+            )
 
-records_df["Status"] = (
-    records_df["Balance"]
-    .apply(
-        lambda x:
-        "✅ Paid"
-        if x <= 0
-        else "⚠️ Pending"
-    )
-)
+            records_df = records_df.rename(
+                columns={
+                    "customer_id": "Customer ID",
+                    "start_date": "Start Date",
+                    "Month": "Collection Month",
+                    "expected_amount": "Expected Amount",
+                    "amount": "Actual Amount Received"
+                }
+            )
 
-records_df = records_df.rename(
-    columns={
-        "customer_id": "Customer ID",
-        "start_date": "Start Date",
-        "Month": "Collection Month",
-        "expected_amount": "Expected Amount",
-        "amount": "Actual Amount Received"
-    }
-)
+            display_columns = [
+                "Customer ID",
+                "Member Name",
+                "Start Date",
+                "Collection Month",
+                "Expected Amount",
+                "Actual Amount Received",
+                "Balance",
+                "Status"
+            ]
 
-display_columns = [
-    "Customer ID",
-    "Member Name",
-    "Start Date",
-    "Collection Month",
-    "Expected Amount",
-    "Actual Amount Received",
-    "Balance",
-    "Status"
-]
+            available_columns = [col for col in display_columns if col in records_df.columns]
 
-available_columns = [
-    col for col in display_columns
-    if col in records_df.columns
-]
-
-st.dataframe(
-    records_df[available_columns],
-    use_container_width=True
-)
+            st.dataframe(records_df[available_columns], use_container_width=True)
 
     # =========================================================
     # ================= LOANS REPORT ==========================
