@@ -2475,7 +2475,7 @@ with tab2:
                     )
 
             current_date = start_date
-            today = pd.Timestamp.today()
+            today = pd.Timestamp(loan_end)
 
             running_principal = principal
             running_balance = principal
