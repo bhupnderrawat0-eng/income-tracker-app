@@ -2549,40 +2549,35 @@ with tab2:
 
         # ================= LOAN MONTH WISE SUMMARY =================
 
-        st.markdown("### 🏦 Loan Month Wise Summary")
+st.markdown("### 🏦 Loan Month Wise Summary")
 
-        loan_summary = loan_filtered.groupby(
+loan_summary = loan_filtered.copy()
 
-            ["Member Name", "Loan Month"]
+summary_columns = [
 
-        ).agg({
+    "Customer ID",
+    "Member Name",
+    "Loan Amount",
+    "Interest Amount",
+    "Paid Amount",
+    "Balance",
+    "Status",
+    "Loan Month"
 
-            "amount": "sum",
-            "Paid Amount": "sum",
-            "Balance": "sum",
-            "start_date": "first"
+]
 
-        }).reset_index()
+loan_summary = loan_summary.rename(
+    columns={
+        "customer_id": "Customer ID",
+        "amount": "Loan Amount",
+        "Month": "Loan Month"
+    }
+)
 
-        loan_summary = loan_summary.rename(columns={
-
-            "amount": "Loan Amount",
-            "start_date": "Loan Start Date"
-
-        })
-
-        loan_summary["Status"] = loan_summary["Balance"].apply(
-
-            lambda x: "⚠️ Active"
-            if x > 0
-            else "✅ Closed"
-
-        )
-
-        st.dataframe(
-            loan_summary,
-            use_container_width=True
-        )
+st.dataframe(
+    loan_summary[summary_columns],
+    use_container_width=True
+)
 
         # ================= EXPORT =================
 
