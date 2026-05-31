@@ -3,6 +3,12 @@ import pandas as pd
 from streamlit_option_menu import option_menu
 import hashlib
 import datetime
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle
+)
+from reportlab.lib import colors
 
 # ================= SUPABASE =================
 from supabase import create_client, Client
@@ -2093,53 +2099,106 @@ elif menu == "Reports":
 
             # ================= EXPORT =================
 
-            st.markdown("### ⬇️ Export Reports")
+st.markdown("### ⬇️ Export Reports")
 
-            csv = filtered_df.to_csv(
-                index=False
-            ).encode("utf-8")
+# ===== CLEAN EXPORT DATA =====
 
-            excel_buffer = BytesIO()
+export_df = filtered_df.copy()
 
-            with pd.ExcelWriter(
-                excel_buffer,
-                engine="openpyxl"
-            ) as writer:
+export_df["Balance"] = (
+    export_df["expected_amount"]
+    - export_df["amount"]
+)
 
-                filtered_df.to_excel(
-                    writer,
-                    index=False
-                )
+export_df["Status"] = export_df["Balance"].apply(
+    lambda x:
+    "Paid"
+    if x <= 0
+    else "Pending"
+)
 
-            e1, e2 = st.columns(2)
+export_df = export_df.rename(
+    columns={
+        "customer_id": "Customer ID",
+        "Member Name": "Member Name",
+        "start_date": "Start Date",
+        "Month": "Collection Month",
+        "expected_amount": "Expected Amount",
+        "amount": "Actual Amount Received"
+    }
+)
 
-            with e1:
+export_df = export_df[
+    [
+        "Customer ID",
+        "Member Name",
+        "Start Date",
+        "Collection Month",
+        "Expected Amount",
+        "Actual Amount Received",
+        "Balance",
+        "Status"
+    ]
+]
 
-                st.download_button(
+# ===== EXCEL =====
 
-                    "📄 Download CSV",
+excel_buffer = BytesIO()
 
-                    csv,
+with pd.ExcelWriter(
+    excel_buffer,
+    engine="openpyxl"
+) as writer:
 
-                    file_name=
-                    "collections_report.csv",
+    export_df.to_excel(
+        writer,
+        index=False,
+        sheet_name="Collections Report"
+    )
 
-                    mime="text/csv"
-                )
+# ===== PDF =====
 
-            with e2:
+pdf_buffer = BytesIO()
 
-                st.download_button(
+doc = SimpleDocTemplate(pdf_buffer)
 
-                    "📊 Download Excel",
+pdf_data = [list(export_df.columns)]
 
-                    excel_buffer.getvalue(),
+pdf_data += export_df.values.tolist()
 
-                    file_name=
-                    "collections_report.xlsx",
+table = Table(pdf_data)
 
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+table.setStyle(
+    TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+    ])
+)
+
+doc.build([table])
+
+# ===== DOWNLOAD =====
+
+e1, e2 = st.columns(2)
+
+with e1:
+
+    st.download_button(
+        "📊 Download Excel",
+        excel_buffer.getvalue(),
+        file_name="collections_report.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+with e2:
+
+    st.download_button(
+        "📄 Download PDF",
+        pdf_buffer.getvalue(),
+        file_name="collections_report.pdf",
+        mime="application/pdf"
+    )
 
             # ================= RECORDS =================
 
