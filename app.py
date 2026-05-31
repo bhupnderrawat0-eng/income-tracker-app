@@ -2407,16 +2407,7 @@ elif menu == "Reports":
                     f"₹ {total_interest:,.0f}"
                 )
 
-            # ================= CHART =================
-
-            st.markdown("### 📈 Loan Trend")
-
-            loan_chart = loan_filtered.groupby(
-                "Month"
-            )["Balance"].sum()
-
-            st.bar_chart(loan_chart)
-
+            
             # ================= TABLE =================
 
             st.markdown("### 📋 Loan Records")
