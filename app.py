@@ -2182,25 +2182,21 @@ elif menu == "Reports":
 
             # ===== DOWNLOAD =====
 
-            e1, e2 = st.columns(2)
+            st.download_button(
+    label="Download Excel Report",
+    data=excel_buffer.getvalue(),
+    file_name="collections_report.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    use_container_width=True
+)
 
-            with e1:
-
-                st.download_button(
-                    "📊 Download Excel",
-                    excel_buffer.getvalue(),
-                    file_name="collections_report.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-
-            with e2:
-
-                st.download_button(
-                    "📄 Download PDF",
-                    pdf_buffer.getvalue(),
-                    file_name="collections_report.pdf",
-                    mime="application/pdf"
-                )
+st.download_button(
+    label="Download PDF Report",
+    data=pdf_buffer.getvalue(),
+    file_name="collections_report.pdf",
+    mime="application/pdf",
+    use_container_width=True
+)
 
             # ================= RECORDS =================
 
