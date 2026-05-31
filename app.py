@@ -2123,7 +2123,7 @@ elif menu == "Reports":
 
             st.dataframe(records_df[available_columns], use_container_width=True)
 
-    # =========================================================
+   # =========================================================
 # ================= LOANS REPORT ==========================
 # =========================================================
 
@@ -2549,35 +2549,35 @@ with tab2:
 
         # ================= LOAN MONTH WISE SUMMARY =================
 
-st.markdown("### 🏦 Loan Month Wise Summary")
+        st.markdown("### 🏦 Loan Month Wise Summary")
 
-loan_summary = loan_filtered.copy()
+        loan_summary = loan_filtered.copy()
 
-summary_columns = [
+        summary_columns = [
 
-    "Customer ID",
-    "Member Name",
-    "Loan Amount",
-    "Interest Amount",
-    "Paid Amount",
-    "Balance",
-    "Status",
-    "Loan Month"
+            "Customer ID",
+            "Member Name",
+            "Loan Amount",
+            "Interest Amount",
+            "Paid Amount",
+            "Balance",
+            "Status",
+            "Loan Month"
 
-]
+        ]
 
-loan_summary = loan_summary.rename(
-    columns={
-        "customer_id": "Customer ID",
-        "amount": "Loan Amount",
-        "Month": "Loan Month"
-    }
-)
+        loan_summary = loan_summary.rename(
+            columns={
+                "customer_id": "Customer ID",
+                "amount": "Loan Amount",
+                "Month": "Loan Month"
+            }
+        )
 
-st.dataframe(
-    loan_summary[summary_columns],
-    use_container_width=True
-)
+        st.dataframe(
+            loan_summary[summary_columns],
+            use_container_width=True
+        )
 
         # ================= EXPORT =================
 
