@@ -2034,68 +2034,79 @@ elif menu == "Reports":
 
             # ================= MEMBER SUMMARY =================
 
-            st.markdown("### 👥 Member Month Wise Summary")
+st.markdown("### 👥 Member Month Wise Summary")
 
-            member_summary = filtered_df.groupby(
+member_summary = filtered_df.groupby(
 
-                ["Member Name", "Month"]
+    ["Member Name", "Month"]
 
-            ).agg({
+).agg({
 
-                "expected_amount": "sum",
-                "amount": "sum"
+    "expected_amount": "sum",
+    "amount": "sum"
 
-            }).reset_index()
+}).reset_index()
 
-            member_summary["Pending"] = (
+member_summary["Balance"] = (
 
-                member_summary["expected_amount"]
-                -
-                member_summary["amount"]
+    member_summary["expected_amount"]
+    -
+    member_summary["amount"]
 
-            )
+)
 
-            member_summary["Efficiency %"] = (
+member_summary["Balance"] = (
+    member_summary["Balance"]
+    .clip(lower=0)
+)
 
-                member_summary["amount"]
+member_summary["Status"] = (
 
-                /
+    member_summary["Balance"]
 
-                member_summary["expected_amount"]
-                .replace(0, 1)
+    .apply(
 
-            ) * 100
+        lambda x:
+        "✅ Paid"
+        if x <= 0
+        else "⚠️ Pending"
 
-            member_summary["Efficiency %"] = (
-                member_summary["Efficiency %"]
-                .round(1)
-            )
+    )
 
-            st.dataframe(
-                member_summary,
-                use_container_width=True
-            )
+)
+
+member_summary = member_summary.rename(
+    columns={
+        "expected_amount": "Expected Amount",
+        "amount": "Actual Amount Received"
+    }
+)
+
+st.dataframe(
+    member_summary,
+    use_container_width=True
+)
 
             # ================= DEFAULTERS =================
 
-            st.markdown("### 🚨 Defaulters")
+st.markdown("### 🚨 Defaulters")
 
-            defaulters = member_summary[
-                member_summary["Pending"] > 0
-            ]
+defaulters = member_summary[
+    member_summary["Status"] == "⚠️ Pending"
+]
 
-            if defaulters.empty:
+if defaulters.empty:
 
-                st.success(
-                    "✅ No pending collections"
-                )
+    st.success(
+        "✅ No pending collections"
+    )
 
-            else:
+else:
 
-                st.dataframe(
-                    defaulters,
-                    use_container_width=True
-                )
+    st.dataframe(
+        defaulters,
+        use_container_width=True
+    )
 
             # ================= EXPORT =================
 
