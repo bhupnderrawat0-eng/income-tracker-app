@@ -2418,23 +2418,34 @@ elif menu == "Reports":
             
             # ================= TABLE =================
 
-            st.markdown("### 📋 Loan Records")
+st.markdown("### 📋 Loan Records")
 
-            st.dataframe(
+loan_display = loan_filtered.copy()
 
-                loan_filtered[[
-                    "customer_id",
-                    "Member Name",
-                    "amount",
-                    "Interest Amount",
-                    "Paid Amount",
-                    "Balance",
-                    "Month"
-                ]],
+loan_display = loan_display.rename(
+    columns={
+        "customer_id": "Customer ID",
+        "amount": "Loan Amount",
+        "Month": "Loan Month"
+    }
+)
 
-                use_container_width=True
+display_columns = [
+    "Customer ID",
+    "Member Name",
+    "Loan Amount",
+    "Interest Amount",
+    "Total Loan",
+    "Paid Amount",
+    "Balance",
+    "Status",
+    "Loan Month"
+]
 
-            )
+st.dataframe(
+    loan_display[display_columns],
+    use_container_width=True
+)
 
     # =========================================================
     # ================= DONATIONS =============================
