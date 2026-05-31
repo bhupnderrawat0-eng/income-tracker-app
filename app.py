@@ -2022,16 +2022,7 @@ elif menu == "Reports":
                     f"{efficiency:.1f}%"
                 )
 
-            # ================= TREND =================
-
-            st.markdown("### 📈 Collection Trend")
-
-            trend_df = filtered_df.groupby(
-                "Month"
-            )["amount"].sum()
-
-            st.bar_chart(trend_df)
-
+            
             # ================= MEMBER SUMMARY =================
 
             st.markdown("### 👥 Member Month Wise Summary")
@@ -2213,14 +2204,63 @@ elif menu == "Reports":
 
             # ================= RECORDS =================
 
-            st.markdown(
-                "### 📋 Collection Records"
-            )
+st.markdown(
+    "### 📋 Collection Records"
+)
 
-            st.dataframe(
-                filtered_df,
-                use_container_width=True
-            )
+records_df = filtered_df.copy()
+
+records_df["Balance"] = (
+    records_df["expected_amount"]
+    -
+    records_df["amount"]
+)
+
+records_df["Balance"] = (
+    records_df["Balance"]
+    .clip(lower=0)
+)
+
+records_df["Status"] = (
+    records_df["Balance"]
+    .apply(
+        lambda x:
+        "✅ Paid"
+        if x <= 0
+        else "⚠️ Pending"
+    )
+)
+
+records_df = records_df.rename(
+    columns={
+        "customer_id": "Customer ID",
+        "start_date": "Start Date",
+        "Month": "Collection Month",
+        "expected_amount": "Expected Amount",
+        "amount": "Actual Amount Received"
+    }
+)
+
+display_columns = [
+    "Customer ID",
+    "Member Name",
+    "Start Date",
+    "Collection Month",
+    "Expected Amount",
+    "Actual Amount Received",
+    "Balance",
+    "Status"
+]
+
+available_columns = [
+    col for col in display_columns
+    if col in records_df.columns
+]
+
+st.dataframe(
+    records_df[available_columns],
+    use_container_width=True
+)
 
     # =========================================================
     # ================= LOANS REPORT ==========================
