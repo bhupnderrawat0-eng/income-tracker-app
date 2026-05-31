@@ -2493,7 +2493,7 @@ with tab2:
             use_container_width=True
         )
 
-        # ================= LOAN RECORDS =================
+        # ================= TABLE =================
 
         st.markdown("### 📋 Loan Records")
 
