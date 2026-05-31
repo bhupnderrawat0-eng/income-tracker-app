@@ -2445,6 +2445,42 @@ elif menu == "Reports":
                 loan_display[display_columns],
                 use_container_width=True
             )
+            # ================= LOAN MONTH WISE SUMMARY =================
+
+st.markdown("### 🏦 Loan Month Wise Summary")
+
+loan_summary = loan_filtered.groupby(
+
+    ["Member Name", "Loan Month"]
+
+).agg({
+
+    "amount": "sum",
+    "Paid Amount": "sum",
+    "Balance": "sum",
+    "start_date": "first"
+
+}).reset_index()
+
+loan_summary = loan_summary.rename(columns={
+
+    "amount": "Loan Amount",
+    "start_date": "Loan Start Date"
+
+})
+
+loan_summary["Status"] = loan_summary["Balance"].apply(
+
+    lambda x: "⚠️ Active"
+    if x > 0
+    else "✅ Closed"
+
+)
+
+st.dataframe(
+    loan_summary,
+    use_container_width=True
+)
 
             # ================= EXPORT =================
 
