@@ -2313,13 +2313,13 @@ elif menu == "Reports":
                 )
 
             with l2:
+                # loan_month selectbox yahan generate hona chahiye filter logic se pehle
+                available_months_filter = sorted(
+                    loans_df["Month"].dropna().unique()
+                )
                 loan_month = st.selectbox(
                     "📅 Month",
-                    ["All"] + list(
-                        loans_df["Month"]
-                        .dropna()
-                        .unique()
-                    ),
+                    ["All"] + available_months_filter,
                     key="loan_month"
                 )
 
@@ -2487,6 +2487,23 @@ elif menu == "Reports":
                         )
 
             timeline_df = pd.DataFrame(timeline_summary)
+
+            # ================= TIMELINE MONTH FILTER =================
+
+            available_months = sorted(
+                timeline_df["Loan Month"].dropna().unique()
+            )
+
+            timeline_month = st.selectbox(
+                "📅 Filter Timeline Month",
+                ["All"] + available_months,
+                key="timeline_month"
+            )
+
+            if timeline_month != "All":
+                timeline_df = timeline_df[
+                    timeline_df["Loan Month"] == timeline_month
+                ]
 
             st.dataframe(
                 timeline_df,
@@ -2701,7 +2718,6 @@ elif menu == "Reports":
                 mime="application/pdf",
                 use_container_width=True
             )
-
             
     # =========================================================
     # ================= DONATIONS =============================
