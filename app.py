@@ -2312,8 +2312,7 @@ elif menu == "Reports":
                     key="loan_member"
                 )
 
-            with l2:
-                # loan_month selectbox yahan generate hona chahiye filter logic se pehle
+            with l2:                
                 available_months_filter = sorted(
                     loans_df["Month"].dropna().unique()
                 )
