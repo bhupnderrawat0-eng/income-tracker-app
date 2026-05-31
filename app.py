@@ -116,7 +116,22 @@ div.stButton > button:hover {
     transform: translateY(-2px);
     box-shadow: 0 0 12px rgba(124,58,237,0.4);
 }
+/* ===== DOWNLOAD BUTTONS ===== */
 
+.stDownloadButton > button {
+    background: linear-gradient(135deg,#6366f1,#7c3aed) !important;
+    color: white !important;
+    border-radius: 12px !important;
+    height: 42px !important;
+    border: none !important;
+    width: 100% !important;
+    font-weight: 600 !important;
+}
+
+.stDownloadButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 12px rgba(124,58,237,0.4);
+}
 /* ===== FORM BUTTON (LOGIN SAFE) ===== */
 div.stForm button {
     background: linear-gradient(135deg,#16a34a,#22c55e) !important;
