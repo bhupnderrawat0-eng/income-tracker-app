@@ -2438,32 +2438,138 @@ with tab2:
 
         st.markdown("### 🏦 Loan Month Wise Summary")
 
-        loan_summary = loan_filtered.copy()
+        timeline_summary = []
 
-        summary_columns = [
-            "Customer ID",
-            "Member Name",
-            "Loan Amount",
-            "Interest Amount",
-            "Paid Amount",
-            "Balance",
-            "Status",
-            "Loan Month"
-        ]
+        for _, loan in loan_filtered.iterrows():
 
-        loan_summary = loan_summary.rename(
-            columns={
-                "customer_id": "Customer ID",
-                "amount": "Loan Amount",
-                "Month": "Loan Month"
-            }
+            loan_id = loan["id"]
+
+            principal = float(loan.get("amount", 0))
+            rate = float(loan.get("interest_rate", 0))
+
+            start_date = pd.to_datetime(
+                loan["start_date"]
+            )
+
+            cust_payments = payments_df[
+                payments_df["loan_id"] == loan_id
+            ].copy()
+
+            principal_payment_map = {}
+            interest_payment_map = {}
+
+            if not cust_payments.empty:
+
+                for _, p in cust_payments.iterrows():
+
+                    month_key = str(p["date"])[:7]
+
+                    principal_payment_map[month_key] = (
+                        principal_payment_map.get(month_key, 0)
+                        + float(p.get("principal_paid", 0))
+                    )
+
+                    interest_payment_map[month_key] = (
+                        interest_payment_map.get(month_key, 0)
+                        + float(p.get("interest_paid", 0))
+                    )
+
+            current_date = start_date
+            today = pd.Timestamp.today()
+
+            running_principal = principal
+            running_balance = principal
+
+            while current_date <= today:
+
+                month_key = current_date.strftime("%Y-%m")
+
+                principal_paid = principal_payment_map.get(
+                    month_key,
+                    0
+                )
+
+                interest_paid = interest_payment_map.get(
+                    month_key,
+                    0
+                )
+
+                principal_after_payment = max(
+                    running_principal - principal_paid,
+                    0
+                )
+
+                interest = (
+                    principal_after_payment * rate
+                ) / 100
+
+                running_balance = (
+                    running_balance
+                    - principal_paid
+                    - interest_paid
+                    + interest
+                )
+
+                timeline_summary.append({
+
+                    "Customer ID":
+                        loan.get("customer_id", ""),
+
+                    "Member Name":
+                        loan.get("Member Name", ""),
+
+                    "Loan Start Date":
+                        start_date.strftime("%Y-%m-%d"),
+
+                    "Loan Month":
+                        current_date.strftime("%b %Y"),
+
+                    "Loan Amount":
+                        round(principal_after_payment),
+
+                    "Interest Amount":
+                        round(interest),
+
+                    "Principal Paid":
+                        round(principal_paid),
+
+                    "Interest Paid":
+                        round(interest_paid),
+
+                    "Balance":
+                        round(running_balance),
+
+                    "Status":
+                        "✅ Closed"
+                        if running_balance <= 0
+                        else "⚠️ Active"
+
+                })
+
+                running_principal = principal_after_payment
+
+                if current_date.month == 12:
+
+                    current_date = current_date.replace(
+                        year=current_date.year + 1,
+                        month=1
+                    )
+
+                else:
+
+                    current_date = current_date.replace(
+                        month=current_date.month + 1
+                    )
+
+        timeline_df = pd.DataFrame(
+            timeline_summary
         )
 
         st.dataframe(
-            loan_summary[summary_columns],
+            timeline_df,
             use_container_width=True
         )
-
+        
         # ================= EXPORT =================
 
         st.markdown("### ⬇️ Export Loan Reports")
