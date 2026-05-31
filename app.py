@@ -2297,7 +2297,6 @@ with tab2:
         loans_df["Balance"] = balance_list
         loans_df["Status"] = status_list
 
-              
         # ================= FILTERS =================
 
         l1, l2, l3 = st.columns(3)
@@ -2413,24 +2412,29 @@ with tab2:
             columns={
                 "customer_id": "Customer ID",
                 "amount": "Loan Amount",
-                "Month": "Loan Month"
+                "start_date": "Loan Start Date"
             }
         )
 
         display_columns = [
             "Customer ID",
             "Member Name",
+            "Loan Start Date",
             "Loan Amount",
             "Interest Amount",
             "Total Loan",
             "Paid Amount",
             "Balance",
-            "Status",
-            "Loan Month"
+            "Status"
+        ]
+
+        available_columns = [
+            col for col in display_columns
+            if col in loan_display.columns
         ]
 
         st.dataframe(
-            loan_display[display_columns],
+            loan_display[available_columns],
             use_container_width=True
         )
 
@@ -2441,15 +2445,10 @@ with tab2:
         timeline_summary = []
 
         for _, loan in loan_filtered.iterrows():
-
             loan_id = loan["id"]
-
             principal = float(loan.get("amount", 0))
             rate = float(loan.get("interest_rate", 0))
-
-            start_date = pd.to_datetime(
-                loan["start_date"]
-            )
+            start_date = pd.to_datetime(loan["start_date"])
 
             cust_payments = payments_df[
                 payments_df["loan_id"] == loan_id
@@ -2459,16 +2458,12 @@ with tab2:
             interest_payment_map = {}
 
             if not cust_payments.empty:
-
                 for _, p in cust_payments.iterrows():
-
                     month_key = str(p["date"])[:7]
-
                     principal_payment_map[month_key] = (
                         principal_payment_map.get(month_key, 0)
                         + float(p.get("principal_paid", 0))
                     )
-
                     interest_payment_map[month_key] = (
                         interest_payment_map.get(month_key, 0)
                         + float(p.get("interest_paid", 0))
@@ -2481,28 +2476,16 @@ with tab2:
             running_balance = principal
 
             while current_date <= today:
-
                 month_key = current_date.strftime("%Y-%m")
-
-                principal_paid = principal_payment_map.get(
-                    month_key,
-                    0
-                )
-
-                interest_paid = interest_payment_map.get(
-                    month_key,
-                    0
-                )
+                principal_paid = principal_payment_map.get(month_key, 0)
+                interest_paid = interest_payment_map.get(month_key, 0)
 
                 principal_after_payment = max(
                     running_principal - principal_paid,
                     0
                 )
 
-                interest = (
-                    principal_after_payment * rate
-                ) / 100
-
+                interest = (principal_after_payment * rate) / 100
                 running_balance = (
                     running_balance
                     - principal_paid
@@ -2511,59 +2494,35 @@ with tab2:
                 )
 
                 timeline_summary.append({
-
-                    "Customer ID":
-                        loan.get("customer_id", ""),
-
-                    "Member Name":
-                        loan.get("Member Name", ""),
-
-                    "Loan Start Date":
-                        start_date.strftime("%Y-%m-%d"),
-
-                    "Loan Month":
-                        current_date.strftime("%b %Y"),
-
-                    "Loan Amount":
-                        round(principal_after_payment),
-
-                    "Interest Amount":
-                        round(interest),
-
-                    "Principal Paid":
-                        round(principal_paid),
-
-                    "Interest Paid":
-                        round(interest_paid),
-
-                    "Balance":
-                        round(running_balance),
-
-                    "Status":
+                    "Customer ID": loan.get("customer_id", ""),
+                    "Member Name": loan.get("Member Name", ""),
+                    "Loan Start Date": start_date.strftime("%Y-%m-%d"),
+                    "Loan Month": current_date.strftime("%b %Y"),
+                    "Loan Amount": round(principal_after_payment),
+                    "Interest Amount": round(interest),
+                    "Principal Paid": round(principal_paid),
+                    "Interest Paid": round(interest_paid),
+                    "Balance": round(running_balance),
+                    "Status": (
                         "✅ Closed"
                         if running_balance <= 0
                         else "⚠️ Active"
-
+                    )
                 })
 
                 running_principal = principal_after_payment
 
                 if current_date.month == 12:
-
                     current_date = current_date.replace(
                         year=current_date.year + 1,
                         month=1
                     )
-
                 else:
-
                     current_date = current_date.replace(
                         month=current_date.month + 1
                     )
 
-        timeline_df = pd.DataFrame(
-            timeline_summary
-        )
+        timeline_df = pd.DataFrame(timeline_summary)
 
         st.dataframe(
             timeline_df,
