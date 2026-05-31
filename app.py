@@ -2702,23 +2702,7 @@ elif menu == "Reports":
                 use_container_width=True
             )
 
-            # ================= DOWNLOAD =================
-
-            st.download_button(
-                label="Download Loan Excel Report",
-                data=excel_buffer.getvalue(),
-                file_name="loan_report.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True
-            )
-
-            st.download_button(
-                label="Download Loan PDF Report",
-                data=pdf_buffer.getvalue(),
-                file_name="loan_report.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
+            
     # =========================================================
     # ================= DONATIONS =============================
     # =========================================================
