@@ -2497,66 +2497,122 @@ with tab2:
 
         st.markdown("### 📋 Loan Records")
 
-        if not timeline_df.empty:
-            loan_records_df = (
-                timeline_df
-                .groupby("Customer ID")
-                .tail(1)
-                .copy()
-            )
+        loan_records_df = (
+            timeline_df
+            .groupby("Customer ID")
+            .tail(1)
+            .copy()
+        )
 
-            loan_records_df["Paid Amount"] = (
-                loan_records_df["Loan Amount"]
-                + loan_records_df["Interest Amount"]
-                - loan_records_df["Balance"]
-            )
+        # ================= ACTUAL PAID AMOUNT =================
 
-            display_columns = [
-                "Customer ID",
-                "Member Name",
-                "Loan Start Date",
-                "Loan Amount",
-                "Interest Amount",
-                "Paid Amount",
-                "Balance",
-                "Status"
-            ]
+        loan_records_df["Paid Amount"] = 0
 
-            available_columns = [
-                col
-                for col in display_columns
-                if col in loan_records_df.columns
-            ]
+        for _, loan in loan_filtered.iterrows():
 
-            st.dataframe(
-                loan_records_df[available_columns],
-                use_container_width=True
-            )      
+            loan_id = loan["id"]
+
+            total_paid = payments_df[
+                payments_df["loan_id"] == loan_id
+            ]["amount"].sum()
+
+            loan_records_df.loc[
+                loan_records_df["Customer ID"] == loan["customer_id"],
+                "Paid Amount"
+            ] = round(total_paid)
+
+        # ================= DISPLAY =================
+
+        display_columns = [
+            "Customer ID",
+            "Member Name",
+            "Loan Start Date",
+            "Loan Amount",
+            "Interest Amount",
+            "Paid Amount",
+            "Balance",
+            "Status"
+        ]
+
+        available_columns = [
+            col
+            for col in display_columns
+            if col in loan_records_df.columns
+        ]
+
+        st.dataframe(
+            loan_records_df[available_columns],
+            use_container_width=True
+        )      
 
         # ================= EXPORT =================
 
         st.markdown("### ⬇️ Export Loan Reports")
 
-        loan_export = loan_filtered.copy()  # loan_display ko loan_filtered se replace kiya kyunki loan_display upar defined nahi tha
+        loan_export = loan_records_df.copy()
+
+        export_columns = [
+            "Customer ID",
+            "Member Name",
+            "Loan Start Date",
+            "Loan Amount",
+            "Interest Amount",
+            "Paid Amount",
+            "Balance",
+            "Status"
+        ]
+
+        available_export_columns = [
+            col
+            for col in export_columns
+            if col in loan_export.columns
+        ]
+
+        loan_export = loan_export[
+            available_export_columns
+        ]
+
+        # ================= EXCEL =================
 
         excel_buffer = BytesIO()
 
-        with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
-            loan_export.to_excel(writer, index=False)
+        with pd.ExcelWriter(
+            excel_buffer,
+            engine="openpyxl"
+        ) as writer:
 
-        # ===== PDF =====
+            loan_export.to_excel(
+                writer,
+                index=False,
+                sheet_name="Loan Report"
+            )
+
+        # ================= PDF =================
 
         pdf_buffer = BytesIO()
+
         doc = SimpleDocTemplate(pdf_buffer)
 
-        table_data = [loan_export.columns.tolist()]
+        table_data = [
+            loan_export.columns.tolist()
+        ]
+
         for row in loan_export.values.tolist():
             table_data.append(row)
 
         table = Table(table_data)
+
+        table.setStyle(
+            TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ])
+        )
+
         doc.build([table])
 
-        # ===== DOWNLOAD =====
+        # ================= DOWNLOAD =================
 
         st.download_button(
             label="Download Loan Excel Report",
