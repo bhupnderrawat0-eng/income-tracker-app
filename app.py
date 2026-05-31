@@ -2226,13 +2226,13 @@ elif menu == "Reports":
 
             )
             loans_df["Status"] = loans_df[
-    "Balance"
-].apply(
-    lambda x:
-    "✅ Closed"
-    if x <= 0
-    else "⚠️ Active"
-)
+                "Balance"
+            ].apply(
+                lambda x:
+                "✅ Closed"
+                if x <= 0
+                else "⚠️ Active"
+            )
 
             # ================= FILTERS =================
 
@@ -2415,37 +2415,89 @@ elif menu == "Reports":
                     f"₹ {total_interest:,.0f}"
                 )
 
-            
             # ================= TABLE =================
 
-st.markdown("### 📋 Loan Records")
+            st.markdown("### 📋 Loan Records")
 
-loan_display = loan_filtered.copy()
+            loan_display = loan_filtered.copy()
 
-loan_display = loan_display.rename(
-    columns={
-        "customer_id": "Customer ID",
-        "amount": "Loan Amount",
-        "Month": "Loan Month"
-    }
-)
+            loan_display = loan_display.rename(
+                columns={
+                    "customer_id": "Customer ID",
+                    "amount": "Loan Amount",
+                    "Month": "Loan Month"
+                }
+            )
 
-display_columns = [
-    "Customer ID",
-    "Member Name",
-    "Loan Amount",
-    "Interest Amount",
-    "Total Loan",
-    "Paid Amount",
-    "Balance",
-    "Status",
-    "Loan Month"
-]
+            display_columns = [
+                "Customer ID",
+                "Member Name",
+                "Loan Amount",
+                "Interest Amount",
+                "Total Loan",
+                "Paid Amount",
+                "Balance",
+                "Status",
+                "Loan Month"
+            ]
 
-st.dataframe(
-    loan_display[display_columns],
-    use_container_width=True
-)
+            st.dataframe(
+                loan_display[display_columns],
+                use_container_width=True
+            )
+
+            # ================= EXPORT =================
+
+            st.markdown("### ⬇️ Export Loan Reports")
+
+            loan_export = loan_display.copy()
+
+            excel_buffer = BytesIO()
+
+            with pd.ExcelWriter(
+                excel_buffer,
+                engine="openpyxl"
+            ) as writer:
+
+                loan_export.to_excel(
+                    writer,
+                    index=False
+                )
+
+            # ===== PDF =====
+
+            pdf_buffer = BytesIO()
+
+            doc = SimpleDocTemplate(pdf_buffer)
+
+            table_data = [
+                loan_export.columns.tolist()
+            ]
+
+            for row in loan_export.values.tolist():
+                table_data.append(row)
+
+            table = Table(table_data)
+
+            doc.build([table])
+
+            # ===== DOWNLOAD =====
+
+            st.download_button(
+                label="Download Loan Excel Report",
+                data=excel_buffer.getvalue(),
+                file_name="loan_report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+
+            st.download_button(
+                label="Download Loan PDF Report",
+                data=pdf_buffer.getvalue(),
+                file_name="loan_report.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
 
     # =========================================================
     # ================= DONATIONS =============================
