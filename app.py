@@ -2402,6 +2402,45 @@ with tab2:
         with s4:
             st.metric("📈 Interest", f"₹ {total_interest:,.0f}")
 
+        # ================= LOAN RECORDS =================
+
+        st.markdown("### 📋 Loan Records")
+
+        # Timeline ke last month ka snapshot nikalo
+        loan_records_df = (
+            timeline_df
+            .groupby("Customer ID")
+            .tail(1)
+            .copy()
+        )
+
+        loan_records_df["Paid Amount"] = (
+            loan_records_df["Loan Amount"]
+            + loan_records_df["Interest Amount"]
+            - loan_records_df["Balance"]
+        )
+
+        display_columns = [
+            "Customer ID",
+            "Member Name",
+            "Loan Start Date",
+            "Loan Amount",
+            "Interest Amount",
+            "Paid Amount",
+            "Balance",
+            "Status"
+        ]
+
+        available_columns = [
+            col
+            for col in display_columns
+            if col in loan_records_df.columns
+        ]
+
+        st.dataframe(
+            loan_records_df[available_columns],
+            use_container_width=True
+        )
         # ================= LOAN MONTH WISE SUMMARY =================
 
         st.markdown("### 🏦 Loan Month Wise Summary")
@@ -2493,46 +2532,7 @@ with tab2:
             use_container_width=True
         )
 
-        # ================= TABLE =================
-
-        st.markdown("### 📋 Loan Records")
-
-        # Timeline ke last month ka snapshot nikalo
-        loan_records_df = (
-            timeline_df
-            .groupby("Customer ID")
-            .tail(1)
-            .copy()
-        )
-
-        loan_records_df["Paid Amount"] = (
-            loan_records_df["Loan Amount"]
-            + loan_records_df["Interest Amount"]
-            - loan_records_df["Balance"]
-        )
-
-        display_columns = [
-            "Customer ID",
-            "Member Name",
-            "Loan Start Date",
-            "Loan Amount",
-            "Interest Amount",
-            "Paid Amount",
-            "Balance",
-            "Status"
-        ]
-
-        available_columns = [
-            col
-            for col in display_columns
-            if col in loan_records_df.columns
-        ]
-
-        st.dataframe(
-            loan_records_df[available_columns],
-            use_container_width=True
-        )
-        
+              
         # ================= EXPORT =================
 
         st.markdown("### ⬇️ Export Loan Reports")
