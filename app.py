@@ -2034,11 +2034,11 @@ elif menu == "Reports":
 
             # ================= MEMBER SUMMARY =================
 
-st.markdown("### 👥 Member Month Wise Summary")
+            st.markdown("### 👥 Member Month Wise Summary")
 
-member_summary = filtered_df.groupby(
+            member_summary = filtered_df.groupby(
 
-    ["Member Name", "Month"]
+                ["Member Name", "Month"]
 
 ).agg({
 
@@ -2047,22 +2047,22 @@ member_summary = filtered_df.groupby(
 
 }).reset_index()
 
-member_summary["Balance"] = (
+            member_summary["Balance"] = (
 
-    member_summary["expected_amount"]
-    -
-    member_summary["amount"]
+                member_summary["expected_amount"]
+                -
+                member_summary["amount"]
 
-)
+            )
 
-member_summary["Balance"] = (
-    member_summary["Balance"]
-    .clip(lower=0)
-)
+            member_summary["Balance"] = (
+                member_summary["Balance"]
+                .clip(lower=0)
+            )
 
-member_summary["Status"] = (
+            member_summary["Status"] = (
 
-    member_summary["Balance"]
+                member_summary["Balance"]
 
     .apply(
 
@@ -2075,141 +2075,141 @@ member_summary["Status"] = (
 
 )
 
-member_summary = member_summary.rename(
-    columns={
-        "expected_amount": "Expected Amount",
-        "amount": "Actual Amount Received"
-    }
-)
+            member_summary = member_summary.rename(
+                columns={
+                    "expected_amount": "Expected Amount",
+                    "amount": "Actual Amount Received"
+                }
+            )
 
-st.dataframe(
-    member_summary,
-    use_container_width=True
-)
+            st.dataframe(
+                member_summary,
+                use_container_width=True
+            )
 
             # ================= DEFAULTERS =================
 
-st.markdown("### 🚨 Defaulters")
+            st.markdown("### 🚨 Defaulters")
 
-defaulters = member_summary[
-    member_summary["Status"] == "⚠️ Pending"
-]
+            defaulters = member_summary[
+                member_summary["Status"] == "⚠️ Pending"
+            ]
 
-if defaulters.empty:
+            if defaulters.empty:
 
-    st.success(
-        "✅ No pending collections"
-    )
+                st.success(
+                    "✅ No pending collections"
+                )
 
-else:
+            else:
 
-    st.dataframe(
-        defaulters,
-        use_container_width=True
-    )
+                st.dataframe(
+                    defaulters,
+                    use_container_width=True
+                )
 
             # ================= EXPORT =================
 
-st.markdown("### ⬇️ Export Reports")
+            st.markdown("### ⬇️ Export Reports")
 
-# ===== CLEAN EXPORT DATA =====
+            # ===== CLEAN EXPORT DATA =====
 
-export_df = filtered_df.copy()
+            export_df = filtered_df.copy()
 
-export_df["Balance"] = (
-    export_df["expected_amount"]
-    - export_df["amount"]
-)
+            export_df["Balance"] = (
+                export_df["expected_amount"]
+                - export_df["amount"]
+            )
 
-export_df["Status"] = export_df["Balance"].apply(
-    lambda x:
-    "Paid"
-    if x <= 0
-    else "Pending"
-)
+            export_df["Status"] = export_df["Balance"].apply(
+                lambda x:
+                "Paid"
+                if x <= 0
+                else "Pending"
+            )
 
-export_df = export_df.rename(
-    columns={
-        "customer_id": "Customer ID",
-        "Member Name": "Member Name",
-        "start_date": "Start Date",
-        "Month": "Collection Month",
-        "expected_amount": "Expected Amount",
-        "amount": "Actual Amount Received"
-    }
-)
+            export_df = export_df.rename(
+                columns={
+                    "customer_id": "Customer ID",
+                    "Member Name": "Member Name",
+                    "start_date": "Start Date",
+                    "Month": "Collection Month",
+                    "expected_amount": "Expected Amount",
+                    "amount": "Actual Amount Received"
+                }
+            )
 
-export_df = export_df[
-    [
-        "Customer ID",
-        "Member Name",
-        "Start Date",
-        "Collection Month",
-        "Expected Amount",
-        "Actual Amount Received",
-        "Balance",
-        "Status"
-    ]
-]
+            export_df = export_df[
+                [
+                    "Customer ID",
+                    "Member Name",
+                    "Start Date",
+                    "Collection Month",
+                    "Expected Amount",
+                    "Actual Amount Received",
+                    "Balance",
+                    "Status"
+                ]
+            ]
 
-# ===== EXCEL =====
+            # ===== EXCEL =====
 
-excel_buffer = BytesIO()
+            excel_buffer = BytesIO()
 
-with pd.ExcelWriter(
-    excel_buffer,
-    engine="openpyxl"
-) as writer:
+            with pd.ExcelWriter(
+                excel_buffer,
+                engine="openpyxl"
+            ) as writer:
 
-    export_df.to_excel(
-        writer,
-        index=False,
-        sheet_name="Collections Report"
-    )
+                export_df.to_excel(
+                    writer,
+                    index=False,
+                    sheet_name="Collections Report"
+                )
 
-# ===== PDF =====
+            # ===== PDF =====
 
-pdf_buffer = BytesIO()
+            pdf_buffer = BytesIO()
 
-doc = SimpleDocTemplate(pdf_buffer)
+            doc = SimpleDocTemplate(pdf_buffer)
 
-pdf_data = [list(export_df.columns)]
+            pdf_data = [list(export_df.columns)]
 
-pdf_data += export_df.values.tolist()
+            pdf_data += export_df.values.tolist()
 
-table = Table(pdf_data)
+            table = Table(pdf_data)
 
-table.setStyle(
-    TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
-        ("GRID", (0, 0), (-1, -1), 1, colors.black),
-        ("FONTSIZE", (0, 0), (-1, -1), 8),
-    ])
-)
+            table.setStyle(
+                TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ])
+            )
 
-doc.build([table])
+            doc.build([table])
 
-# ===== DOWNLOAD =====
+            # ===== DOWNLOAD =====
 
-e1, e2 = st.columns(2)
+            e1, e2 = st.columns(2)
 
-with e1:
+            with e1:
 
-    st.download_button(
-        "📊 Download Excel",
-        excel_buffer.getvalue(),
-        file_name="collections_report.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+                st.download_button(
+                    "📊 Download Excel",
+                    excel_buffer.getvalue(),
+                    file_name="collections_report.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
 
-with e2:
+            with e2:
 
-    st.download_button(
-        "📄 Download PDF",
-        pdf_buffer.getvalue(),
-        file_name="collections_report.pdf",
-        mime="application/pdf"
-    )
+                st.download_button(
+                    "📄 Download PDF",
+                    pdf_buffer.getvalue(),
+                    file_name="collections_report.pdf",
+                    mime="application/pdf"
+                )
 
             # ================= RECORDS =================
 
