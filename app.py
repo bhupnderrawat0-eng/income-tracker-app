@@ -2402,7 +2402,7 @@ with tab2:
         with s4:
             st.metric("📈 Interest", f"₹ {total_interest:,.0f}")
 
-        # ================= LOAN RECORDS =================
+        # ================= TABLE =================
 
         st.markdown("### 📋 Loan Records")
 
