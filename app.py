@@ -2205,34 +2205,135 @@ with tab2:
 
         # ================= CALCULATIONS =================
 
-        loans_df["Interest Amount"] = (
+from datetime import datetime
 
-            loans_df["amount"] *
-            loans_df["interest_rate"] / 100
+interest_list = []
+total_loan_list = []
+balance_list = []
+status_list = []
 
+for _, loan in loans_df.iterrows():
+
+    loan_id = loan["id"]
+
+    original_principal = float(
+        loan.get("amount", 0)
+    )
+
+    rate = float(
+        loan.get("interest_rate", 0)
+    )
+
+    start_date = loan.get("start_date")
+
+    if pd.isna(start_date):
+        start_date = datetime.today()
+
+    cust_payments = payments_df[
+        payments_df["loan_id"] == loan_id
+    ].copy()
+
+    principal_payment_map = {}
+    interest_payment_map = {}
+
+    if not cust_payments.empty:
+
+        for _, p in cust_payments.iterrows():
+
+            month_key = str(p["date"])[:7]
+
+            principal_payment_map[month_key] = (
+                principal_payment_map.get(month_key, 0)
+                + float(p.get("principal_paid", 0))
+            )
+
+            interest_payment_map[month_key] = (
+                interest_payment_map.get(month_key, 0)
+                + float(p.get("interest_paid", 0))
+            )
+
+    current_date = start_date
+    today = datetime.today()
+
+    running_principal = original_principal
+    running_balance = original_principal
+
+    total_interest = 0
+
+    while current_date <= today:
+
+        month_key = current_date.strftime("%Y-%m")
+
+        principal_payment = principal_payment_map.get(
+            month_key,
+            0
         )
 
-        loans_df["Total Loan"] = (
-
-            loans_df["amount"] +
-            loans_df["Interest Amount"]
-
+        interest_payment = interest_payment_map.get(
+            month_key,
+            0
         )
 
-        loans_df["Balance"] = (
-
-            loans_df["Total Loan"] -
-            loans_df["Paid Amount"]
-
+        principal_after_payment = max(
+            running_principal - principal_payment,
+            0
         )
-        loans_df["Status"] = loans_df[
-            "Balance"
-        ].apply(
-            lambda x:
-            "✅ Closed"
-            if x <= 0
-            else "⚠️ Active"
+
+        interest = (
+            principal_after_payment * rate
+        ) / 100
+
+        total_interest += interest
+
+        running_balance = (
+            running_balance
+            - principal_payment
+            - interest_payment
+            + interest
         )
+
+        running_principal = principal_after_payment
+
+        if current_date.month == 12:
+
+            current_date = current_date.replace(
+                year=current_date.year + 1,
+                month=1
+            )
+
+        else:
+
+            current_date = current_date.replace(
+                month=current_date.month + 1
+            )
+
+    total_loan = (
+        original_principal +
+        total_interest
+    )
+
+    interest_list.append(
+        round(total_interest)
+    )
+
+    total_loan_list.append(
+        round(total_loan)
+    )
+
+    balance_list.append(
+        round(running_balance)
+    )
+
+    status_list.append(
+        "✅ Closed"
+        if running_balance <= 0
+        else "⚠️ Active"
+    )
+
+loans_df["Interest Amount"] = interest_list
+loans_df["Total Loan"] = total_loan_list
+loans_df["Balance"] = balance_list
+loans_df["Status"] = status_list
 
         # ================= FILTERS =================
 
