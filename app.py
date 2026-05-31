@@ -2123,514 +2123,386 @@ elif menu == "Reports":
 
             st.dataframe(records_df[available_columns], use_container_width=True)
 
-   # =========================================================
-# ================= LOANS REPORT ==========================
-# =========================================================
+    # =========================================================
+    # ================= LOANS REPORT ==========================
+    # =========================================================
 
-with tab2:
+    with tab2:
 
-    st.markdown("## 🏦 Loans Report")
+        st.markdown("## 🏦 Loans Report")
 
-    if loans_df.empty:
+        if loans_df.empty:
+            st.warning("No loans found.")
+        else:
+            # ================= CLEAN DATA =================
 
-        st.warning("No loans found.")
-
-    else:
-
-        # ================= CLEAN DATA =================
-
-        loans_df["amount"] = pd.to_numeric(
-            loans_df.get("amount", 0),
-            errors="coerce"
-        ).fillna(0)
-
-        loans_df["interest_rate"] = pd.to_numeric(
-            loans_df.get("interest_rate", 0),
-            errors="coerce"
-        ).fillna(0)
-
-        if "member_id" in loans_df.columns:
-
-            loans_df["Member Name"] = loans_df[
-                "member_id"
-            ].map(member_map)
-
-        if "start_date" in loans_df.columns:
-
-            loans_df["start_date"] = pd.to_datetime(
-                loans_df["start_date"],
-                errors="coerce"
-            )
-
-            loans_df["Month"] = loans_df[
-                "start_date"
-            ].dt.strftime("%b %Y")
-
-        # ================= PAYMENT SUMMARY =================
-
-        loans_df["Paid Amount"] = 0
-
-        if not payments_df.empty:
-
-            payments_df["amount"] = pd.to_numeric(
-                payments_df.get("amount", 0),
+            loans_df["amount"] = pd.to_numeric(
+                loans_df.get("amount", 0),
                 errors="coerce"
             ).fillna(0)
 
-            payment_summary = payments_df.groupby(
-                "loan_id"
-            )["amount"].sum().reset_index()
+            loans_df["interest_rate"] = pd.to_numeric(
+                loans_df.get("interest_rate", 0),
+                errors="coerce"
+            ).fillna(0)
 
-            payment_summary.columns = [
-                "id",
-                "Paid Amount"
-            ]
+            if "member_id" in loans_df.columns:
+                loans_df["Member Name"] = loans_df[
+                    "member_id"
+                ].map(member_map)
 
-            loans_df = loans_df.merge(
-                payment_summary,
-                on="id",
-                how="left"
-            )
+            if "start_date" in loans_df.columns:
+                loans_df["start_date"] = pd.to_datetime(
+                    loans_df["start_date"],
+                    errors="coerce"
+                )
+                loans_df["Month"] = loans_df[
+                    "start_date"
+                ].dt.strftime("%b %Y")
 
-            if "Paid Amount_y" in loans_df.columns:
+            # ================= PAYMENT SUMMARY =================
 
-                loans_df["Paid Amount"] = loans_df[
-                    "Paid Amount_y"
-                ].fillna(0)
+            loans_df["Paid Amount"] = 0
 
-        loans_df["Paid Amount"] = pd.to_numeric(
-            loans_df["Paid Amount"],
-            errors="coerce"
-        ).fillna(0)
+            if not payments_df.empty:
+                payments_df["amount"] = pd.to_numeric(
+                    payments_df.get("amount", 0),
+                    errors="coerce"
+                ).fillna(0)
 
-        # ================= CALCULATIONS =================
+                payment_summary = payments_df.groupby(
+                    "loan_id"
+                )["amount"].sum().reset_index()
 
-        from datetime import datetime
+                payment_summary.columns = [
+                    "id",
+                    "Paid Amount"
+                ]
 
-        interest_list = []
-        total_loan_list = []
-        balance_list = []
-        status_list = []
-
-        for _, loan in loans_df.iterrows():
-
-            loan_id = loan["id"]
-
-            original_principal = float(
-                loan.get("amount", 0)
-            )
-
-            rate = float(
-                loan.get("interest_rate", 0)
-            )
-
-            start_date = loan.get("start_date")
-
-            if pd.isna(start_date):
-                start_date = datetime.today()
-
-            cust_payments = payments_df[
-                payments_df["loan_id"] == loan_id
-            ].copy()
-
-            principal_payment_map = {}
-            interest_payment_map = {}
-
-            if not cust_payments.empty:
-
-                for _, p in cust_payments.iterrows():
-
-                    month_key = str(p["date"])[:7]
-
-                    principal_payment_map[month_key] = (
-                        principal_payment_map.get(month_key, 0)
-                        + float(p.get("principal_paid", 0))
-                    )
-
-                    interest_payment_map[month_key] = (
-                        interest_payment_map.get(month_key, 0)
-                        + float(p.get("interest_paid", 0))
-                    )
-
-            current_date = start_date
-            today = datetime.today()
-
-            running_principal = original_principal
-            running_balance = original_principal
-
-            total_interest = 0
-
-            while current_date <= today:
-
-                month_key = current_date.strftime("%Y-%m")
-
-                principal_payment = principal_payment_map.get(
-                    month_key,
-                    0
+                loans_df = loans_df.merge(
+                    payment_summary,
+                    on="id",
+                    how="left"
                 )
 
-                interest_payment = interest_payment_map.get(
-                    month_key,
-                    0
+                if "Paid Amount_y" in loans_df.columns:
+                    loans_df["Paid Amount"] = loans_df[
+                        "Paid Amount_y"
+                    ].fillna(0)
+
+            loans_df["Paid Amount"] = pd.to_numeric(
+                loans_df["Paid Amount"],
+                errors="coerce"
+            ).fillna(0)
+
+            # ================= CALCULATIONS =================
+
+            from datetime import datetime
+
+            interest_list = []
+            total_loan_list = []
+            balance_list = []
+            status_list = []
+
+            for _, loan in loans_df.iterrows():
+                loan_id = loan["id"]
+                original_principal = float(
+                    loan.get("amount", 0)
                 )
-
-                principal_after_payment = max(
-                    running_principal - principal_payment,
-                    0
+                rate = float(
+                    loan.get("interest_rate", 0)
                 )
+                start_date = loan.get("start_date")
 
-                interest = (
-                    principal_after_payment * rate
-                ) / 100
+                if pd.isna(start_date):
+                    start_date = datetime.today()
 
-                total_interest += interest
+                cust_payments = payments_df[
+                    payments_df["loan_id"] == loan_id
+                ].copy()
 
-                running_balance = (
-                    running_balance
-                    - principal_payment
-                    - interest_payment
-                    + interest
-                )
+                principal_payment_map = {}
+                interest_payment_map = {}
 
-                running_principal = principal_after_payment
+                if not cust_payments.empty:
+                    for _, p in cust_payments.iterrows():
+                        month_key = str(p["date"])[:7]
+                        principal_payment_map[month_key] = (
+                            principal_payment_map.get(month_key, 0)
+                            + float(p.get("principal_paid", 0))
+                        )
+                        interest_payment_map[month_key] = (
+                            interest_payment_map.get(month_key, 0)
+                            + float(p.get("interest_paid", 0))
+                        )
 
-                if current_date.month == 12:
+                current_date = start_date
+                today = datetime.today()
 
-                    current_date = current_date.replace(
-                        year=current_date.year + 1,
-                        month=1
+                running_principal = original_principal
+                running_balance = original_principal
+                total_interest = 0
+
+                while current_date <= today:
+                    month_key = current_date.strftime("%Y-%m")
+                    principal_payment = principal_payment_map.get(month_key, 0)
+                    interest_payment = interest_payment_map.get(month_key, 0)
+
+                    principal_after_payment = max(
+                        running_principal - principal_payment,
+                        0
                     )
 
-                else:
+                    interest = (
+                        principal_after_payment * rate
+                    ) / 100
 
-                    current_date = current_date.replace(
-                        month=current_date.month + 1
+                    total_interest += interest
+
+                    running_balance = (
+                        running_balance
+                        - principal_payment
+                        - interest_payment
+                        + interest
                     )
 
-            total_loan = (
-                original_principal +
-                total_interest
-            )
+                    running_principal = principal_after_payment
 
-            interest_list.append(
-                round(total_interest)
-            )
+                    if current_date.month == 12:
+                        current_date = current_date.replace(
+                            year=current_date.year + 1,
+                            month=1
+                        )
+                    else:
+                        current_date = current_date.replace(
+                            month=current_date.month + 1
+                        )
 
-            total_loan_list.append(
-                round(total_loan)
-            )
+                total_loan = (
+                    original_principal +
+                    total_interest
+                )
 
-            balance_list.append(
-                round(running_balance)
-            )
+                interest_list.append(round(total_interest))
+                total_loan_list.append(round(total_loan))
+                balance_list.append(round(running_balance))
+                status_list.append(
+                    "✅ Closed"
+                    if running_balance <= 0
+                    else "⚠️ Active"
+                )
 
-            status_list.append(
-                "✅ Closed"
-                if running_balance <= 0
-                else "⚠️ Active"
-            )
+            loans_df["Interest Amount"] = interest_list
+            loans_df["Total Loan"] = total_loan_list
+            loans_df["Balance"] = balance_list
+            loans_df["Status"] = status_list
 
-        loans_df["Interest Amount"] = interest_list
-        loans_df["Total Loan"] = total_loan_list
-        loans_df["Balance"] = balance_list
-        loans_df["Status"] = status_list
+            # ================= FILTERS =================
 
-        # ================= FILTERS =================
+            l1, l2, l3 = st.columns(3)
 
-        l1, l2, l3 = st.columns(3)
+            with l1:
+                loan_member = st.selectbox(
+                    "👤 Member",
+                    ["All"] + list(
+                        loans_df["Member Name"]
+                        .dropna()
+                        .unique()
+                    ),
+                    key="loan_member"
+                )
 
-        with l1:
+            with l2:
+                loan_month = st.selectbox(
+                    "📅 Month",
+                    ["All"] + list(
+                        loans_df["Month"]
+                        .dropna()
+                        .unique()
+                    ),
+                    key="loan_month"
+                )
 
-            loan_member = st.selectbox(
+            with l3:
+                loan_status = st.selectbox(
+                    "📌 Status",
+                    ["All", "Active", "Closed"],
+                    key="loan_status"
+                )
 
-                "👤 Member",
+            # ================= DATE FILTER =================
 
-                ["All"] +
+            min_loan_date = loans_df["start_date"].min()
+            max_loan_date = loans_df["start_date"].max()
 
-                list(
-                    loans_df["Member Name"]
-                    .dropna()
-                    .unique()
-                ),
+            d1, d2 = st.columns(2)
 
-                key="loan_member"
+            with d1:
+                loan_start = st.date_input(
+                    "Start Date",
+                    value=min_loan_date,
+                    key="loan_start"
+                )
 
-            )
+            with d2:
+                loan_end = st.date_input(
+                    "End Date",
+                    value=max_loan_date,
+                    key="loan_end"
+                )
 
-        with l2:
+            # ================= FILTER DATA =================
 
-            loan_month = st.selectbox(
+            loan_filtered = loans_df.copy()
 
-                "📅 Month",
+            if loan_member != "All":
+                loan_filtered = loan_filtered[
+                    loan_filtered["Member Name"] == loan_member
+                ]
 
-                ["All"] +
+            if loan_month != "All":
+                loan_filtered = loan_filtered[
+                    loan_filtered["Month"] == loan_month
+                ]
 
-                list(
-                    loans_df["Month"]
-                    .dropna()
-                    .unique()
-                ),
+            if loan_status == "Active":
+                loan_filtered = loan_filtered[
+                    loan_filtered["Balance"] > 0
+                ]
 
-                key="loan_month"
-
-            )
-
-        with l3:
-
-            loan_status = st.selectbox(
-
-                "📌 Status",
-
-                ["All", "Active", "Closed"],
-
-                key="loan_status"
-
-            )
-
-        # ================= DATE FILTER =================
-
-        min_loan_date = loans_df["start_date"].min()
-        max_loan_date = loans_df["start_date"].max()
-
-        d1, d2 = st.columns(2)
-
-        with d1:
-
-            loan_start = st.date_input(
-
-                "Start Date",
-
-                value=min_loan_date,
-
-                key="loan_start"
-
-            )
-
-        with d2:
-
-            loan_end = st.date_input(
-
-                "End Date",
-
-                value=max_loan_date,
-
-                key="loan_end"
-
-            )
-
-        # ================= FILTER DATA =================
-
-        loan_filtered = loans_df.copy()
-
-        if loan_member != "All":
+            if loan_status == "Closed":
+                loan_filtered = loan_filtered[
+                    loan_filtered["Balance"] <= 0
+                ]
 
             loan_filtered = loan_filtered[
-
-                loan_filtered["Member Name"] ==
-                loan_member
-
+                (loan_filtered["start_date"].dt.date >= loan_start)
+                &
+                (loan_filtered["start_date"].dt.date <= loan_end)
             ]
 
-        if loan_month != "All":
+            # ================= SUMMARY =================
 
-            loan_filtered = loan_filtered[
+            total_loan = loan_filtered["Total Loan"].sum()
+            total_paid = loan_filtered["Paid Amount"].sum()
+            total_balance = loan_filtered["Balance"].sum()
+            total_interest = loan_filtered["Interest Amount"].sum()
 
-                loan_filtered["Month"] ==
-                loan_month
+            s1, s2, s3, s4 = st.columns(4)
 
+            with s1:
+                st.metric("🏦 Total Loan", f"₹ {total_loan:,.0f}")
+
+            with s2:
+                st.metric("💸 Paid", f"₹ {total_paid:,.0f}")
+
+            with s3:
+                st.metric("🔴 Balance", f"₹ {total_balance:,.0f}")
+
+            with s4:
+                st.metric("📈 Interest", f"₹ {total_interest:,.0f}")
+
+            # ================= TABLE =================
+
+            st.markdown("### 📋 Loan Records")
+
+            loan_display = loan_filtered.copy()
+
+            loan_display = loan_display.rename(
+                columns={
+                    "customer_id": "Customer ID",
+                    "amount": "Loan Amount",
+                    "Month": "Loan Month"
+                }
+            )
+
+            display_columns = [
+                "Customer ID",
+                "Member Name",
+                "Loan Amount",
+                "Interest Amount",
+                "Total Loan",
+                "Paid Amount",
+                "Balance",
+                "Status",
+                "Loan Month"
             ]
 
-        if loan_status == "Active":
+            st.dataframe(
+                loan_display[display_columns],
+                use_container_width=True
+            )
 
-            loan_filtered = loan_filtered[
-                loan_filtered["Balance"] > 0
+            # ================= LOAN MONTH WISE SUMMARY =================
+
+            st.markdown("### 🏦 Loan Month Wise Summary")
+
+            loan_summary = loan_filtered.copy()
+
+            summary_columns = [
+                "Customer ID",
+                "Member Name",
+                "Loan Amount",
+                "Interest Amount",
+                "Paid Amount",
+                "Balance",
+                "Status",
+                "Loan Month"
             ]
 
-        if loan_status == "Closed":
-
-            loan_filtered = loan_filtered[
-                loan_filtered["Balance"] <= 0
-            ]
-
-        loan_filtered = loan_filtered[
-
-            (
-                loan_filtered["start_date"].dt.date >=
-                loan_start
+            loan_summary = loan_summary.rename(
+                columns={
+                    "customer_id": "Customer ID",
+                    "amount": "Loan Amount",
+                    "Month": "Loan Month"
+                }
             )
 
-            &
-
-            (
-                loan_filtered["start_date"].dt.date <=
-                loan_end
+            st.dataframe(
+                loan_summary[summary_columns],
+                use_container_width=True
             )
 
-        ]
+            # ================= EXPORT =================
 
-        # ================= SUMMARY =================
+            st.markdown("### ⬇️ Export Loan Reports")
 
-        total_loan = loan_filtered[
-            "Total Loan"
-        ].sum()
+            loan_export = loan_display.copy()
 
-        total_paid = loan_filtered[
-            "Paid Amount"
-        ].sum()
+            excel_buffer = BytesIO()
 
-        total_balance = loan_filtered[
-            "Balance"
-        ].sum()
+            with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
+                loan_export.to_excel(writer, index=False)
 
-        total_interest = loan_filtered[
-            "Interest Amount"
-        ].sum()
+            # ===== PDF =====
 
-        s1, s2, s3, s4 = st.columns(4)
+            pdf_buffer = BytesIO()
+            doc = SimpleDocTemplate(pdf_buffer)
 
-        with s1:
+            table_data = [loan_export.columns.tolist()]
+            for row in loan_export.values.tolist():
+                table_data.append(row)
 
-            st.metric(
-                "🏦 Total Loan",
-                f"₹ {total_loan:,.0f}"
+            table = Table(table_data)
+            doc.build([table])
+
+            # ===== DOWNLOAD =====
+
+            st.download_button(
+                label="Download Loan Excel Report",
+                data=excel_buffer.getvalue(),
+                file_name="loan_report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
             )
 
-        with s2:
-
-            st.metric(
-                "💸 Paid",
-                f"₹ {total_paid:,.0f}"
+            st.download_button(
+                label="Download Loan PDF Report",
+                data=pdf_buffer.getvalue(),
+                file_name="loan_report.pdf",
+                mime="application/pdf",
+                use_container_width=True
             )
-
-        with s3:
-
-            st.metric(
-                "🔴 Balance",
-                f"₹ {total_balance:,.0f}"
-            )
-
-        with s4:
-
-            st.metric(
-                "📈 Interest",
-                f"₹ {total_interest:,.0f}"
-            )
-
-        # ================= TABLE =================
-
-        st.markdown("### 📋 Loan Records")
-
-        loan_display = loan_filtered.copy()
-
-        loan_display = loan_display.rename(
-            columns={
-                "customer_id": "Customer ID",
-                "amount": "Loan Amount",
-                "Month": "Loan Month"
-            }
-        )
-
-        display_columns = [
-            "Customer ID",
-            "Member Name",
-            "Loan Amount",
-            "Interest Amount",
-            "Total Loan",
-            "Paid Amount",
-            "Balance",
-            "Status",
-            "Loan Month"
-        ]
-
-        st.dataframe(
-            loan_display[display_columns],
-            use_container_width=True
-        )
-
-        # ================= LOAN MONTH WISE SUMMARY =================
-
-        st.markdown("### 🏦 Loan Month Wise Summary")
-
-        loan_summary = loan_filtered.copy()
-
-        summary_columns = [
-
-            "Customer ID",
-            "Member Name",
-            "Loan Amount",
-            "Interest Amount",
-            "Paid Amount",
-            "Balance",
-            "Status",
-            "Loan Month"
-
-        ]
-
-        loan_summary = loan_summary.rename(
-            columns={
-                "customer_id": "Customer ID",
-                "amount": "Loan Amount",
-                "Month": "Loan Month"
-            }
-        )
-
-        st.dataframe(
-            loan_summary[summary_columns],
-            use_container_width=True
-        )
-
-        # ================= EXPORT =================
-
-        st.markdown("### ⬇️ Export Loan Reports")
-
-        loan_export = loan_display.copy()
-
-        excel_buffer = BytesIO()
-
-        with pd.ExcelWriter(
-            excel_buffer,
-            engine="openpyxl"
-        ) as writer:
-
-            loan_export.to_excel(
-                writer,
-                index=False
-            )
-
-        # ===== PDF =====
-
-        pdf_buffer = BytesIO()
-
-        doc = SimpleDocTemplate(pdf_buffer)
-
-        table_data = [
-            loan_export.columns.tolist()
-        ]
-
-        for row in loan_export.values.tolist():
-            table_data.append(row)
-
-        table = Table(table_data)
-
-        doc.build([table])
-
-        # ===== DOWNLOAD =====
-
-        st.download_button(
-            label="Download Loan Excel Report",
-            data=excel_buffer.getvalue(),
-            file_name="loan_report.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True
-        )
-
-        st.download_button(
-            label="Download Loan PDF Report",
-            data=pdf_buffer.getvalue(),
-            file_name="loan_report.pdf",
-            mime="application/pdf",
-            use_container_width=True
-        )
     # =========================================================
     # ================= DONATIONS =============================
     # =========================================================
