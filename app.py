@@ -2225,6 +2225,14 @@ elif menu == "Reports":
                 loans_df["Paid Amount"]
 
             )
+            loans_df["Status"] = loans_df[
+    "Balance"
+].apply(
+    lambda x:
+    "✅ Closed"
+    if x <= 0
+    else "⚠️ Active"
+)
 
             # ================= FILTERS =================
 
