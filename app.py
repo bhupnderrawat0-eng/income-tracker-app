@@ -2367,28 +2367,7 @@ elif menu == "Reports":
                 &
                 (loan_filtered["start_date"].dt.date <= loan_end)
             ]
-
-            # ================= SUMMARY =================
-
-            total_loan = loan_filtered["Total Loan"].sum()
-            total_paid = loan_filtered["Paid Amount"].sum()
-            total_balance = loan_filtered["Balance"].sum()
-            total_interest = loan_filtered["Interest Amount"].sum()
-
-            s1, s2, s3, s4 = st.columns(4)
-
-            with s1:
-                st.metric("🏦 Total Loan", f"₹ {total_loan:,.0f}")
-
-            with s2:
-                st.metric("💸 Paid", f"₹ {total_paid:,.0f}")
-
-            with s3:
-                 st.metric("📈 Interest", f"₹ {total_interest:,.0f}")
-
-            with s4:
-                st.metric("🔴 Balance", f"₹ {total_balance:,.0f}")
-
+            
             # ================= LOAN MONTH WISE SUMMARY =================
 
             st.markdown("### 🏦 Loan Month Wise Summary")
@@ -2502,6 +2481,34 @@ elif menu == "Reports":
                     timeline_df["Loan Month"] == timeline_month
                 ]
 
+            # ================= SUMMARY =================
+
+            total_loan = timeline_df["Loan Amount"].sum()
+
+            total_paid = (
+                timeline_df["Principal Paid"].sum()
+                +
+                timeline_df["Interest Paid"].sum()
+            )
+
+            total_interest = timeline_df["Interest Amount"].sum()
+
+            total_balance = timeline_df["Balance"].sum()
+
+            s1, s2, s3, s4 = st.columns(4)
+
+            with s1:
+                st.metric("🏦 Total Loan", f"₹ {total_loan:,.0f}")
+
+            with s2:
+                st.metric("💸 Paid", f"₹ {total_paid:,.0f}")
+
+            with s3:
+                st.metric("📈 Interest", f"₹ {total_interest:,.0f}")
+
+            with s4:
+                st.metric("🔴 Balance", f"₹ {total_balance:,.0f}")
+                
             st.dataframe(
                 timeline_df,
                 use_container_width=True
