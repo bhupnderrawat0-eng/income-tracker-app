@@ -2313,7 +2313,7 @@ elif menu == "Reports":
                 )
 
             with l2:                
-                st.empty()
+                timeline_month_placeholder = st.empty()
                     
             with l3:
                 loan_status = st.selectbox(
@@ -2347,7 +2347,10 @@ elif menu == "Reports":
 
             loan_filtered = loans_df.copy()
 
-            
+            if loan_member != "All":
+                loan_filtered = loan_filtered[
+                    loan_filtered["Member Name"] == loan_member
+                ]
             
             if loan_status == "Active":
                 loan_filtered = loan_filtered[
@@ -2474,15 +2477,25 @@ elif menu == "Reports":
 
             # ================= TIMELINE MONTH FILTER =================
 
-            available_months = sorted(
-                timeline_df["Loan Month"].dropna().unique()
+            available_months = (
+                pd.to_datetime(
+                    timeline_df["Loan Month"],
+                    format="%b %Y",
+                    errors="coerce"
+                )
+                .dropna()
+                .sort_values()
+                .dt.strftime("%b %Y")
+                .unique()
+                .tolist()
             )
 
-            timeline_month = st.selectbox(
-                "📅 Filter Timeline Month",
-                ["All"] + available_months,
-                key="timeline_month"
-            )
+            with timeline_month_placeholder:
+                timeline_month = st.selectbox(
+                    "📅 Month",
+                    ["All"] + available_months,
+                    key="timeline_month"
+                )
 
             if timeline_month != "All":
                 timeline_df = timeline_df[
