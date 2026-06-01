@@ -2348,11 +2348,7 @@ elif menu == "Reports":
             loan_filtered = loans_df.copy()
 
             
-            if loan_month != "All":
-                loan_filtered = loan_filtered[
-                    loan_filtered["Month"] == loan_month
-                ]
-
+            
             if loan_status == "Active":
                 loan_filtered = loan_filtered[
                     loan_filtered["Balance"] > 0
