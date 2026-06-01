@@ -2483,18 +2483,40 @@ elif menu == "Reports":
 
             # ================= SUMMARY =================
 
-            total_loan = timeline_df["Loan Amount"].sum()
+if timeline_month == "All":
 
-            total_paid = (
-                timeline_df["Principal Paid"].sum()
-                +
-                timeline_df["Interest Paid"].sum()
-            )
+    latest_snapshot = (
+        timeline_df
+        .groupby("Customer ID")
+        .tail(1)
+        .copy()
+    )
 
-            total_interest = timeline_df["Interest Amount"].sum()
+    total_loan = latest_snapshot["Loan Amount"].sum()
 
-            total_balance = timeline_df["Balance"].sum()
+    total_paid = (
+        timeline_df["Principal Paid"].sum()
+        +
+        timeline_df["Interest Paid"].sum()
+    )
 
+    total_interest = latest_snapshot["Interest Amount"].sum()
+
+    total_balance = latest_snapshot["Balance"].sum()
+
+else:
+
+    total_loan = timeline_df["Loan Amount"].sum()
+
+    total_paid = (
+        timeline_df["Principal Paid"].sum()
+        +
+        timeline_df["Interest Paid"].sum()
+    )
+
+    total_interest = timeline_df["Interest Amount"].sum()
+
+    total_balance = timeline_df["Balance"].sum()
             s1, s2, s3, s4 = st.columns(4)
 
             with s1:
