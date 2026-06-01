@@ -2313,15 +2313,8 @@ elif menu == "Reports":
                 )
 
             with l2:                
-                available_months_filter = sorted(
-                    loans_df["Month"].dropna().unique()
-                )
-                loan_month = st.selectbox(
-                    "📅 Month",
-                    ["All"] + available_months_filter,
-                    key="loan_month"
-                )
-
+                st.empty()
+                    
             with l3:
                 loan_status = st.selectbox(
                     "📌 Status",
@@ -2354,11 +2347,7 @@ elif menu == "Reports":
 
             loan_filtered = loans_df.copy()
 
-            if loan_member != "All":
-                loan_filtered = loan_filtered[
-                    loan_filtered["Member Name"] == loan_member
-                ]
-
+            
             if loan_month != "All":
                 loan_filtered = loan_filtered[
                     loan_filtered["Month"] == loan_month
