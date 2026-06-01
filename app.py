@@ -2384,10 +2384,10 @@ elif menu == "Reports":
                 st.metric("💸 Paid", f"₹ {total_paid:,.0f}")
 
             with s3:
-                st.metric("🔴 Balance", f"₹ {total_balance:,.0f}")
+                 st.metric("📈 Interest", f"₹ {total_interest:,.0f}")
 
             with s4:
-                st.metric("📈 Interest", f"₹ {total_interest:,.0f}")
+                st.metric("🔴 Balance", f"₹ {total_balance:,.0f}")
 
             # ================= LOAN MONTH WISE SUMMARY =================
 
