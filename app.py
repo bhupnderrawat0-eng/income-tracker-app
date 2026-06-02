@@ -1781,6 +1781,14 @@ elif menu == "Reports":
 
     from datetime import datetime
     import io
+    import pandas as pd
+    import streamlit as sns
+    # Safe ReportLab Imports to ensure PDF generation works seamlessly
+    try:
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+        from reportlab.lib import colors
+    except ImportError:
+        pass
 
     st.subheader("📊 Smart Finance Reports Dashboard")
 
@@ -2135,6 +2143,7 @@ elif menu == "Reports":
             st.warning("No loans found.")
         else:
             # ================= CLEAN DATA =================
+            from io import BytesIO
 
             loans_df["amount"] = pd.to_numeric(
                 loans_df.get("amount", 0),
@@ -2196,8 +2205,6 @@ elif menu == "Reports":
             ).fillna(0)
 
             # ================= CALCULATIONS =================
-
-            from datetime import datetime
 
             interest_list = []
             total_loan_list = []
@@ -2757,6 +2764,8 @@ elif menu == "Reports":
         if donations_df.empty:
             st.warning("No donations found.")
         else:
+            from io import BytesIO
+
             donations_df["amount"] = pd.to_numeric(
                 donations_df.get("amount", 0),
                 errors="coerce"
@@ -2896,7 +2905,22 @@ elif menu == "Reports":
             # ================= EXPORTS =================
 
             export_df = filtered_df.copy()
+
             export_df["date"] = export_df["date"].astype(str)
+
+            export_df = export_df[
+                ["id", "name", "amount", "date", "note"]
+                if all(col in export_df.columns for col in ["id", "name", "amount", "date", "note"])
+                else [col for col in ["id", "name", "amount", "date", "note"] if col in export_df.columns]
+            ].copy()
+
+            export_df.columns = [
+                "ID",
+                "Donor Name",
+                "Amount",
+                "Date",
+                "Note"
+            ][:len(export_df.columns)]
 
             excel_buffer = BytesIO()
 
