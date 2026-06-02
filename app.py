@@ -2980,12 +2980,19 @@ elif menu == "Reports":
                 if col in filtered_df.columns
             ]
 
+            display_df = filtered_df.copy()
+
+            display_df = display_df.sort_values(
+                by="date",
+                ascending=False
+            )
+
+            display_df["date"] = pd.to_datetime(
+                display_df["date"]
+            ).dt.strftime("%d-%m-%Y")
+
             st.dataframe(
-                filtered_df[show_cols]
-                .sort_values(
-                    by="date",
-                    ascending=False
-                ),
+                display_df[show_cols],
                 use_container_width=True
             )
     # =========================================================
