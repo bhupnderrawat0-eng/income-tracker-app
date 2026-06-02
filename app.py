@@ -1606,16 +1606,15 @@ elif menu == "Donations":
                         "name": donor,
                         "amount": amt,
                         "date": date.strftime("%Y-%m-%d"),
-                        "note": note   # ✅ added
+                        "note": note
                     }).execute()
 
-                    st.success("Donation Saved ✅")
-
                     st.cache_data.clear()
+                    st.success("Donation Saved ✅")
                     st.rerun()
 
-                except:
-                    st.error("Error saving donation")
+                except Exception as e:
+                    st.error(f"Error saving donation: {e}")
             else:
                 st.warning("Enter valid details ⚠️")
     else:
