@@ -2996,39 +2996,252 @@ elif menu == "Reports":
                 use_container_width=True
             )
     # =========================================================
-    # ================= EXPENSES ==============================
-    # =========================================================
+# ================= EXPENSES ==============================
+# =========================================================
 
-    with tab4:
+with tab4:
 
-        st.markdown("## 💸 Expenses Report")
+    st.markdown("## 💸 Expenses Report")
 
-        if expenses_df.empty:
+    if expenses_df.empty:
 
-            st.warning("No expenses found.")
+        st.warning("No expenses found.")
 
-        else:
+    else:
 
-            expenses_df["amount"] = pd.to_numeric(
-                expenses_df.get("amount", 0),
-                errors="coerce"
-            ).fillna(0)
+        expenses_df["amount"] = pd.to_numeric(
+            expenses_df.get("amount", 0),
+            errors="coerce"
+        ).fillna(0)
 
-            total_expense = expenses_df[
-                "amount"
-            ].sum()
+        expenses_df["date"] = pd.to_datetime(
+            expenses_df["date"],
+            errors="coerce"
+        )
 
-            st.metric(
-                "💸 Total Expenses",
-                f"₹ {total_expense:,.0f}"
+        # ================= FILTERS =================
+
+        f1, f2, f3 = st.columns(3)
+
+        with f1:
+            from_date = st.date_input(
+                "📅 From Date",
+                expenses_df["date"].min().date(),
+                key="expense_from"
             )
 
-            st.bar_chart(expenses_df["amount"])
+        with f2:
+            to_date = st.date_input(
+                "📅 To Date",
+                expenses_df["date"].max().date(),
+                key="expense_to"
+            )
 
-            st.dataframe(
-                expenses_df,
+        with f3:
+            type_filter = st.selectbox(
+                "💸 Expense Type",
+                ["All"] +
+                sorted(
+                    expenses_df["type"]
+                    .dropna()
+                    .astype(str)
+                    .unique()
+                    .tolist()
+                ),
+                key="expense_type"
+            )
+
+        filtered_df = expenses_df.copy()
+
+        filtered_df = filtered_df[
+            (filtered_df["date"].dt.date >= from_date)
+            &
+            (filtered_df["date"].dt.date <= to_date)
+        ]
+
+        if type_filter != "All":
+            filtered_df = filtered_df[
+                filtered_df["type"] == type_filter
+            ]
+
+        # ================= SUMMARY =================
+
+        total_amount = filtered_df["amount"].sum()
+
+        total_entries = len(filtered_df)
+
+        highest_expense = (
+            filtered_df["amount"].max()
+            if not filtered_df.empty else 0
+        )
+
+        average_expense = (
+            filtered_df["amount"].mean()
+            if not filtered_df.empty else 0
+        )
+
+        c1, c2, c3, c4 = st.columns(4)
+
+        with c1:
+            st.metric(
+                "💰 Total Expense",
+                f"₹ {total_amount:,.0f}"
+            )
+
+        with c2:
+            st.metric(
+                "📋 Entries",
+                total_entries
+            )
+
+        with c3:
+            st.metric(
+                "📈 Highest",
+                f"₹ {highest_expense:,.0f}"
+            )
+
+        with c4:
+            st.metric(
+                "📊 Average",
+                f"₹ {average_expense:,.0f}"
+            )
+
+        st.markdown("---")
+
+        # ================= INSIGHTS =================
+
+        if not filtered_df.empty:
+
+            i1, i2, i3 = st.columns(3)
+
+            top_type = (
+                filtered_df.groupby("type")["amount"]
+                .sum()
+                .idxmax()
+            )
+
+            lowest_expense = (
+                filtered_df["amount"].min()
+            )
+
+            current_month_total = filtered_df[
+                filtered_df["date"].dt.month
+                ==
+                datetime.datetime.now().month
+            ]["amount"].sum()
+
+            with i1:
+                st.info(
+                    f"🏆 Top Category: {top_type}"
+                )
+
+            with i2:
+                st.info(
+                    f"📉 Lowest Expense: ₹ {lowest_expense:,.0f}"
+                )
+
+            with i3:
+                st.info(
+                    f"📅 Current Month: ₹ {current_month_total:,.0f}"
+                )
+
+        st.markdown("---")
+
+        # ================= EXPORTS =================
+
+        export_df = filtered_df.copy()
+
+        export_df["date"] = export_df["date"].astype(str)
+
+        export_df = export_df[
+            ["id", "type", "amount", "date", "note"]
+        ].copy()
+
+        export_df.columns = [
+            "ID",
+            "Expense Type",
+            "Amount",
+            "Date",
+            "Note"
+        ]
+
+        excel_buffer = BytesIO()
+
+        with pd.ExcelWriter(
+            excel_buffer,
+            engine="openpyxl"
+        ) as writer:
+
+            export_df.to_excel(
+                writer,
+                index=False,
+                sheet_name="Expenses Report"
+            )
+
+        pdf_buffer = BytesIO()
+
+        doc = SimpleDocTemplate(pdf_buffer)
+
+        pdf_data = [list(export_df.columns)]
+        pdf_data += export_df.values.tolist()
+
+        table = Table(pdf_data)
+
+        table.setStyle(
+            TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ])
+        )
+
+        doc.build([table])
+
+        e1, e2 = st.columns(2)
+
+        with e1:
+            st.download_button(
+                label="📥 Download Excel Report",
+                data=excel_buffer.getvalue(),
+                file_name="expenses_report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True
             )
+
+        with e2:
+            st.download_button(
+                label="📄 Download PDF Report",
+                data=pdf_buffer.getvalue(),
+                file_name="expenses_report.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+
+        st.markdown("---")
+
+        # ================= TABLE =================
+
+        show_cols = [
+            col for col in
+            ["date", "type", "amount", "note"]
+            if col in filtered_df.columns
+        ]
+
+        display_df = filtered_df.copy()
+
+        display_df = display_df.sort_values(
+            by="date",
+            ascending=False
+        )
+
+        display_df["date"] = pd.to_datetime(
+            display_df["date"]
+        ).dt.strftime("%d-%m-%Y")
+
+        st.dataframe(
+            display_df[show_cols],
+            use_container_width=True
+        )
 
     # =========================================================
     # ================= REMINDERS =============================
