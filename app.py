@@ -1691,91 +1691,200 @@ elif menu == "Expenses":
 
     # ===== ADD EXPENSE =====
     if not is_viewer:
+
         exp_type = st.text_input("Expense Type")
         date = st.date_input("Date")
         amt = st.number_input("Amount", min_value=0.0)
 
-        # ✅ NOTE FIELD ADDED
-        note = st.text_input("📝 Note / Comment", key="expense_note")
+        note = st.text_input(
+            "📝 Note / Comment",
+            key="expense_note"
+        )
 
-        if st.button("Save Expense", key="save_expense"):
+        if st.button(
+            "Save Expense",
+            key="save_expense"
+        ):
+
             if exp_type and amt > 0:
+
                 try:
+
                     supabase.table("expenses").insert({
                         "type": exp_type,
                         "amount": amt,
                         "date": date.strftime("%Y-%m-%d"),
-                        "note": note   # ✅ added
+                        "note": note
                     }).execute()
 
-                    st.success("Expense Saved ✅")
-
                     st.cache_data.clear()
-                    st.rerun()
+
+                    st.success(
+                        "Expense Saved ✅"
+                    )
 
                 except:
-                    st.error("Error saving expense")
+                    st.error(
+                        "Error saving expense"
+                    )
+
             else:
-                st.warning("Enter valid details ⚠️")
+                st.warning(
+                    "Enter valid details ⚠️"
+                )
+
     else:
         st.info("View Only Mode 👁️")
 
     st.markdown("---")
 
     # ===== SHOW DATA =====
+
     data = load_expenses()
+
     df = pd.DataFrame(data)
 
-    st.dataframe(df)
-
-    # ===== EDIT / DELETE =====
     if not df.empty:
 
-        df["label"] = df["type"] + " | ₹" + df["amount"].astype(str) + " | " + df["date"]
+        display_df = df.copy()
 
-        selected = st.selectbox("Select Expense", df["label"])
+        if "date" in display_df.columns:
 
-        row = df[df["label"] == selected].iloc[0]
+            display_df["date"] = pd.to_datetime(
+                display_df["date"],
+                errors="coerce"
+            ).dt.strftime("%d-%m-%Y")
 
-        new_type = st.text_input("Edit Type", value=row["type"])
-        new_amt = st.number_input("Edit Amount", value=float(row["amount"]))
-        new_date = st.date_input("Edit Date", value=pd.to_datetime(row["date"]))
+        show_cols = [
+            col for col in
+            ["date", "type", "amount", "note"]
+            if col in display_df.columns
+        ]
+
+        st.dataframe(
+            display_df[show_cols],
+            use_container_width=True
+        )
+
+    else:
+        st.info("No expenses found")
+
+    # ===== EDIT / DELETE =====
+
+    if not df.empty:
+
+        df["date_display"] = pd.to_datetime(
+            df["date"],
+            errors="coerce"
+        ).dt.strftime("%d-%m-%Y")
+
+        df["label"] = (
+            df["type"]
+            + " | ₹"
+            + df["amount"].astype(str)
+            + " | "
+            + df["date_display"]
+        )
+
+        selected = st.selectbox(
+            "Select Expense",
+            df["label"]
+        )
+
+        row = df[
+            df["label"] == selected
+        ].iloc[0]
+
+        new_type = st.text_input(
+            "Edit Type",
+            value=row["type"]
+        )
+
+        new_amt = st.number_input(
+            "Edit Amount",
+            value=float(row["amount"])
+        )
+
+        new_date = st.date_input(
+            "Edit Date",
+            value=pd.to_datetime(
+                row["date"]
+            )
+        )
 
         col1, col2 = st.columns(2)
 
         # ===== UPDATE =====
+
         with col1:
+
             if not is_viewer:
-                if st.button("Update Expense", key="update_expense"):
+
+                if st.button(
+                    "Update Expense",
+                    key="update_expense"
+                ):
+
                     try:
-                        supabase.table("expenses").update({
+
+                        supabase.table(
+                            "expenses"
+                        ).update({
+
                             "type": new_type,
                             "amount": new_amt,
-                            "date": new_date.strftime("%Y-%m-%d")
-                        }).eq("id", row["id"]).execute()
+                            "date": new_date.strftime(
+                                "%Y-%m-%d"
+                            )
 
-                        st.success("Updated ✅")
+                        }).eq(
+                            "id",
+                            row["id"]
+                        ).execute()
 
                         st.cache_data.clear()
-                        st.rerun()
+
+                        st.success(
+                            "Updated ✅"
+                        )
 
                     except:
-                        st.error("Update failed")
+
+                        st.error(
+                            "Update failed"
+                        )
 
         # ===== DELETE =====
-        with col2:
-            if is_admin:
-                if st.button("Delete Expense", key="delete_expense"):
-                    try:
-                        supabase.table("expenses").delete().eq("id", row["id"]).execute()
 
-                        st.warning("Deleted ⚠️")
+        with col2:
+
+            if is_admin:
+
+                if st.button(
+                    "Delete Expense",
+                    key="delete_expense"
+                ):
+
+                    try:
+
+                        supabase.table(
+                            "expenses"
+                        ).delete().eq(
+                            "id",
+                            row["id"]
+                        ).execute()
 
                         st.cache_data.clear()
-                        st.rerun()
+
+                        st.warning(
+                            "Deleted ⚠️"
+                        )
 
                     except:
-                        st.error("Delete failed")
+
+                        st.error(
+                            "Delete failed"
+                        )
 # ================= REPORTS =================
 elif menu == "Reports":
 
