@@ -2748,40 +2748,234 @@ elif menu == "Reports":
             )
             
     # =========================================================
-    # ================= DONATIONS =============================
-    # =========================================================
+# ================= DONATIONS =============================
+# =========================================================
 
-    with tab3:
+with tab3:
 
-        st.markdown("## 🎁 Donations Report")
+    st.markdown("## 🎁 Donations Report")
 
-        if donations_df.empty:
+    if donations_df.empty:
 
-            st.warning("No donations found.")
+        st.warning("No donations found.")
 
-        else:
+    else:
 
-            donations_df["amount"] = pd.to_numeric(
-                donations_df.get("amount", 0),
-                errors="coerce"
-            ).fillna(0)
+        donations_df["amount"] = pd.to_numeric(
+            donations_df.get("amount", 0),
+            errors="coerce"
+        ).fillna(0)
 
-            total_donation = donations_df[
-                "amount"
-            ].sum()
+        donations_df["date"] = pd.to_datetime(
+            donations_df["date"],
+            errors="coerce"
+        )
 
-            st.metric(
-                "🎁 Total Donations",
-                f"₹ {total_donation:,.0f}"
+        # ================= FILTERS =================
+
+        f1, f2, f3 = st.columns(3)
+
+        with f1:
+            from_date = st.date_input(
+                "📅 From Date",
+                donations_df["date"].min().date(),
+                key="donation_from"
             )
 
-            st.bar_chart(donations_df["amount"])
+        with f2:
+            to_date = st.date_input(
+                "📅 To Date",
+                donations_df["date"].max().date(),
+                key="donation_to"
+            )
 
-            st.dataframe(
-                donations_df,
+        with f3:
+            donor_filter = st.selectbox(
+                "👤 Donor",
+                ["All"] +
+                sorted(
+                    donations_df["name"]
+                    .dropna()
+                    .astype(str)
+                    .unique()
+                    .tolist()
+                ),
+                key="donation_donor"
+            )
+
+        filtered_df = donations_df.copy()
+
+        filtered_df = filtered_df[
+            (filtered_df["date"].dt.date >= from_date)
+            &
+            (filtered_df["date"].dt.date <= to_date)
+        ]
+
+        if donor_filter != "All":
+            filtered_df = filtered_df[
+                filtered_df["name"] == donor_filter
+            ]
+
+        # ================= SUMMARY =================
+
+        total_amount = filtered_df["amount"].sum()
+
+        total_entries = len(filtered_df)
+
+        highest_donation = (
+            filtered_df["amount"].max()
+            if not filtered_df.empty else 0
+        )
+
+        average_donation = (
+            filtered_df["amount"].mean()
+            if not filtered_df.empty else 0
+        )
+
+        c1, c2, c3, c4 = st.columns(4)
+
+        with c1:
+            st.metric(
+                "💰 Total Amount",
+                f"₹ {total_amount:,.0f}"
+            )
+
+        with c2:
+            st.metric(
+                "📋 Entries",
+                total_entries
+            )
+
+        with c3:
+            st.metric(
+                "🏆 Highest",
+                f"₹ {highest_donation:,.0f}"
+            )
+
+        with c4:
+            st.metric(
+                "📊 Average",
+                f"₹ {average_donation:,.0f}"
+            )
+
+        st.markdown("---")
+
+        # ================= INSIGHTS =================
+
+        if not filtered_df.empty:
+
+            i1, i2, i3 = st.columns(3)
+
+            top_donor = (
+                filtered_df.groupby("name")["amount"]
+                .sum()
+                .idxmax()
+            )
+
+            lowest_donation = (
+                filtered_df["amount"].min()
+            )
+
+            current_month_total = filtered_df[
+                filtered_df["date"].dt.month
+                ==
+                datetime.datetime.now().month
+            ]["amount"].sum()
+
+            with i1:
+                st.info(
+                    f"🏅 Top Donor: {top_donor}"
+                )
+
+            with i2:
+                st.info(
+                    f"📉 Lowest Donation: ₹ {lowest_donation:,.0f}"
+                )
+
+            with i3:
+                st.info(
+                    f"📅 Current Month: ₹ {current_month_total:,.0f}"
+                )
+
+        st.markdown("---")
+
+        # ================= EXPORTS =================
+
+        export_df = filtered_df.copy()
+
+        export_df["date"] = export_df["date"].astype(str)
+
+        excel_buffer = BytesIO()
+
+        with pd.ExcelWriter(
+            excel_buffer,
+            engine="openpyxl"
+        ) as writer:
+
+            export_df.to_excel(
+                writer,
+                index=False,
+                sheet_name="Donations Report"
+            )
+
+        pdf_buffer = BytesIO()
+
+        doc = SimpleDocTemplate(pdf_buffer)
+
+        pdf_data = [list(export_df.columns)]
+
+        pdf_data += export_df.values.tolist()
+
+        table = Table(pdf_data)
+
+        table.setStyle(
+            TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ])
+        )
+
+        doc.build([table])
+
+        e1, e2 = st.columns(2)
+
+        with e1:
+            st.download_button(
+                label="📥 Download Excel Report",
+                data=excel_buffer.getvalue(),
+                file_name="donations_report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True
             )
 
+        with e2:
+            st.download_button(
+                label="📄 Download PDF Report",
+                data=pdf_buffer.getvalue(),
+                file_name="donations_report.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+
+        st.markdown("---")
+
+        # ================= TABLE =================
+
+        show_cols = [
+            col for col in
+            ["date", "name", "amount", "note"]
+            if col in filtered_df.columns
+        ]
+
+        st.dataframe(
+            filtered_df[show_cols]
+            .sort_values(
+                by="date",
+                ascending=False
+            ),
+            use_container_width=True
+        )
     # =========================================================
     # ================= EXPENSES ==============================
     # =========================================================
