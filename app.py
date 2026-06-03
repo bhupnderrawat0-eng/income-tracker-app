@@ -351,24 +351,24 @@ with col_logout:
 
 st.markdown("---")
 
-
 # ================= HEADER =================
 col1, col2 = st.columns([4,1])
 
 with col1:
 
-    logo_col, title_col = st.columns([1.2, 4.8])
+    logo_col, title_col = st.columns([1, 4.5])
 
     with logo_col:
-        st.image("logo.png", width=140)
+        st.image("logo.png", width=120)
 
     with title_col:
         st.markdown("""
-        <div style='padding-top:15px;'>
+        <div style='padding-top:0px;'>
 
         <h1 style='margin-bottom:0px;
+                   margin-top:0px;
                    color:white;
-                   font-size:42px;'>
+                   font-size:36px;'>
         Bal Yuva Mangal Dal
         </h1>
 
