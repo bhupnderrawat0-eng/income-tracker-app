@@ -356,14 +356,30 @@ st.markdown("---")
 col1, col2 = st.columns([4,1])
 
 with col1:
-    st.markdown("""
-    ### 🚀 Bal Yuva Mangal Dal
-    <p style='color:lightgray;'>Smart Finance SaaS System</p>
-    """, unsafe_allow_html=True)
+
+    logo_col, title_col = st.columns([1, 5])
+
+    with logo_col:
+        st.image("logo.png", width=120)
+
+    with title_col:
+        st.markdown("""
+        <h2 style='margin-bottom:0px; color:white;'>
+        Bal Yuva Mangal Dal
+        </h2>
+
+        <p style='color:#cbd5e1;
+                  font-size:18px;
+                  margin-top:0px;'>
+        Bal Yuva Mangal Dal Management System
+        </p>
+        """, unsafe_allow_html=True)
 
 with col2:
     st.markdown(f"""
-    <p style='text-align:right; color:#94a3b8; margin-top:20px;'>
+    <p style='text-align:right;
+              color:#94a3b8;
+              margin-top:20px;'>
     Welcome, {st.session_state.get("current_user","User")}
     </p>
     """, unsafe_allow_html=True)
