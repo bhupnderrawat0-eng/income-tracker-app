@@ -357,22 +357,28 @@ col1, col2 = st.columns([4,1])
 
 with col1:
 
-    logo_col, title_col = st.columns([1, 5])
+    logo_col, title_col = st.columns([1.2, 4.8])
 
     with logo_col:
-        st.image("logo.png", width=120)
+        st.image("logo.png", width=140)
 
     with title_col:
         st.markdown("""
-        <h2 style='margin-bottom:0px; color:white;'>
+        <div style='padding-top:15px;'>
+
+        <h1 style='margin-bottom:0px;
+                   color:white;
+                   font-size:42px;'>
         Bal Yuva Mangal Dal
-        </h2>
+        </h1>
 
         <p style='color:#cbd5e1;
-                  font-size:18px;
+                  font-size:20px;
                   margin-top:0px;'>
-        Bal Yuva Mangal Dal Management System
+        Management System
         </p>
+
+        </div>
         """, unsafe_allow_html=True)
 
 with col2:
