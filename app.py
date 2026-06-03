@@ -315,7 +315,12 @@ else:
 # ================= MENU =================
 if not is_mobile:
     with st.sidebar:
-        st.markdown("## 🚀 Bal Yuva SaaS")
+        st.image("logo.png", width=170)
+
+st.markdown(
+    "<h4 style='text-align:center;'>Bal Yuva Mangal Dal</h4>",
+    unsafe_allow_html=True
+)
 
         menu = option_menu(
             None,
@@ -324,7 +329,8 @@ if not is_mobile:
             default_index=0,
         )
 else:
-    st.markdown("### 🚀 Bal Yuva SaaS")
+    st.image("logo.png", width=120)
+st.markdown("### Bal Yuva Mangal Dal")
 
     menu = st.radio(
         "Navigation",
