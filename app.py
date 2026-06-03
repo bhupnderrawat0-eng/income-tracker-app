@@ -318,7 +318,7 @@ if not is_mobile:
         c1, c2, c3 = st.columns([1, 2, 1])
 
         with c2:
-            st.image("logo.png", width=140)
+            st.image("logo.png", width=150)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
