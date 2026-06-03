@@ -315,13 +315,6 @@ else:
 if not is_mobile:
     with st.sidebar:
 
-        c1, c2, c3 = st.columns([1, 2, 1])
-
-        with c2:
-            st.image("logo.png", width=150)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
         menu = option_menu(
             None,
             menu_list,
@@ -340,8 +333,6 @@ if not is_mobile:
         )
 
 else:
-    st.image("logo.png", width=100)
-
     menu = st.radio(
         "Navigation",
         menu_list,
