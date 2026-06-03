@@ -314,22 +314,28 @@ else:
 # ================= MENU =================
 if not is_mobile:
     with st.sidebar:
-        st.image("logo.png", width=170)
 
-    st.markdown(
-        "<h4 style='text-align:center;'>Bal Yuva Mangal Dal</h4>",
-        unsafe_allow_html=True
-    )
+        st.image("logo.png", width=120)
 
-    menu = option_menu(
-        None,
-        menu_list,
-        icons=["house","people","cash","bank","gift","credit-card","bar-chart","person","robot"][:len(menu_list)],
-        default_index=0,
-    )
+        menu = option_menu(
+            None,
+            menu_list,
+            icons=[
+                "house",
+                "people",
+                "cash",
+                "bank",
+                "gift",
+                "credit-card",
+                "bar-chart",
+                "person",
+                "robot"
+            ][:len(menu_list)],
+            default_index=0,
+        )
+
 else:
     st.image("logo.png", width=120)
-    st.markdown("### Bal Yuva Mangal Dal")
 
     menu = st.radio(
         "Navigation",
