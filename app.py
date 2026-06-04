@@ -358,7 +358,22 @@ with col1:
     logo_col, title_col = st.columns([1.3, 4.7])
 
     with logo_col:
+
+        st.markdown(
+            """
+            <div style="margin-top:12px;">
+            """,
+            unsafe_allow_html=True
+        )
+
         st.image("logo.png", width=140)
+
+        st.markdown(
+            """
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     with title_col:
 
@@ -373,14 +388,21 @@ with col1:
             unsafe_allow_html=True
         )
 
-        st.markdown('<div class="header-title">', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="header-title">',
+            unsafe_allow_html=True
+        )
 
         st.title("Bal Yuva Mangal Dal")
         st.caption("Management System")
 
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(
+            '</div>',
+            unsafe_allow_html=True
+        )
 
 with col2:
+
     st.markdown(
         f"""
         <div style="
