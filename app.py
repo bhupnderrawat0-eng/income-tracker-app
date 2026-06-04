@@ -360,45 +360,27 @@ with col1:
     logo_col, title_col = st.columns([1, 4.5])
 
     with logo_col:
-        st.markdown(
-            """
-            <div style='margin-top:-35px;'>
-            """,
-            unsafe_allow_html=True
-        )
-
         st.image("logo.png", width=120)
-
-        st.markdown(
-            """
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
 
     with title_col:
         st.markdown(
             """
-            <div style='margin-top:-35px;'>
-
-                <h1 style='
-                    margin-top:0px;
-                    margin-bottom:0px;
+            <div style="margin-top:-35px;">
+                <h1 style="
                     color:white;
                     font-size:36px;
-                '>
+                    margin:0;
+                ">
                     Bal Yuva Mangal Dal
                 </h1>
 
-                <p style='
+                <p style="
                     color:#cbd5e1;
                     font-size:20px;
-                    margin-top:0px;
-                    margin-bottom:0px;
-                '>
+                    margin:0;
+                ">
                     Management System
                 </p>
-
             </div>
             """,
             unsafe_allow_html=True
@@ -407,13 +389,9 @@ with col1:
 with col2:
     st.markdown(
         f"""
-        <p style='
-            text-align:right;
-            color:#94a3b8;
-            margin-top:-10px;
-        '>
-            Welcome, {st.session_state.get("current_user","User")}
-        </p>
+        <div style="margin-top:-10px; text-align:right; color:#94a3b8;">
+            Welcome, {st.session_state.get("current_user", "User")}
+        </div>
         """,
         unsafe_allow_html=True
     )
