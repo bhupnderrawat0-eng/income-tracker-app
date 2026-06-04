@@ -348,18 +348,6 @@ else:
         menu_list,
         horizontal=True
     )
-# ================= USER BAR =================
-col_user, col_logout = st.columns([3,1])
-
-with col_user:
-    st.write(f"👤 {st.session_state.get('current_user','User')}")
-
-with col_logout:
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
-
-st.markdown("---")
 
 # ================= HEADER =================
 
