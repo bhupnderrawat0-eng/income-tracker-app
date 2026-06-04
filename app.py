@@ -366,7 +366,7 @@ with col1:
             unsafe_allow_html=True
         )
 
-        st.image("logo.png", width=140)
+        st.image("logo.png", width=160)
 
         st.markdown(
             """
