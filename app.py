@@ -352,43 +352,71 @@ with col_logout:
 st.markdown("---")
 
 # ================= HEADER =================
-col1, col2 = st.columns([4,1])
+
+col1, col2 = st.columns([4, 1])
 
 with col1:
 
     logo_col, title_col = st.columns([1, 4.5])
 
     with logo_col:
+        st.markdown(
+            """
+            <div style='margin-top:-35px;'>
+            """,
+            unsafe_allow_html=True
+        )
+
         st.image("logo.png", width=120)
 
+        st.markdown(
+            """
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
     with title_col:
-        st.markdown("""
-        <div style='padding-top:0px;'>
+        st.markdown(
+            """
+            <div style='margin-top:-35px;'>
 
-        <h1 style='margin-bottom:0px;
-                   margin-top:0px;
-                   color:white;
-                   font-size:36px;'>
-        Bal Yuva Mangal Dal
-        </h1>
+                <h1 style='
+                    margin-top:0px;
+                    margin-bottom:0px;
+                    color:white;
+                    font-size:36px;
+                '>
+                    Bal Yuva Mangal Dal
+                </h1>
 
-        <p style='color:#cbd5e1;
-                  font-size:20px;
-                  margin-top:0px;'>
-        Management System
-        </p>
+                <p style='
+                    color:#cbd5e1;
+                    font-size:20px;
+                    margin-top:0px;
+                    margin-bottom:0px;
+                '>
+                    Management System
+                </p>
 
-        </div>
-        """, unsafe_allow_html=True)
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 with col2:
-    st.markdown(f"""
-    <p style='text-align:right;
-              color:#94a3b8;
-              margin-top:20px;'>
-    Welcome, {st.session_state.get("current_user","User")}
-    </p>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f"""
+        <p style='
+            text-align:right;
+            color:#94a3b8;
+            margin-top:-10px;
+        '>
+            Welcome, {st.session_state.get("current_user","User")}
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
 
 st.markdown("---")
 # ================= DASHBOARD =================
