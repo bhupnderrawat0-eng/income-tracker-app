@@ -363,34 +363,30 @@ with col1:
         st.image("logo.png", width=120)
 
     with title_col:
+
         st.markdown(
             """
-            <div style="margin-top:-35px;">
-                <h1 style="
-                    color:white;
-                    font-size:36px;
-                    margin:0;
-                ">
-                    Bal Yuva Mangal Dal
-                </h1>
-
-                <p style="
-                    color:#cbd5e1;
-                    font-size:20px;
-                    margin:0;
-                ">
-                    Management System
-                </p>
-            </div>
+            <style>
+            .header-title{
+                margin-top:-35px;
+            }
+            </style>
             """,
             unsafe_allow_html=True
         )
 
+        st.markdown('<div class="header-title">', unsafe_allow_html=True)
+
+        st.title("Bal Yuva Mangal Dal")
+        st.caption("Management System")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
 with col2:
     st.markdown(
         f"""
-        <div style="margin-top:-10px; text-align:right; color:#94a3b8;">
-            Welcome, {st.session_state.get("current_user", "User")}
+        <div style="text-align:right; margin-top:-10px;">
+            Welcome, {st.session_state.get("current_user","User")}
         </div>
         """,
         unsafe_allow_html=True
