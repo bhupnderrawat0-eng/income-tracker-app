@@ -351,14 +351,14 @@ else:
 
 # ================= HEADER =================
 
-col1, col2 = st.columns([4, 1])
+col1, col2 = st.columns([5, 2])
 
 with col1:
 
-    logo_col, title_col = st.columns([1, 4.5])
+    logo_col, title_col = st.columns([1, 5])
 
     with logo_col:
-        st.image("logo.png", width=120)
+        st.image("logo.png", width=100)
 
     with title_col:
 
@@ -366,7 +366,7 @@ with col1:
             """
             <style>
             .header-title{
-                margin-top:-35px;
+                margin-top:-15px;
             }
             </style>
             """,
@@ -383,8 +383,17 @@ with col1:
 with col2:
     st.markdown(
         f"""
-        <div style="text-align:right; margin-top:-10px;">
-            Welcome, {st.session_state.get("current_user","User")}
+        <div style="
+            text-align:right;
+            padding-top:25px;
+            font-size:18px;
+            font-weight:600;
+            color:#cbd5e1;
+        ">
+            Welcome,
+            <span style="color:#8b5cf6;">
+                {st.session_state.get("current_user","Admin")}
+            </span> 👋
         </div>
         """,
         unsafe_allow_html=True
