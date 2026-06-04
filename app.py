@@ -52,9 +52,13 @@ st.markdown("""
     100% {background-position:0% 50%;}
 }
 
-/# ===== HIDE HEADER ===== */
+/* ===== HIDE HEADER ===== */
 header, footer {
     visibility: hidden;
+}
+
+.block-container {
+    padding-top: 0.5rem !important;
 }
 
 .block-container {
