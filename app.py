@@ -355,10 +355,10 @@ col1, col2 = st.columns([5, 2])
 
 with col1:
 
-    logo_col, title_col = st.columns([1, 5])
+    logo_col, title_col = st.columns([1.3, 4.7])
 
     with logo_col:
-        st.image("logo.png", width=100)
+        st.image("logo.png", width=140)
 
     with title_col:
 
