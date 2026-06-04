@@ -52,9 +52,15 @@ st.markdown("""
     100% {background-position:0% 50%;}
 }
 
-/* ===== HIDE HEADER ===== */
-header, footer {visibility:hidden;}
-.block-container {padding-top:1rem;}
+/# ===== HIDE HEADER ===== */
+header, footer {
+    visibility: hidden;
+}
+
+.block-container {
+    padding-top: 0rem !important;
+    margin-top: -15px !important;
+}
 
 /* ===== TEXT ===== */
 h1,h2,h3,h4,h5,p,label {
