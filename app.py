@@ -325,6 +325,24 @@ else:
 if not is_mobile:
     with st.sidebar:
 
+        st.markdown(
+            f"""
+            <div style="
+                text-align:center;
+                padding:10px;
+                font-size:18px;
+                font-weight:600;
+                color:#cbd5e1;
+            ">
+                Welcome,
+                <span style="color:#8b5cf6;">
+                    {st.session_state.get("current_user","Admin")}
+                </span> 👋
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
         menu = option_menu(
             None,
             menu_list,
@@ -341,14 +359,6 @@ if not is_mobile:
             ][:len(menu_list)],
             default_index=0,
         )
-
-        # Logout button ko niche le jane ke liye spacing
-        for _ in range(10):
-            st.write("")
-
-        if st.button("🚪 Logout", use_container_width=True, type="primary"):
-            st.session_state.clear()
-            st.rerun()
 
 else:
     menu = st.radio(
@@ -410,23 +420,11 @@ with col1:
 
 with col2:
 
-    st.markdown(
-        f"""
-        <div style="
-            text-align:right;
-            padding-top:25px;
-            font-size:18px;
-            font-weight:600;
-            color:#cbd5e1;
-        ">
-            Welcome,
-            <span style="color:#8b5cf6;">
-                {st.session_state.get("current_user","Admin")}
-            </span> 👋
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    if st.button("🚪 Logout", use_container_width=True):
+        st.session_state.clear()
+        st.rerun()
 
 st.markdown("---")
 # ================= DASHBOARD =================
