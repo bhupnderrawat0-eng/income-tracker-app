@@ -329,7 +329,8 @@ if not is_mobile:
             f"""
             <div style="
                 text-align:center;
-                padding:10px;
+                margin-top:-25px;
+                margin-bottom:10px;
                 font-size:18px;
                 font-weight:600;
                 color:#cbd5e1;
@@ -342,6 +343,12 @@ if not is_mobile:
             """,
             unsafe_allow_html=True
         )
+
+        if st.button("🚪 Logout", use_container_width=True):
+            st.session_state.clear()
+            st.rerun()
+
+        st.markdown("<br>", unsafe_allow_html=True)
 
         menu = option_menu(
             None,
@@ -419,12 +426,7 @@ with col1:
         )
 
 with col2:
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    if st.button("🚪 Logout", use_container_width=True):
-        st.session_state.clear()
-        st.rerun()
+    pass
 
 st.markdown("---")
 # ================= DASHBOARD =================
