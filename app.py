@@ -342,19 +342,11 @@ if not is_mobile:
             default_index=0,
         )
 
-        st.markdown("---")
+        # Logout button ko niche le jane ke liye spacing
+        for _ in range(10):
+            st.write("")
 
-        st.markdown(
-            f"""
-            <div style="text-align:center; padding:10px;">
-                <b>👤 {st.session_state.current_user}</b><br>
-                <span style="color:gray;">{st.session_state.role}</span>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("🚪 Logout", use_container_width=True, type="primary"):
             st.session_state.clear()
             st.rerun()
 
