@@ -342,13 +342,28 @@ if not is_mobile:
             default_index=0,
         )
 
+        st.markdown("---")
+
+        st.markdown(
+            f"""
+            <div style="text-align:center; padding:10px;">
+                <b>👤 {st.session_state.current_user}</b><br>
+                <span style="color:gray;">{st.session_state.role}</span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        if st.button("🚪 Logout", use_container_width=True):
+            st.session_state.clear()
+            st.rerun()
+
 else:
     menu = st.radio(
         "Navigation",
         menu_list,
         horizontal=True
     )
-
 # ================= HEADER =================
 
 col1, col2 = st.columns([5, 2])
