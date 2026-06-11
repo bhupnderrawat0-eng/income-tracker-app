@@ -3703,23 +3703,22 @@ elif menu == "Reminders":
             "🏦 Loan Reminders"
         ]
     )
+    
     with tab1:
+        st.subheader("📅 Collection Reminders")
 
-    st.subheader("📅 Collection Reminders")
+        st.write("Members:", len(members_df))
+        st.write("Collections:", len(collections_df))
 
-    st.write("Members:", len(members_df))
-    st.write("Collections:", len(collections_df))
+        st.dataframe(collections_df.head())
 
-    st.dataframe(collections_df.head())
+    with tab2:
+        st.subheader("🏦 Loan Reminders")
 
-with tab2:
+        st.write("Loans:", len(loans_df))
+        st.write("Payments:", len(payments_df))
 
-    st.subheader("🏦 Loan Reminders")
-
-    st.write("Loans:", len(loans_df))
-    st.write("Payments:", len(payments_df))
-
-    st.dataframe(loans_df.head())
+        st.dataframe(loans_df.head())
 # ================= AI =================
 elif menu == "AI":
     st.subheader("🤖 AI Insights (Coming Soon)")
