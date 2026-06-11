@@ -3692,33 +3692,251 @@ elif menu == "Reminders":
         st.warning("No members found")
         st.stop()
 
-    member_map = {}
-
-    for _, row in members_df.iterrows():
-        member_map[row["id"]] = row["name"]
-
     tab1, tab2 = st.tabs(
         [
             "📅 Collection Reminders",
             "🏦 Loan Reminders"
         ]
     )
-    
+
+    # =====================================================
+    # COLLECTION REMINDERS
+    # =====================================================
+
     with tab1:
+
         st.subheader("📅 Collection Reminders")
 
-        st.write("Members:", len(members_df))
-        st.write("Collections:", len(collections_df))
+        if collections_df.empty:
 
-        st.dataframe(collections_df.head())
+            st.info("No collection data found")
+
+        else:
+
+            collection_data = collections_df.copy()
+
+            collection_data["amount"] = pd.to_numeric(
+                collection_data["amount"],
+                errors="coerce"
+            ).fillna(0)
+
+            collection_data["expected_amount"] = pd.to_numeric(
+                collection_data["expected_amount"],
+                errors="coerce"
+            ).fillna(0)
+
+            summary = (
+                collection_data.groupby(
+                    ["member_id", "month"]
+                )
+                .agg({
+                    "expected_amount": "sum",
+                    "amount": "sum"
+                })
+                .reset_index()
+            )
+
+            summary["Balance"] = (
+                summary["expected_amount"]
+                - summary["amount"]
+            )
+
+            summary["Balance"] = (
+                summary["Balance"]
+                .clip(lower=0)
+            )
+
+            pending_members = summary[
+                summary["Balance"] > 0
+            ].copy()
+
+            if pending_members.empty:
+
+                st.success(
+                    "✅ No Pending Collections"
+                )
+
+            else:
+
+                pending_members = pending_members.merge(
+                    members_df[
+                        ["id", "name", "mobile"]
+                    ],
+                    left_on="member_id",
+                    right_on="id",
+                    how="left"
+                )
+
+                for _, row in pending_members.iterrows():
+
+                    mobile = str(
+                        row.get("mobile", "")
+                    ).strip()
+
+                    c1, c2, c3, c4 = st.columns(
+                        [3, 2, 2, 2]
+                    )
+
+                    with c1:
+                        st.write(
+                            f"👤 {row['name']}"
+                        )
+
+                    with c2:
+                        st.write(
+                            f"📅 {row['month']}"
+                        )
+
+                    with c3:
+                        st.write(
+                            f"₹ {row['Balance']:,.0f}"
+                        )
+
+                    with c4:
+
+                        if (
+                            mobile.isdigit()
+                            and len(mobile) == 10
+                        ):
+
+                            message = f"""
+नमस्कार {row['name']} जी,
+
+आपकी {row['month']} की ₹{row['Balance']:,.0f} राशि लंबित है।
+
+कृपया जल्द जमा करें।
+
+धन्यवाद।
+"""
+
+                            wa_link = (
+                                f"https://wa.me/91{mobile}"
+                                f"?text={urllib.parse.quote(message)}"
+                            )
+
+                            st.link_button(
+                                "📱 WhatsApp",
+                                wa_link,
+                                use_container_width=True
+                            )
+
+                        else:
+
+                            st.warning(
+                                "No Mobile"
+                            )
+
+    # =====================================================
+    # LOAN REMINDERS
+    # =====================================================
 
     with tab2:
+
         st.subheader("🏦 Loan Reminders")
 
-        st.write("Loans:", len(loans_df))
-        st.write("Payments:", len(payments_df))
+        if loans_df.empty:
 
-        st.dataframe(loans_df.head())
+            st.info("No loan data found")
+
+        else:
+
+            active_found = False
+
+            for _, loan in loans_df.iterrows():
+
+                loan_id = loan["id"]
+
+                principal = float(
+                    loan.get("amount", 0)
+                )
+
+                loan_payments = payments_df[
+                    payments_df["loan_id"] == loan_id
+                ]
+
+                principal_paid = (
+                    loan_payments["principal_paid"].sum()
+                    if not loan_payments.empty
+                    else 0
+                )
+
+                balance = max(
+                    principal - principal_paid,
+                    0
+                )
+
+                if balance <= 0:
+                    continue
+
+                active_found = True
+
+                member = members_df[
+                    members_df["id"]
+                    == loan["member_id"]
+                ]
+
+                if member.empty:
+                    continue
+
+                member = member.iloc[0]
+
+                mobile = str(
+                    member.get("mobile", "")
+                ).strip()
+
+                c1, c2, c3 = st.columns(
+                    [4, 2, 2]
+                )
+
+                with c1:
+                    st.write(
+                        f"👤 {member['name']}"
+                    )
+
+                with c2:
+                    st.write(
+                        f"₹ {balance:,.0f}"
+                    )
+
+                with c3:
+
+                    if (
+                        mobile.isdigit()
+                        and len(mobile) == 10
+                    ):
+
+                        message = f"""
+नमस्कार {member['name']} जी,
+
+आपके ऋण का ₹{balance:,.0f} बकाया है।
+
+कृपया समय पर भुगतान करें।
+
+धन्यवाद।
+"""
+
+                        wa_link = (
+                            f"https://wa.me/91{mobile}"
+                            f"?text={urllib.parse.quote(message)}"
+                        )
+
+                        st.link_button(
+                            "📱 WhatsApp",
+                            wa_link,
+                            use_container_width=True
+                        )
+
+                    else:
+
+                        st.warning(
+                            "No Mobile"
+                        )
+
+            if not active_found:
+
+                st.success(
+                    "✅ No Active Loan Balances"
+                )
 # ================= AI =================
 elif menu == "AI":
     st.subheader("🤖 AI Insights (Coming Soon)")
