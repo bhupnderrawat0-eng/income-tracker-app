@@ -3832,81 +3832,88 @@ elif menu == "Reminders":
 
     with tab2:
 
-        st.subheader("🏦 Loan Reminders")
+    st.subheader("🏦 Loan Reminders")
 
-        if loans_df.empty:
+    if loans_df.empty:
 
-            st.info("No loan data found")
+        st.info("No loan data found")
 
-        else:
+    else:
 
-            active_found = False
+        active_found = False
 
-            for _, loan in loans_df.iterrows():
+        for _, loan in loans_df.iterrows():
 
-                loan_id = loan["id"]
+            loan_id = loan["id"]
 
-                principal = float(
-                    loan.get("amount", 0)
-                )
+            principal = float(
+                loan.get("amount", 0)
+            )
 
-                loan_payments = payments_df[
-                    payments_df["loan_id"] == loan_id
-                ]
+            loan_payments = payments_df[
+                payments_df["loan_id"] == loan_id
+            ]
 
-                principal_paid = (
-                    loan_payments["principal_paid"].sum()
-                    if not loan_payments.empty
-                    else 0
-                )
+            principal_paid = (
+                loan_payments["principal_paid"].sum()
+                if not loan_payments.empty
+                else 0
+            )
 
-                balance = max(
-                    principal - principal_paid,
-                    0
-                )
+            balance = max(
+                principal - principal_paid,
+                0
+            )
 
-                if balance <= 0:
-                    continue
+            if balance <= 0:
+                continue
 
-                active_found = True
+            active_found = True
 
-                member = members_df[
-                    members_df["id"]
-                    == loan["member_id"]
-                ]
+            member_name = ""
 
-                if member.empty:
-                    continue
-
-                member = member.iloc[0]
-
-                mobile = str(
-                    member.get("mobile", "")
+            if "customer_name" in loan:
+                member_name = str(
+                    loan.get("customer_name", "")
                 ).strip()
 
-                c1, c2, c3 = st.columns(
-                    [4, 2, 2]
+            member_row = members_df[
+                members_df["name"] == member_name
+            ]
+
+            mobile = ""
+
+            if not member_row.empty:
+                mobile = str(
+                    member_row.iloc[0].get(
+                        "mobile",
+                        ""
+                    )
+                ).strip()
+
+            c1, c2, c3 = st.columns(
+                [4, 2, 2]
+            )
+
+            with c1:
+                st.write(
+                    f"👤 {member_name}"
                 )
 
-                with c1:
-                    st.write(
-                        f"👤 {member['name']}"
-                    )
+            with c2:
+                st.write(
+                    f"₹ {balance:,.0f}"
+                )
 
-                with c2:
-                    st.write(
-                        f"₹ {balance:,.0f}"
-                    )
+            with c3:
 
-                with c3:
+                if (
+                    mobile.isdigit()
+                    and len(mobile) == 10
+                ):
 
-                    if (
-                        mobile.isdigit()
-                        and len(mobile) == 10
-                    ):
-
-                        message = f"""
-नमस्कार {member['name']} जी,
+                    message = f"""
+नमस्कार {member_name} जी,
 
 आपके ऋण का ₹{balance:,.0f} बकाया है।
 
@@ -3915,28 +3922,28 @@ elif menu == "Reminders":
 धन्यवाद।
 """
 
-                        wa_link = (
-                            f"https://wa.me/91{mobile}"
-                            f"?text={urllib.parse.quote(message)}"
-                        )
+                    wa_link = (
+                        f"https://wa.me/91{mobile}"
+                        f"?text={urllib.parse.quote(message)}"
+                    )
 
-                        st.link_button(
-                            "📱 WhatsApp",
-                            wa_link,
-                            use_container_width=True
-                        )
+                    st.link_button(
+                        "📱 WhatsApp",
+                        wa_link,
+                        use_container_width=True
+                    )
 
-                    else:
+                else:
 
-                        st.warning(
-                            "No Mobile"
-                        )
+                    st.warning(
+                        "No Mobile"
+                    )
 
-            if not active_found:
+        if not active_found:
 
-                st.success(
-                    "✅ No Active Loan Balances"
-                )
+            st.success(
+                "✅ No Active Loan Balances"
+            )
 # ================= AI =================
 elif menu == "AI":
     st.subheader("🤖 AI Insights (Coming Soon)")
