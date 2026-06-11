@@ -3,6 +3,7 @@ import pandas as pd
 from streamlit_option_menu import option_menu
 import hashlib
 import datetime
+import urllib.parse
 from io import BytesIO
 from reportlab.platypus import (
     SimpleDocTemplate,
