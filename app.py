@@ -3412,47 +3412,7 @@ elif menu == "Reports":
                 display_df[show_cols],
                 use_container_width=True
             )
-    # =========================================================
-    # ================= REMINDERS =============================
-    # =========================================================
-
-    with tab5:
-
-        st.markdown("## 🔔 Pending Reminder Dashboard")
-
-        if loans_df.empty:
-
-            st.success("✅ No pending reminders")
-
-        else:
-
-            pending_loans = loans_df[
-                loans_df["Balance"] > 0
-            ]
-
-            if pending_loans.empty:
-
-                st.success("✅ No pending reminders")
-
-            else:
-
-                st.error(
-                    f"🔴 Pending Loans: {len(pending_loans)}"
-                )
-
-                st.dataframe(
-
-                    pending_loans[[
-                        "customer_id",
-                        "Member Name",
-                        "Balance",
-                        "Month"
-                    ]],
-
-                    use_container_width=True
-
-                )
-
+    
     # =========================================================
     # ================= FINAL SUMMARY =========================
     # =========================================================
