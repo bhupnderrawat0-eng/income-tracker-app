@@ -3662,6 +3662,40 @@ if menu == "Users":
 elif menu == "Reminders":
 
     st.title("📱 WhatsApp Reminders")
+    st.markdown("""
+<style>
+
+/* WhatsApp Buttons */
+div[data-testid="stLinkButton"] a {
+    background: linear-gradient(
+        135deg,
+        #25D366,
+        #128C7E
+    ) !important;
+
+    color: white !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+    border: none !important;
+    text-decoration: none !important;
+    text-align: center !important;
+    padding: 10px !important;
+}
+
+/* Hover Effect */
+div[data-testid="stLinkButton"] a:hover {
+    color: white !important;
+    transform: scale(1.02);
+}
+
+/* Remove default blue focus */
+div[data-testid="stLinkButton"] a:focus {
+    color: white !important;
+    box-shadow: none !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
     @st.cache_data(ttl=60)
     def load_reminder_data():
