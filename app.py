@@ -3889,6 +3889,28 @@ div[data-testid="stLinkButton"] a:focus {
                     "No reminder data found."
                 )
 
+            # ================= REMINDERS BY USER =================
+
+            st.markdown("---")
+            st.subheader("👨‍💼 Reminders By User")
+
+            user_stats = (
+                filtered_df.groupby("sent_by")
+                .size()
+                .reset_index(name="Reminders")
+            )
+
+            user_stats.columns = [
+                "User",
+                "Reminder Count"
+            ]
+
+            st.dataframe(
+                user_stats,
+                use_container_width=True,
+                hide_index=True
+            )
+
             # ================= REMINDER HISTORY =================
 
             st.markdown("---")
