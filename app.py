@@ -3801,7 +3801,7 @@ div[data-testid="stLinkButton"] a:focus {
                 .nunique()
             )
 
-            a, b, c, d = st.columns(4)
+            a, b, c, d, e, f = st.columns(6)
 
             with a:
                 st.metric(
@@ -3825,6 +3825,34 @@ div[data-testid="stLinkButton"] a:focus {
                 st.metric(
                     "👥 Members",
                     unique_members
+                )
+                
+            today_count = len(
+                filtered_df[
+                    filtered_df["sent_date"].dt.date
+                    == datetime.now().date()
+                ]
+            )
+
+            top_member = "-"
+
+            if not filtered_df.empty:
+                top_member = (
+                    filtered_df["member_name"]
+                    .value_counts()
+                    .idxmax()
+                )
+                
+            with e:
+                st.metric(
+                    "📅 Today",
+                    today_count
+                )
+
+            with f:
+                st.metric(
+                    "🏆 Top",
+                    top_member
                 )
 
             # ================= TOP REMINDED MEMBERS =================
