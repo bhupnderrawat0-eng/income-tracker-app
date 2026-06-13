@@ -3715,10 +3715,11 @@ div[data-testid="stLinkButton"] a:focus {
             safe_fetch("members"),
             safe_fetch("collections"),
             safe_fetch("loans"),
-            safe_fetch("loan_payments")
+            safe_fetch("loan_payments"),
+            safe_fetch("reminders")
         )
 
-    members_df, collections_df, loans_df, payments_df = (
+    members_df, collections_df, loans_df, payments_df, reminders_df = (
         load_reminder_data()
     )
 
