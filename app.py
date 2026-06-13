@@ -3863,11 +3863,7 @@ div[data-testid="stLinkButton"] a:focus {
                                 "No Mobile"
                             )
 
-    st.link_button(
-    "🌐 Test Google",
-    "https://www.google.com",
-    use_container_width=True
-)
+    
     # =====================================================
     # LOAN REMINDERS
     # =====================================================
