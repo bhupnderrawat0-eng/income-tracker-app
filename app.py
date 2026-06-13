@@ -3811,10 +3811,30 @@ div[data-testid="stLinkButton"] a:focus {
                     c1, c2, c3, c4 = st.columns(
                         [3, 2, 2, 2]
                     )
+                    
+                    member_reminders = reminders_df[
+                        (reminders_df["member_id"].astype(str) == str(row["member_id"]))
+                        &
+                        (reminders_df["reminder_type"] == "Collection")
+                    ]
+
+                    last_sent = "-"
+                    count_sent = 0
+
+                    if not member_reminders.empty:
+
+                        count_sent = len(member_reminders)
+
+                        last_sent = pd.to_datetime(
+                            member_reminders["sent_date"]
+                        ).max().strftime("%d-%m-%Y")
 
                     with c1:
                         st.write(
                             f"👤 {row['name']}"
+                        )
+                        st.caption(
+                            f"Last: {last_sent} | Count: {count_sent}"
                         )
 
                     with c2:
