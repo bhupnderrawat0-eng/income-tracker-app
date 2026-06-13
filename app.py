@@ -3842,6 +3842,10 @@ div[data-testid="stLinkButton"] a:focus {
                 )
                 .head(5)
             )
+            top_members.columns = [
+                "Member",
+                "Reminder Count"
+            ]
 
             if not top_members.empty:
 
@@ -3881,6 +3885,9 @@ div[data-testid="stLinkButton"] a:focus {
                 "Amount",
                 "Sent By"
             ]
+            history_df["Date"] = pd.to_datetime(
+                history_df["Date"]
+            ).dt.strftime("%d-%m-%Y %I:%M %p")
 
             history_df = history_df.sort_values(
                 "Date",
