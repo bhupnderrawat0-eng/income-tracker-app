@@ -3991,13 +3991,50 @@ div[data-testid="stLinkButton"] a:focus {
                         )
                     ).strip()
 
-                c1, c2, c3 = st.columns(
-                    [4, 2, 2]
+                last_sent = "-"
+                count_sent = 0
+
+                if (
+                    not reminders_df.empty
+                    and "member_id" in reminders_df.columns
+                ):
+
+                    member_id = ""
+
+                    if not member_row.empty:
+                        member_id = str(
+                            member_row.iloc[0].get("id", "")
+                        )
+
+                    loan_reminders = reminders_df[
+                        (reminders_df["member_id"].astype(str) == member_id)
+                        &
+                        (reminders_df["reminder_type"] == "Loan")
+                    ]
+
+                    if not loan_reminders.empty:
+
+                        count_sent = len(
+                            loan_reminders
+                        )
+
+                        last_sent = pd.to_datetime(
+                            loan_reminders["sent_date"]
+                        ).max().strftime("%d-%m-%Y")
+
+                c1, c2, c3, c4 = st.columns(
+                    [4, 2, 2, 2]
                 )
 
                 with c1:
                     st.write(
                         f"👤 {member_name}"
+                    )
+                    st.caption(
+                        f"📅 Last: {last_sent}"
+                    )
+                    st.caption(
+                        f"🔔 Count: {count_sent}"
                     )
 
                 with c2:
@@ -4006,12 +4043,10 @@ div[data-testid="stLinkButton"] a:focus {
                     )
 
                 with c3:
-
                     if (
                         mobile.isdigit()
                         and len(mobile) == 10
                     ):
-
                         message = f"""
 🙏 नमस्कार आदरणीय सदस्य,
 
@@ -4035,12 +4070,54 @@ div[data-testid="stLinkButton"] a:focus {
                             wa_link,
                             use_container_width=True
                         )
-
                     else:
-
                         st.warning(
                             "No Mobile"
                         )
+
+                with c4:
+                    if st.button(
+                        "✅ Mark Sent",
+                        key=f"loan_sent_{loan_id}"
+                    ):
+                        try:
+                            member_id = ""
+
+                            if not member_row.empty:
+                                member_id = str(
+                                    member_row.iloc[0].get(
+                                        "id",
+                                        ""
+                                    )
+                                )
+
+                            supabase.table(
+                                "reminders"
+                            ).insert({
+                                "member_id": member_id,
+                                "member_name": member_name,
+                                "mobile": mobile,
+                                "reminder_type": "Loan",
+                                "reminder_month": "Loan Balance",
+                                "amount": float(balance),
+                                "sent_by": st.session_state.get(
+                                    "username",
+                                    "Admin"
+                                ),
+                                "status": "Sent"
+                            }).execute()
+
+                            st.success(
+                                f"Reminder saved for {member_name}"
+                            )
+
+                            st.cache_data.clear()
+                            st.rerun()
+
+                        except Exception as e:
+                            st.error(
+                                f"Error: {e}"
+                            )
 
             if not active_found:
 
