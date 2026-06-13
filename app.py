@@ -3847,8 +3847,8 @@ div[data-testid="stLinkButton"] a:focus {
 """
 
                             wa_link = (
-                                f"https://wa.me/91{mobile}"
-                                f"?text={urllib.parse.quote(message)}"
+                                f"https://api.whatsapp.com/send?phone=91{mobile}"
+                                f"&text={urllib.parse.quote(message)}"
                             )
 
                             st.link_button(
@@ -3963,9 +3963,9 @@ div[data-testid="stLinkButton"] a:focus {
 """
 
                         wa_link = (
-                            f"https://wa.me/91{mobile}"
-                            f"?text={urllib.parse.quote(message)}"
-                        )
+                            f"https://api.whatsapp.com/send?phone=91{mobile}"
+                            f"&text={urllib.parse.quote(message)}"
+                            )
 
                         st.link_button(
                             "📱 WhatsApp",
