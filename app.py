@@ -3830,7 +3830,7 @@ div[data-testid="stLinkButton"] a:focus {
             today_count = len(
                 filtered_df[
                     filtered_df["sent_date"].dt.date
-                    == datetime.now().date()
+                    == datetime.datetime.now().date()
                 ]
             )
 
