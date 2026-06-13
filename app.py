@@ -3839,7 +3839,10 @@ div[data-testid="stLinkButton"] a:focus {
                             f"👤 {row['name']}"
                         )
                         st.caption(
-                            f"Last: {last_sent} | Count: {count_sent}"
+                            f"📅 Last: {last_sent}"
+                        )
+                        st.caption(
+                            f"🔔 Count: {count_sent}"
                         )
 
                     with c2:
