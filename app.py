@@ -3827,6 +3827,72 @@ div[data-testid="stLinkButton"] a:focus {
                     unique_members
                 )
 
+            # ================= TOP REMINDED MEMBERS =================
+
+            st.markdown("---")
+            st.subheader("🏆 Top Reminded Members")
+
+            top_members = (
+                filtered_df.groupby("member_name")
+                .size()
+                .reset_index(name="Reminders")
+                .sort_values(
+                    "Reminders",
+                    ascending=False
+                )
+                .head(5)
+            )
+
+            if not top_members.empty:
+
+                st.dataframe(
+                    top_members,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+            else:
+
+                st.info(
+                    "No reminder data found."
+                )
+
+            # ================= REMINDER HISTORY =================
+
+            st.markdown("---")
+            st.subheader("📋 Reminder History")
+
+            history_df = filtered_df.copy()
+
+            history_df = history_df[
+                [
+                    "sent_date",
+                    "member_name",
+                    "reminder_type",
+                    "amount",
+                    "sent_by"
+                ]
+            ]
+
+            history_df.columns = [
+                "Date",
+                "Member",
+                "Type",
+                "Amount",
+                "Sent By"
+            ]
+
+            history_df = history_df.sort_values(
+                "Date",
+                ascending=False
+            )
+
+            st.dataframe(
+                history_df,
+                use_container_width=True,
+                hide_index=True
+            )
+
     # =====================================================
     # COLLECTION REMINDERS
     # =====================================================
