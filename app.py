@@ -3727,17 +3727,109 @@ div[data-testid="stLinkButton"] a:focus {
         st.warning("No members found")
         st.stop()
 
-    tab1, tab2 = st.tabs(
+    tab0, tab1, tab2 = st.tabs(
         [
+            "📊 Dashboard",
             "📅 Collection Reminders",
             "🏦 Loan Reminders"
         ]
     )
 
     # =====================================================
+    # REMINDER DASHBOARD
+    # =====================================================
+    with tab0:
+
+        st.subheader("📊 Reminder Dashboard")
+
+        if reminders_df.empty:
+
+            st.info("No reminders sent yet.")
+
+        else:
+
+            reminders_df["sent_date"] = pd.to_datetime(
+                reminders_df["sent_date"]
+            )
+
+            c1, c2 = st.columns(2)
+
+            with c1:
+                from_date = st.date_input(
+                    "From Date",
+                    reminders_df["sent_date"].min().date()
+                )
+
+            with c2:
+                to_date = st.date_input(
+                    "To Date",
+                    reminders_df["sent_date"].max().date()
+                )
+
+            filtered_df = reminders_df[
+                (
+                    reminders_df["sent_date"].dt.date
+                    >= from_date
+                )
+                &
+                (
+                    reminders_df["sent_date"].dt.date
+                    <= to_date
+                )
+            ]
+
+            total_reminders = len(
+                filtered_df
+            )
+
+            collection_count = len(
+                filtered_df[
+                    filtered_df["reminder_type"]
+                    == "Collection"
+                ]
+            )
+
+            loan_count = len(
+                filtered_df[
+                    filtered_df["reminder_type"]
+                    == "Loan"
+                ]
+            )
+
+            unique_members = (
+                filtered_df["member_name"]
+                .nunique()
+            )
+
+            a, b, c, d = st.columns(4)
+
+            with a:
+                st.metric(
+                    "📱 Total",
+                    total_reminders
+                )
+
+            with b:
+                st.metric(
+                    "📨 Collection",
+                    collection_count
+                )
+
+            with c:
+                st.metric(
+                    "🏦 Loan",
+                    loan_count
+                )
+
+            with d:
+                st.metric(
+                    "👥 Members",
+                    unique_members
+                )
+
+    # =====================================================
     # COLLECTION REMINDERS
     # =====================================================
-
     with tab1:
 
         st.subheader("📅 Collection Reminders")
@@ -3929,7 +4021,6 @@ div[data-testid="stLinkButton"] a:focus {
     # =====================================================
     # LOAN REMINDERS
     # =====================================================
-
     with tab2:
 
         st.subheader("🏦 Loan Reminders")
