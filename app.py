@@ -3808,8 +3808,8 @@ div[data-testid="stLinkButton"] a:focus {
                         row.get("mobile", "")
                     ).strip()
 
-                    c1, c2, c3, c4 = st.columns(
-                        [3, 2, 2, 2]
+                    c1, c2, c3, c4, c5 = st.columns(
+                        [3, 2, 2, 2, 2]
                     )
                     
                     last_sent = "-"
@@ -3856,12 +3856,10 @@ div[data-testid="stLinkButton"] a:focus {
                         )
 
                     with c4:
-
                         if (
                             mobile.isdigit()
                             and len(mobile) == 10
                         ):
-
                             message = f"""
 🙏 नमस्कार आदरणीय सदस्य,
 
@@ -3885,14 +3883,49 @@ div[data-testid="stLinkButton"] a:focus {
                                 wa_link,
                                 use_container_width=True
                             )
-
                         else:
-
                             st.warning(
                                 "No Mobile"
                             )
 
-    
+                    with c5:
+                        if st.button(
+                            "✅ Mark Sent",
+                            key=f"collection_sent_{row['member_id']}_{row['month']}"
+                        ):
+                            try:
+                                supabase.table(
+                                    "reminders"
+                                ).insert({
+                                    "member_id": str(
+                                        row["member_id"]
+                                    ),
+                                    "member_name": row["name"],
+                                    "mobile": mobile,
+                                    "reminder_type": "Collection",
+                                    "reminder_month": row["month"],
+                                    "amount": float(
+                                        row["Balance"]
+                                    ),
+                                    "sent_by": st.session_state.get(
+                                        "username",
+                                        "Admin"
+                                    ),
+                                    "status": "Sent"
+                                }).execute()
+
+                                st.success(
+                                    f"Reminder saved for {row['name']}"
+                                )
+
+                                st.cache_data.clear()
+                                st.rerun()
+
+                            except Exception as e:
+                                st.error(
+                                    f"Error: {e}"
+                                )
+
     # =====================================================
     # LOAN REMINDERS
     # =====================================================
@@ -3995,7 +4028,7 @@ div[data-testid="stLinkButton"] a:focus {
                         wa_link = (
                             f"https://api.whatsapp.com/send?phone=91{mobile}"
                             f"&text={urllib.parse.quote(message)}"
-                            )
+                        )
 
                         st.link_button(
                             "📱 WhatsApp",
