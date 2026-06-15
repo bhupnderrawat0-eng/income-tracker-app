@@ -4210,7 +4210,7 @@ div[data-testid="stLinkButton"] a:focus {
                                         row["Balance"]
                                     ),
                                     "sent_by": st.session_state.get(
-                                        "username",
+                                        "current_user",
                                         "Admin"
                                     ),
                                     "sent_by_role": st.session_state.get(
@@ -4406,7 +4406,7 @@ div[data-testid="stLinkButton"] a:focus {
                                 "reminder_month": "Loan Balance",
                                 "amount": float(balance),
                                 "sent_by": st.session_state.get(
-                                    "username",
+                                    "current_user",
                                     "Admin"
                                 ),
                                 "sent_by_role": st.session_state.get(
