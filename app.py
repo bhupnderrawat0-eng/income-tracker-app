@@ -3972,6 +3972,72 @@ div[data-testid="stLinkButton"] a:focus {
                 hide_index=True
             )
 
+            # =====================================================
+            # REMINDER EXPORT
+            # =====================================================
+
+            st.markdown("### 📥 Export Reports")
+
+            reminder_export = history_df.copy()
+
+            # ================= EXCEL =================
+
+            excel_buffer = BytesIO()
+
+            with pd.ExcelWriter(
+                excel_buffer,
+                engine="openpyxl"
+            ) as writer:
+
+                reminder_export.to_excel(
+                    writer,
+                    index=False,
+                    sheet_name="Reminder Report"
+                )
+
+            # ================= PDF =================
+
+            pdf_buffer = BytesIO()
+
+            doc = SimpleDocTemplate(pdf_buffer)
+
+            table_data = [
+                reminder_export.columns.tolist()
+            ]
+
+            for row in reminder_export.values.tolist():
+                table_data.append(row)
+
+            table = Table(table_data)
+
+            table.setStyle(
+                TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ])
+            )
+
+            doc.build([table])
+
+            # ================= DOWNLOAD =================
+
+            st.download_button(
+                label="📊 Download Reminder Excel",
+                data=excel_buffer.getvalue(),
+                file_name="reminder_report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+
+            st.download_button(
+                label="📄 Download Reminder PDF",
+                data=pdf_buffer.getvalue(),
+                file_name="reminder_report.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
+
     # =====================================================
     # COLLECTION REMINDERS
     # =====================================================
