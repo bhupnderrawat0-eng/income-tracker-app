@@ -3658,7 +3658,6 @@ if menu == "Users":
 
     else:
         st.info("Limited access: You can only change your password 👁️")
-# ================= Reminders =================
 elif menu == "Reminders":
 
     st.title("📱 WhatsApp Reminders")
@@ -4214,6 +4213,10 @@ div[data-testid="stLinkButton"] a:focus {
                                         "username",
                                         "Admin"
                                     ),
+                                    "sent_by_role": st.session_state.get(
+                                        "role",
+                                        "Viewer"
+                                    ),
                                     "status": "Sent"
                                 }).execute()
 
@@ -4405,6 +4408,10 @@ div[data-testid="stLinkButton"] a:focus {
                                 "sent_by": st.session_state.get(
                                     "username",
                                     "Admin"
+                                ),
+                                "sent_by_role": st.session_state.get(
+                                    "role",
+                                    "Viewer"
                                 ),
                                 "status": "Sent"
                             }).execute()
