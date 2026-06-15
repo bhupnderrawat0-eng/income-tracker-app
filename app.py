@@ -3777,7 +3777,27 @@ div[data-testid="stLinkButton"] a:focus {
                     <= to_date
                 )
             ]
+# ================= USER FILTER =================
 
+user_options = ["All Users"]
+
+if "sent_by" in filtered_df.columns:
+    user_options += sorted(
+        filtered_df["sent_by"]
+        .dropna()
+        .unique()
+        .tolist()
+    )
+
+selected_user = st.selectbox(
+    "👨‍💼 Filter By User",
+    user_options
+)
+
+if selected_user != "All Users":
+    filtered_df = filtered_df[
+        filtered_df["sent_by"] == selected_user
+    ]
             total_reminders = len(
                 filtered_df
             )
