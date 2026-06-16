@@ -30,7 +30,36 @@ except:
 # ================= PASSWORD =================
 def hash_pass(p):
     return hashlib.sha256(p.encode()).hexdigest()
+def save_log(
+    action,
+    table_name,
+    member_name="",
+    member_id="",
+    amount=0
+):
+    try:
 
+        supabase.table("audit_logs").insert({
+            "action": action,
+            "table_name": table_name,
+            "member_name": member_name,
+            "member_id": member_id,
+            "amount": float(amount),
+
+            "performed_by": st.session_state.get(
+                "current_user",
+                "Unknown"
+            ),
+
+            "role": st.session_state.get(
+                "role",
+                "Unknown"
+            )
+
+        }).execute()
+
+    except Exception:
+        pass
 
 # ================= CONFIG =================
 st.set_page_config(page_title="Bal Yuva SaaS", layout="wide")
