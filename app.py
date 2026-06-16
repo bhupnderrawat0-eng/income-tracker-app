@@ -3687,6 +3687,7 @@ if menu == "Users":
 
     else:
         st.info("Limited access: You can only change your password 👁️")
+# ================= Reminders ================= #
 elif menu == "Reminders":
 
     st.title("📱 WhatsApp Reminders")
@@ -4248,7 +4249,15 @@ div[data-testid="stLinkButton"] a:focus {
                                     ),
                                     "status": "Sent"
                                 }).execute()
-
+                                
+                                save_log(
+                                    action="Reminder Sent",
+                                    table_name="reminders",
+                                    member_name=row["name"],
+                                    member_id=str(row["member_id"]),
+                                    amount=float(row["Balance"])
+                                )
+                                
                                 st.success(
                                     f"Reminder saved for {row['name']}"
                                 )
