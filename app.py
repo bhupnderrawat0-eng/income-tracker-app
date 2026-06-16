@@ -28,8 +28,6 @@ except:
     loans_df = pd.DataFrame()
 
 # ================= PASSWORD =================
-def hash_pass(p):
-    return hashlib.sha256(p.encode()).hexdigest()
 def save_log(
     action,
     table_name,
@@ -39,27 +37,27 @@ def save_log(
 ):
     try:
 
-        supabase.table("audit_logs").insert({
+        result = supabase.table("audit_logs").insert({
             "action": action,
             "table_name": table_name,
             "member_name": member_name,
             "member_id": member_id,
             "amount": float(amount),
-
             "performed_by": st.session_state.get(
                 "current_user",
                 "Unknown"
             ),
-
             "role": st.session_state.get(
                 "role",
                 "Unknown"
             )
-
         }).execute()
 
-    except Exception:
-        pass
+        print(result)
+
+    except Exception as e:
+        st.error(f"Audit Log Error: {e}")
+        print(e)
 
 # ================= CONFIG =================
 st.set_page_config(page_title="Bal Yuva SaaS", layout="wide")
