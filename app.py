@@ -5,12 +5,13 @@ import hashlib
 import datetime
 import urllib.parse
 from io import BytesIO
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Table,
-    TableStyle
-)
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
+import time
+
+# ================= PASSWORD HASH FUNCTION =================
+def hash_pass(password):
+    return hashlib.sha256(str.encode(password)).hexdigest()
 
 # ================= SUPABASE =================
 from supabase import create_client, Client
@@ -28,33 +29,18 @@ except:
     loans_df = pd.DataFrame()
 
 # ================= PASSWORD =================
-def save_log(
-    action,
-    table_name,
-    member_name="",
-    member_id="",
-    amount=0
-):
+def save_log(action, table_name, member_name="", member_id="", amount=0):
     try:
-
         result = supabase.table("audit_logs").insert({
             "action": action,
             "table_name": table_name,
             "member_name": member_name,
             "member_id": member_id,
             "amount": float(amount),
-            "performed_by": st.session_state.get(
-                "current_user",
-                "Unknown"
-            ),
-            "role": st.session_state.get(
-                "role",
-                "Unknown"
-            )
+            "performed_by": st.session_state.get("current_user", "Unknown"),
+            "role": st.session_state.get("role", "Unknown")
         }).execute()
-
         print(result)
-
     except Exception as e:
         st.error(f"Audit Log Error: {e}")
         print(e)
@@ -259,18 +245,15 @@ html, body, .stApp {
 
 </style>
 """, unsafe_allow_html=True)
+
 # ================= SESSION =================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-
-# ================= LOGIN =================
-import time
 
 SESSION_TIMEOUT = 1800  # 30 minutes
 
 # ===== CHECK SESSION TIMEOUT =====
 if st.session_state.get("logged_in"):
-
     if "last_active" not in st.session_state:
         st.session_state.last_active = time.time()
 
@@ -282,14 +265,11 @@ if st.session_state.get("logged_in"):
     # update activity time
     st.session_state.last_active = time.time()
 
-
 # ===== LOGIN SYSTEM =====
 if not st.session_state.get("logged_in", False):
-
     with st.form("login_form"):
         u = st.text_input("Username")
         p = st.text_input("Password", type="password")
-
         submitted = st.form_submit_button("Login")
 
         if submitted:
@@ -297,16 +277,12 @@ if not st.session_state.get("logged_in", False):
                 st.warning("Enter Username & Password")
             else:
                 try:
-                    user_data = supabase.table("users") \
-                        .select("*") \
-                        .eq("username", u) \
-                        .execute()
+                    user_data = supabase.table("users").select("*").eq("username", u).execute()
 
                     if user_data.data:
                         user = user_data.data[0]
 
                         if user["password"] == hash_pass(p):
-
                             # ✅ SESSION SET
                             st.session_state.logged_in = True
                             st.session_state.current_user = user["username"]
@@ -314,25 +290,22 @@ if not st.session_state.get("logged_in", False):
 
                             # ✅ START TIMER
                             st.session_state.last_active = time.time()
-
                             st.rerun()
-
                         else:
                             st.error("Wrong Password")
-
                     else:
                         st.error("User not found")
-
                 except Exception as e:
                     st.error(f"Login Error: {e}")
-
     st.stop()
+
 # ================= ROLE SETUP =================
 role = st.session_state.get("role", None)
 
 is_admin = role == "Admin"
 is_editor = role == "Editor"
 is_viewer = role == "Viewer"
+
 # ================= DEVICE DETECTION (FINAL FIX) =================
 user_agent = st.context.headers.get("user-agent", "").lower()
 
@@ -343,16 +316,15 @@ else:
 
 # ================= ROLE BASED MENU =================
 if is_admin:
-    menu_list = ["Dashboard","Members","Collection Rates","Collections","loans","Donations","Expenses","Reports","Reminders","Users","AI"]
+    menu_list = ["Dashboard", "Members", "Collection Rates", "Collections", "loans", "Donations", "Expenses", "Reports", "Reminders", "Users", "AI"]
 elif is_editor:
-    menu_list = ["Dashboard","Members","Collection Rates","Collections","loans","Donations","Expenses","Reports","Reminders"]
+    menu_list = ["Dashboard", "Members", "Collection Rates", "Collections", "loans", "Donations", "Expenses", "Reports", "Reminders"]
 else:
-    menu_list = ["Dashboard","Reports"]
+    menu_list = ["Dashboard", "Reports"]
 
 # ================= MENU =================
 if not is_mobile:
     with st.sidebar:
-
         st.markdown(
             f"""
             <div style="
@@ -394,32 +366,27 @@ if not is_mobile:
             ][:len(menu_list)],
             default_index=0,
         )
-
 else:
     menu = st.radio(
         "Navigation",
         menu_list,
         horizontal=True
     )
-# ================= HEADER =================
 
+# ================= HEADER =================
 col1, col2 = st.columns([5, 2])
 
 with col1:
-
     logo_col, title_col = st.columns([1.3, 4.7])
 
     with logo_col:
-
         st.markdown(
             """
             <div style="margin-top:12px;">
             """,
             unsafe_allow_html=True
         )
-
         st.image("logo.png", width=175)
-
         st.markdown(
             """
             </div>
@@ -428,7 +395,6 @@ with col1:
         )
 
     with title_col:
-
         st.markdown(
             """
             <style>
@@ -444,10 +410,8 @@ with col1:
             '<div class="header-title">',
             unsafe_allow_html=True
         )
-
         st.title("Bal Yuva Mangal Dal")
         st.caption("Management System")
-
         st.markdown(
             '</div>',
             unsafe_allow_html=True
