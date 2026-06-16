@@ -15,8 +15,8 @@ from reportlab.lib import colors
 # ================= SUPABASE =================
 from supabase import create_client, Client
 
-SUPABASE_URL = "https://eflpyuvwtofgnjcrsgoz.supabase.co"
-SUPABASE_KEY = "sb_publishable_FwNyrhViDcmux8hRRidMmA_Ta4EGAyf"
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
