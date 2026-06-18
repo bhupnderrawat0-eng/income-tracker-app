@@ -378,13 +378,14 @@ col1, col2 = st.columns([6, 1])
 
 with col1:
 
-    logo_col, title_col = st.columns([1.8, 4.2])
+    logo_col, title_col = st.columns([1.6, 4.4])
 
     with logo_col:
         st.image("logo.png", width=220)
 
     with title_col:
 
+        st.write("")
         st.write("")
         st.write("")
 
