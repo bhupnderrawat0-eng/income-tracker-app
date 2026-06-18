@@ -382,7 +382,7 @@ with col1:
 
     with logo_col:
         st.write("")
-        st.image("logo.png", width=195)
+        st.image("logo.png", width=200)
 
     with title_col:
 
