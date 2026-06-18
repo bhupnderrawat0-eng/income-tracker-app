@@ -377,34 +377,35 @@ else:
 col1, col2 = st.columns([6, 1])
 
 with col1:
-    logo_col, title_col = st.columns([2, 4])
+    logo_col, title_col = st.columns([1.6, 4.4])
 
     with logo_col:
-        st.image("logo.png", width=250)
+        st.image("logo.png", width=220)
 
     with title_col:
         st.markdown("""
-        <div style="
-            padding-top:25px;
-            text-align:left;
-        ">
+        <div style="padding-top:20px;">
+
             <h1 style="
-                margin-bottom:5px;
                 color:white;
                 font-size:42px;
                 font-weight:700;
+                line-height:1.2;
+                margin-bottom:8px;
             ">
-                बाल युवक मंगलदल समिति मयलगांव
+                बाल युवक मंगलदल समिति<br>
+                मयलगांव
             </h1>
 
             <p style="
                 font-size:18px;
                 color:#d9d9d9;
-                margin-top:0;
                 font-weight:500;
+                margin-top:0px;
             ">
                 हमारा गांव • हमारी पहचान • हमारा अभियान
             </p>
+
         </div>
         """, unsafe_allow_html=True)
 
