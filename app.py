@@ -378,11 +378,10 @@ col1, col2 = st.columns([6, 1])
 
 with col1:
 
-    logo_col, title_col = st.columns([1.7, 4.3])
+    logo_col, title_col = st.columns([1.6, 4.4])
 
     with logo_col:
-        st.write("")
-        st.image("logo.png", width=210)
+        st.image("logo.png", width=190)
 
     with title_col:
 
@@ -391,8 +390,6 @@ with col1:
         st.markdown("### बाल युवक मंगलदल समिति")
 
         st.markdown("#### मयलगांव")
-
-        st.write("")
 
         st.caption(
             "हमारा गांव • हमारी पहचान • हमारा अभियान"
