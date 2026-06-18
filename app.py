@@ -377,42 +377,62 @@ else:
 col1, col2 = st.columns([6, 1])
 
 with col1:
-    logo_col, title_col = st.columns([1.5, 4.5])
+    logo_col, title_col = st.columns([1.3, 4.7])
 
     with logo_col:
-        st.image("logo.png", width=200)
+        st.markdown(
+            """
+            <div style="margin-top:15px;">
+            """,
+            unsafe_allow_html=True
+        )
 
-    with title_col:
-        st.markdown("""
-        <div style='padding-top:10px;'>
-
-        <h1 style='
-            color:white;
-            margin-bottom:0px;
-            font-size:42px;
-            font-weight:700;
-            line-height:1.1;
-        '>
-            बाल युवक मंगलदल समिति
-        </h1>
-
-        <h2 style='
-            color:#FFD700;
-            margin-top:0px;
-            margin-bottom:10px;
-            font-size:34px;
-            font-weight:600;
-        '>
-            मयलगांव
-        </h2>
-
-        </div>
-        """, unsafe_allow_html=True)
+        st.image("logo.png", width=220)
 
         st.markdown(
-            "<div style='color:#dcdcdc;font-size:18px;font-weight:500;'>"
-            "━━━━━━━━ ✦ हमारा गांव • हमारी पहचान • हमारा अभियान ✦ ━━━━━━━━"
-            "</div>",
+            """
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with title_col:
+
+        st.markdown(
+            """
+            <div style="padding-top:10px;">
+
+                <h1 style="
+                    color:white;
+                    font-size:52px;
+                    font-weight:800;
+                    line-height:1.0;
+                    margin-top:10px;
+                    margin-bottom:5px;
+                ">
+                    बाल युवक मंगलदल समिति
+                </h1>
+
+                <h2 style="
+                    color:white;
+                    font-size:38px;
+                    font-weight:700;
+                    margin-top:0px;
+                    margin-bottom:12px;
+                ">
+                    मयलगांव
+                </h2>
+
+                <div style="
+                    color:#d9d9d9;
+                    font-size:20px;
+                    font-weight:500;
+                ">
+                    ✦ हमारा गांव • हमारी पहचान • हमारा अभियान ✦
+                </div>
+
+            </div>
+            """,
             unsafe_allow_html=True
         )
 
