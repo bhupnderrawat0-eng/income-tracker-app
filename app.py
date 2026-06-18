@@ -374,48 +374,39 @@ else:
     )
 
 # ================= HEADER =================
-col1, col2 = st.columns([5, 2])
+col1, col2 = st.columns([6, 1])
 
 with col1:
-    logo_col, title_col = st.columns([1.3, 4.7])
+    logo_col, title_col = st.columns([2, 4])
 
     with logo_col:
-        st.markdown(
-            """
-            <div style="margin-top:12px;">
-            """,
-            unsafe_allow_html=True
-        )
-        st.image("logo.png", width=175)
-        st.markdown(
-            """
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        st.image("logo.png", width=250)
 
     with title_col:
-        st.markdown(
-            """
-            <style>
-            .header-title{
-                margin-top:-15px;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+        <div style="
+            padding-top:25px;
+            text-align:left;
+        ">
+            <h1 style="
+                margin-bottom:5px;
+                color:white;
+                font-size:42px;
+                font-weight:700;
+            ">
+                बाल युवक मंगलदल समिति मयलगांव
+            </h1>
 
-        st.markdown(
-            '<div class="header-title">',
-            unsafe_allow_html=True
-        )
-        st.title("Bal Yuva Mangal Dal")
-        st.caption("Management System")
-        st.markdown(
-            '</div>',
-            unsafe_allow_html=True
-        )
+            <p style="
+                font-size:18px;
+                color:#d9d9d9;
+                margin-top:0;
+                font-weight:500;
+            ">
+                हमारा गांव • हमारी पहचान • हमारा अभियान
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
 with col2:
     pass
