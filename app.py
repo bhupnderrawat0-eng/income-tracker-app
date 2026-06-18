@@ -383,31 +383,9 @@ with col1:
         st.image("logo.png", width=220)
 
     with title_col:
-        st.markdown("""
-        <div style="padding-top:20px;">
-
-            <h1 style="
-                color:white;
-                font-size:42px;
-                font-weight:700;
-                line-height:1.2;
-                margin-bottom:8px;
-            ">
-                बाल युवक मंगलदल समिति<br>
-                मयलगांव
-            </h1>
-
-            <p style="
-                font-size:18px;
-                color:#d9d9d9;
-                font-weight:500;
-                margin-top:0px;
-            ">
-                हमारा गांव • हमारी पहचान • हमारा अभियान
-            </p>
-
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("## बाल युवक मंगलदल समिति")
+        st.markdown("## मयलगांव")
+        st.caption("हमारा गांव • हमारी पहचान • हमारा अभियान")
 
 with col2:
     pass
