@@ -373,32 +373,60 @@ else:
         horizontal=True
     )
 st.write("")
+
 # ================= HEADER =================
 col1, col2 = st.columns([6, 1])
 
 with col1:
 
-    logo_col, title_col = st.columns([1.5, 4.9])
+    logo_col, title_col = st.columns([1.3, 5.2])
 
     with logo_col:
-        st.image("logo.png", width=190)
+        st.image("logo.png", width=170)
 
     with title_col:
 
-        st.write("")
+        st.markdown(
+            """
+            <div style="margin-top:8px;">
+                <div style="
+                    color:white;
+                    font-size:38px;
+                    font-weight:700;
+                    line-height:1.1;
+                ">
+                    बाल युवक मंगलदल समिति
+                </div>
 
-        st.markdown("### बाल युवक मंगलदल समिति")
+                <div style="
+                    color:white;
+                    font-size:28px;
+                    font-weight:600;
+                    margin-top:4px;
+                ">
+                    मयलगांव
+                </div>
 
-        st.markdown("#### मयलगांव")
-
-        st.caption(
-            "हमारा गांव • हमारी पहचान • हमारा अभियान"
+                <div style="
+                    color:#c7d2e0;
+                    font-size:15px;
+                    font-weight:500;
+                    margin-top:10px;
+                ">
+                    हमारा गांव • हमारी पहचान • हमारा अभियान
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
 with col2:
     pass
 
-st.markdown("---")
+st.markdown(
+    "<hr style='margin-top:8px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.15);'>",
+    unsafe_allow_html=True
+)
 # ================= DASHBOARD =================
 if menu == "Dashboard":
 
