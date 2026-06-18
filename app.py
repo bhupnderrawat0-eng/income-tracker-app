@@ -377,63 +377,20 @@ else:
 col1, col2 = st.columns([6, 1])
 
 with col1:
+
     logo_col, title_col = st.columns([1.3, 4.7])
 
     with logo_col:
-        st.markdown(
-            """
-            <div style="margin-top:15px;">
-            """,
-            unsafe_allow_html=True
-        )
-
         st.image("logo.png", width=220)
-
-        st.markdown(
-            """
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
 
     with title_col:
 
-        st.markdown(
-            """
-            <div style="padding-top:10px;">
+        st.markdown("# बाल युवक मंगलदल समिति")
 
-                <h1 style="
-                    color:white;
-                    font-size:52px;
-                    font-weight:800;
-                    line-height:1.0;
-                    margin-top:10px;
-                    margin-bottom:5px;
-                ">
-                    बाल युवक मंगलदल समिति
-                </h1>
+        st.markdown("## मयलगांव")
 
-                <h2 style="
-                    color:white;
-                    font-size:38px;
-                    font-weight:700;
-                    margin-top:0px;
-                    margin-bottom:12px;
-                ">
-                    मयलगांव
-                </h2>
-
-                <div style="
-                    color:#d9d9d9;
-                    font-size:20px;
-                    font-weight:500;
-                ">
-                    ✦ हमारा गांव • हमारी पहचान • हमारा अभियान ✦
-                </div>
-
-            </div>
-            """,
-            unsafe_allow_html=True
+        st.caption(
+            "✦ हमारा गांव • हमारी पहचान • हमारा अभियान ✦"
         )
 
 with col2:
