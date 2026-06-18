@@ -372,7 +372,7 @@ else:
         menu_list,
         horizontal=True
     )
-
+st.write("")
 # ================= HEADER =================
 col1, col2 = st.columns([6, 1])
 
