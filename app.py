@@ -8,14 +8,16 @@ from io import BytesIO
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 import time
+import hashlib
+from supabase import create_client, Client
+import pandas as pd
+import streamlit as st
 
 # ================= PASSWORD HASH FUNCTION =================
 def hash_pass(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
 # ================= SUPABASE =================
-from supabase import create_client, Client
-
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
@@ -254,6 +256,9 @@ html, body, .stApp {
     background: transparent !important;
     box-shadow: 0 0 20px rgba(99,102,241,0.25);
 }
+</style>
+""", unsafe_allow_html=True)
+
 # ================= SESSION =================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
