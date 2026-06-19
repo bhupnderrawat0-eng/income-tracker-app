@@ -246,18 +246,24 @@ html, body, .stApp {
     }
 }
 
-/* ===== LOGO CLEAN EFFECT ===== */
+/* ===== LOGO CONTAINER FIX ===== */
 .stImage {
     background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+}
+
+.stImage > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .stImage img {
     border-radius: 18px;
     background: transparent !important;
-    box-shadow: 0 0 20px rgba(99,102,241,0.25);
 }
-</style>
-""", unsafe_allow_html=True)
 
 # ================= SESSION =================
 if "logged_in" not in st.session_state:
