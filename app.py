@@ -423,7 +423,7 @@ with col1:
         st.markdown(
             """
             <h3 style="
-                color:#F8D568;
+                color:#EFD58A;
                 margin-top:5px;
                 margin-bottom:8px;
                 font-weight:600;
