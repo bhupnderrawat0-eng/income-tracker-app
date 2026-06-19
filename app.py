@@ -387,45 +387,43 @@ st.write("")
 col1, col2 = st.columns([6, 1])
 
 with col1:
+    logo_col, title_col = st.columns([1.8, 4.2])
 
-logo_col, title_col = st.columns([1.8, 4.2])
+    with logo_col:
+        st.image("logo.png", width=260)
 
-with logo_col:
-    st.image("logo.png", width=260)
+    with title_col:
+        st.markdown("""
+        <div style="padding-top:20px;">
+            <h2 style="
+                margin-bottom:0px;
+                color:white;
+                font-weight:700;
+            ">
+                बाल युवक मंगलदल समिति
+            </h2>
 
-with title_col:
+            <h3 style="
+                margin-top:5px;
+                margin-bottom:10px;
+                color:white;
+                font-weight:600;
+            ">
+                मयलगांव
+            </h3>
 
-    st.markdown("""
-    <div style="padding-top:20px;">
-        <h2 style="
-            margin-bottom:0px;
-            color:white;
-            font-weight:700;
-        ">
-            बाल युवक मंगलदल समिति
-        </h2>
-
-        <h3 style="
-            margin-top:5px;
-            margin-bottom:10px;
-            color:white;
-            font-weight:600;
-        ">
-            मयलगांव
-        </h3>
-
-        <div style="
-            color:#cbd5e1;
-            font-size:16px;
-            font-weight:500;
-        ">
-            हमारा गांव • हमारी पहचान • हमारा अभियान
+            <div style="
+                color:#cbd5e1;
+                font-size:16px;
+                font-weight:500;
+            ">
+                हमारा गांव • हमारी पहचान • हमारा अभियान
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
 with col2:
-pass
+    pass
 
 st.markdown("<hr style='margin-top:15px;'>", unsafe_allow_html=True)
 # ================= DASHBOARD =================
