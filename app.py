@@ -141,8 +141,8 @@ div.stButton > button:hover {
     transform: translateY(-2px);
     box-shadow: 0 0 12px rgba(124,58,237,0.4);
 }
-/* ===== DOWNLOAD BUTTONS ===== */
 
+/* ===== DOWNLOAD BUTTONS ===== */
 .stDownloadButton > button {
     background: linear-gradient(135deg,#6366f1,#7c3aed) !important;
     color: white !important;
@@ -157,6 +157,7 @@ div.stButton > button:hover {
     transform: translateY(-2px);
     box-shadow: 0 0 12px rgba(124,58,237,0.4);
 }
+
 /* ===== FORM BUTTON (LOGIN SAFE) ===== */
 div.stForm button {
     background: linear-gradient(135deg,#16a34a,#22c55e) !important;
@@ -242,16 +243,6 @@ html, body, .stApp {
         width: 100% !important;
     }
 }
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-    .block-container {
-        padding: 10px !important;
-    }
-
-    div.stButton > button {
-        width: 100% !important;
-    }
-}
 
 /* ===== LOGO SHADOW ===== */
 .stImage img {
@@ -259,8 +250,6 @@ html, body, .stApp {
     box-shadow: 0 0 18px rgba(255,255,255,0.15);
 }
 
-</style>
-""", unsafe_allow_html=True)
 </style>
 """, unsafe_allow_html=True)
 
