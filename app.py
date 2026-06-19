@@ -437,8 +437,10 @@ with col1:
         st.markdown(
             """
             <p style="
-                color:#CBD5E1;
+                color:#B8C7E0;
                 font-size:16px;
+                font-weight:600
+                letter-spacing:0.5px
                 margin-top:0px;
             ">
                 हमारा गांव • हमारी पहचान • हमारा अभियान
