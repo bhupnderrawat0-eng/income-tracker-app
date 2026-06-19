@@ -244,16 +244,16 @@ html, body, .stApp {
     }
 }
 
-/* ===== LOGO PREMIUM EFFECT ===== */
-.stImage img {
-    border-radius: 18px;
-    box-shadow:
-        0 0 10px rgba(255,255,255,0.25),
-        0 0 25px rgba(99,102,241,0.35);
+/* ===== LOGO CLEAN EFFECT ===== */
+.stImage {
+    background: transparent !important;
 }
 
-</style>
-""", unsafe_allow_html=True)
+.stImage img {
+    border-radius: 18px;
+    background: transparent !important;
+    box-shadow: 0 0 20px rgba(99,102,241,0.25);
+}
 
 # ================= SESSION =================
 if "logged_in" not in st.session_state:
