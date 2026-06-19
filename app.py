@@ -264,7 +264,8 @@ html, body, .stApp {
     border-radius: 18px;
     background: transparent !important;
 }
-
+</style>
+""", unsafe_allow_html=True)
 # ================= SESSION =================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
