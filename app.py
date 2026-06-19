@@ -390,7 +390,7 @@ with col1:
     logo_col, title_col = st.columns([1.5, 4.9])
 
     with logo_col:
-        st.image("logo.png", width=240)
+        st.image("logo.png", width=260)
 
     with title_col:
 
