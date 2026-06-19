@@ -406,16 +406,44 @@ with col1:
     with title_col:
 
         st.write("")
-        st.write("")
-
-        st.markdown("## *बाल युवक मंगलदल समिति*")
-
-        st.markdown("### *मयलगांव*")
 
         st.markdown(
-            "<p style='color:#cbd5e1; font-size:16px;'>"
-            "हमारा गांव • हमारी पहचान • हमारा अभियान"
-            "</p>",
+            """
+            <h2 style="
+                color:#F8D568;
+                margin-bottom:0px;
+                font-weight:700;
+            ">
+                बाल युवा मंगलदल समिति
+            </h2>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            """
+            <h3 style="
+                color:white;
+                margin-top:5px;
+                margin-bottom:8px;
+                font-weight:600;
+            ">
+                मयलगांव
+            </h3>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            """
+            <p style="
+                color:#CBD5E1;
+                font-size:16px;
+                margin-top:0px;
+            ">
+                हमारा गांव • हमारी पहचान • हमारा अभियान
+            </p>
+            """,
             unsafe_allow_html=True
         )
 
