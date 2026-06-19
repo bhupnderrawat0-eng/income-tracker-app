@@ -242,7 +242,25 @@ html, body, .stApp {
         width: 100% !important;
     }
 }
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .block-container {
+        padding: 10px !important;
+    }
 
+    div.stButton > button {
+        width: 100% !important;
+    }
+}
+
+/* ===== LOGO SHADOW ===== */
+.stImage img {
+    border-radius: 14px;
+    box-shadow: 0 0 18px rgba(255,255,255,0.15);
+}
+
+</style>
+""", unsafe_allow_html=True)
 </style>
 """, unsafe_allow_html=True)
 
