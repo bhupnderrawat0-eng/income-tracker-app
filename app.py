@@ -84,7 +84,7 @@ header, footer {
 
 /* ===== TEXT ===== */
 h1,h2,h3,h4,h5,p,label {
-    color:white !important;
+    color:white;
 }
 
 /* ===== SIDEBAR GLASS ===== */
