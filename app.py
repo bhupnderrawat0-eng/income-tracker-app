@@ -244,10 +244,12 @@ html, body, .stApp {
     }
 }
 
-/* ===== LOGO SHADOW ===== */
+/* ===== LOGO PREMIUM EFFECT ===== */
 .stImage img {
-    border-radius: 14px;
-    box-shadow: 0 0 18px rgba(255,255,255,0.15);
+    border-radius: 18px;
+    box-shadow:
+        0 0 10px rgba(255,255,255,0.25),
+        0 0 25px rgba(99,102,241,0.35);
 }
 
 </style>
