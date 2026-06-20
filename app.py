@@ -1998,21 +1998,21 @@ elif menu == "Reports":
     import io
     import pandas as pd
     import streamlit as sns
+    
     # Safe ReportLab Imports to ensure PDF generation works seamlessly
     try:
-    from reportlab.platypus import (
-        SimpleDocTemplate,
-        Table,
-        TableStyle,
-        Paragraph,
-        Spacer,
-        Image
-    )
-    from reportlab.lib import colors
-    from reportlab.lib.styles import getSampleStyleSheet
-
-except ImportError:
-    pass
+        from reportlab.platypus import (
+            SimpleDocTemplate,
+            Table,
+            TableStyle,
+            Paragraph,
+            Spacer,
+            Image
+        )
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet
+    except ImportError:
+        pass
 
     # Openpyxl imports for Excel styling
     try:
@@ -2376,14 +2376,65 @@ except ImportError:
                 worksheet.column_dimensions["F"].width = 22
                 worksheet.column_dimensions["G"].width = 15
                 worksheet.column_dimensions["H"].width = 15
+                
             # ===== PDF =====
 
             pdf_buffer = BytesIO()
+
             doc = SimpleDocTemplate(pdf_buffer)
+
+            styles = getSampleStyleSheet()
+
+            elements = []
+
+            # ===== HEADER =====
+
+            elements.append(
+                Paragraph(
+                    "<b>Bal Yuva Mangal Dal Samiti</b>",
+                    styles["Title"]
+                )
+            )
+
+            elements.append(
+                Paragraph(
+                    "Mayalgaon",
+                    styles["Heading2"]
+                )
+            )
+
+            elements.append(
+                Paragraph(
+                    "Hamara Gaon • Hamari Pehchan • Hamara Abhiyan",
+                    styles["Normal"]
+                )
+            )
+
+            elements.append(Spacer(1, 12))
+
+            elements.append(
+                Paragraph(
+                    "<b>COLLECTIONS REPORT</b>",
+                    styles["Heading1"]
+                )
+            )
+
+            elements.append(
+                Paragraph(
+                    f"Generated On : {datetime.now().strftime('%d-%m-%Y %I:%M %p')}",
+                    styles["Normal"]
+                )
+            )
+
+            elements.append(Spacer(1, 12))
+
+            # ===== TABLE =====
+
             pdf_data = [list(export_df.columns)]
             pdf_data += export_df.values.tolist()
 
             table = Table(pdf_data)
+
             table.setStyle(
                 TableStyle([
                     ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
@@ -2391,8 +2442,10 @@ except ImportError:
                     ("FONTSIZE", (0, 0), (-1, -1), 8),
                 ])
             )
-            doc.build([table])
 
+            elements.append(table)
+
+            doc.build(elements)
             # ===== DOWNLOAD =====
 
             st.download_button(
