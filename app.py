@@ -2000,10 +2000,19 @@ elif menu == "Reports":
     import streamlit as sns
     # Safe ReportLab Imports to ensure PDF generation works seamlessly
     try:
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-        from reportlab.lib import colors
-    except ImportError:
-        pass
+    from reportlab.platypus import (
+        SimpleDocTemplate,
+        Table,
+        TableStyle,
+        Paragraph,
+        Spacer,
+        Image
+    )
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet
+
+except ImportError:
+    pass
 
     # Openpyxl imports for Excel styling
     try:
