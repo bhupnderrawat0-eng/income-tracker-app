@@ -12,6 +12,7 @@ from supabase import create_client, Client
 # ===== EXCEL EXPORT =====
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.drawing.image import Image as ExcelImage
+from openpyxl.utils import get_column_letter
 
 # ===== PDF EXPORT =====
 from reportlab.platypus import (
@@ -25,6 +26,7 @@ from reportlab.platypus import (
 
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
+from openpyxl.utils import get_column_letter
 
 # ================= PASSWORD HASH FUNCTION =================
 def hash_pass(password):
