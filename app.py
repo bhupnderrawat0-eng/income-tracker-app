@@ -3183,6 +3183,7 @@ with tab2:
             worksheet.column_dimensions["G"].width = 18
             worksheet.column_dimensions["H"].width = 18
 
+        excel_buffer.seek(0)
             # ================= PDF =================
 
             pdf_buffer = BytesIO()
