@@ -2399,8 +2399,8 @@ elif menu == "Reports":
 
             try:
                 pdf_logo = Image("logo.png")
-                pdf_logo.drawHeight = 100
-                pdf_logo.drawWidth = 100
+                pdf_logo.drawHeight = 140
+                pdf_logo.drawWidth = 140
                 pdf_logo.hAlign = "CENTER"
                 elements.append(pdf_logo)
             except:
