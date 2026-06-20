@@ -2358,27 +2358,15 @@ elif menu == "Reports":
                         fgColor="D9D9D9"
                     )
 
-                # ===== AUTO WIDTH =====
-                for column_cells in worksheet.iter_cols():
-
-                    max_length = 0
-
-                    for cell in column_cells:
-                        try:
-                            if cell.value:
-                                max_length = max(
-                                    max_length,
-                                    len(str(cell.value))
-                                )
-                        except:
-                            pass
-
-                    column_letter = column_cells[0].column_letter
-
-                    worksheet.column_dimensions[
-                        column_letter
-                    ].width = min(max_length + 3, 40)
-
+                # ===== COLUMN WIDTHS =====
+                worksheet.column_dimensions["A"].width = 18
+                worksheet.column_dimensions["B"].width = 25
+                worksheet.column_dimensions["C"].width = 18
+                worksheet.column_dimensions["D"].width = 20
+                worksheet.column_dimensions["E"].width = 18
+                worksheet.column_dimensions["F"].width = 22
+                worksheet.column_dimensions["G"].width = 15
+                worksheet.column_dimensions["H"].width = 15
             # ===== PDF =====
 
             pdf_buffer = BytesIO()
