@@ -3330,26 +3330,7 @@ elif menu == "Reports":
                 )
 
                 doc.build(elements)
-
-                # ===== DOWNLOAD BUTTONS =====
-                st.download_button(
-                    label="Download Excel Report",
-                    data=excel_buffer.getvalue(),
-                    file_name="loans_report.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    use_container_width=True
-                )
-
-                st.download_button(
-                    label="Download PDF Report",
-                    data=pdf_buffer.getvalue(),
-                    file_name="loans_report.pdf",
-                    mime="application/pdf",
-                    use_container_width=True
-                )
-            else:
-                st.info("No active timeline or loan records found to export for the given selection.")
-
+                
             # ================= DOWNLOAD =================
 
             st.download_button(
