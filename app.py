@@ -2014,6 +2014,7 @@ elif menu == "Reports":
         )
         from reportlab.lib import colors
         from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.lib.enums import TA_CENTER
     except ImportError:
         pass
 
@@ -2533,6 +2534,7 @@ elif menu == "Reports":
             )
 
             doc.build(elements)
+            
             # ===== DOWNLOAD =====
 
             st.download_button(
@@ -2639,7 +2641,7 @@ elif menu == "Reports":
 
                 payment_summary = payments_df.groupby(
                     "loan_id"
-                    )["amount"].sum().reset_index()
+                )["amount"].sum().reset_index()
 
                 payment_summary.columns = [
                     "id",
@@ -2921,18 +2923,21 @@ elif menu == "Reports":
 
             # ================= TIMELINE MONTH FILTER =================
 
-            available_months = (
-                pd.to_datetime(
-                    timeline_df["Loan Month"],
-                    format="%b %Y",
-                    errors="coerce"
+            if not timeline_df.empty:
+                available_months = (
+                    pd.to_datetime(
+                        timeline_df["Loan Month"],
+                        format="%b %Y",
+                        errors="coerce"
+                    )
+                    .dropna()
+                    .sort_values()
+                    .dt.strftime("%b %Y")
+                    .unique()
+                    .tolist()
                 )
-                .dropna()
-                .sort_values()
-                .dt.strftime("%b %Y")
-                .unique()
-                .tolist()
-            )
+            else:
+                available_months = []
 
             with timeline_month_placeholder:
                 timeline_month = st.selectbox(
@@ -2941,47 +2946,39 @@ elif menu == "Reports":
                     key="timeline_month"
                 )
 
-            if timeline_month != "All":
+            if timeline_month != "All" and not timeline_df.empty:
                 timeline_df = timeline_df[
                     timeline_df["Loan Month"] == timeline_month
                 ]
 
             # ================= SUMMARY =================
 
-            if timeline_month == "All":
-
+            if timeline_month == "All" and not timeline_df.empty:
                 latest_snapshot = (
                     timeline_df
                     .groupby("Customer ID")
                     .tail(1)
                     .copy()
                 )
-
                 total_loan = latest_snapshot["Loan Amount"].sum()
-
                 total_paid = (
                     timeline_df["Principal Paid"].sum()
                     +
                     timeline_df["Interest Paid"].sum()
                 )
-
                 total_interest = latest_snapshot["Interest Amount"].sum()
-
                 total_balance = latest_snapshot["Balance"].sum()
-
-            else:
-
+            elif not timeline_df.empty:
                 total_loan = timeline_df["Loan Amount"].sum()
-
                 total_paid = (
                     timeline_df["Principal Paid"].sum()
                     +
                     timeline_df["Interest Paid"].sum()
                 )
-
                 total_interest = timeline_df["Interest Amount"].sum()
-
                 total_balance = timeline_df["Balance"].sum()
+            else:
+                total_loan = total_paid = total_interest = total_balance = 0
                 
             s1, s2, s3, s4 = st.columns(4)
 
@@ -3006,356 +3003,352 @@ elif menu == "Reports":
 
             st.markdown("### 📋 Loan Records")
 
-            loan_records_df = (
-                timeline_df
-                .groupby("Customer ID")
-                .tail(1)
-                .copy()
-            )
-
-            # ================= ACTUAL PAID AMOUNT =================
-
-            loan_records_df["Paid Amount"] = 0
-
-            for _, loan in loan_filtered.iterrows():
-
-                loan_id = loan["id"]
-
-                total_paid = payments_df[
-                    payments_df["loan_id"] == loan_id
-                ]["amount"].sum()
-
-                loan_records_df.loc[
-                    loan_records_df["Customer ID"] == loan["customer_id"],
-                    "Paid Amount"
-                ] = round(total_paid)
-
-            # ================= DISPLAY =================
-
-            display_columns = [
-                "Customer ID",
-                "Member Name",
-                "Loan Start Date",
-                "Loan Amount",
-                "Interest Amount",
-                "Paid Amount",
-                "Balance",
-                "Status"
-            ]
-
-            available_columns = [
-                col
-                for col in display_columns
-                if col in loan_records_df.columns
-            ]
-
-            st.dataframe(
-                loan_records_df[available_columns],
-                use_container_width=True
-            )      
-
-            # ================= EXPORT =================
-
-            st.markdown("### ⬇️ Export Loan Reports")
-
-            # =====================================================
-            # LOAN RECORDS EXPORT
-            # =====================================================
-
-            loan_export = loan_records_df.copy()
-
-            export_columns = [
-                "Customer ID",
-                "Member Name",
-                "Loan Start Date",
-                "Loan Amount",
-                "Interest Amount",
-                "Paid Amount",
-                "Balance",
-                "Status"
-            ]
-
-            available_export_columns = [
-                col
-                for col in export_columns
-                if col in loan_export.columns
-            ]
-
-            loan_export = loan_export[
-                available_export_columns
-            ]
-
-            # ================= EXCEL =================
-
-            excel_buffer = BytesIO()
-
-            with pd.ExcelWriter(
-                excel_buffer,
-                engine="openpyxl"
-            ) as writer:
-
-                loan_export.to_excel(
-                    writer,
-                    index=False,
-                    sheet_name="Loan Report",
-                    startrow=7
+            if not timeline_df.empty:
+                loan_records_df = (
+                    timeline_df
+                    .groupby("Customer ID")
+                    .tail(1)
+                    .copy()
                 )
 
-                workbook = writer.book
-                worksheet = writer.sheets["Loan Report"]
+                # ================= ACTUAL PAID AMOUNT =================
+
+                loan_records_df["Paid Amount"] = 0
+
+                for _, loan in loan_filtered.iterrows():
+                    loan_id = loan["id"]
+                    total_paid_individual = payments_df[
+                        payments_df["loan_id"] == loan_id
+                    ]["amount"].sum()
+
+                    loan_records_df.loc[
+                        loan_records_df["Customer ID"] == loan["customer_id"],
+                        "Paid Amount"
+                    ] = round(total_paid_individual)
+
+                display_columns = [
+                    "Customer ID",
+                    "Member Name",
+                    "Loan Start Date",
+                    "Loan Amount",
+                    "Interest Amount",
+                    "Paid Amount",
+                    "Balance",
+                    "Status"
+                ]
+
+                available_columns = [
+                    col
+                    for col in display_columns
+                    if col in loan_records_df.columns
+                ]
+
+                st.dataframe(
+                    loan_records_df[available_columns],
+                    use_container_width=True
+                )      
+
+                # ================= EXPORT =================
+
+                st.markdown("### ⬇️ Export Loan Reports")
+
+                # =====================================================
+                # LOAN RECORDS EXPORT
+                # =====================================================
+
+                loan_export = loan_records_df.copy()
+
+                export_columns = [
+                    "Customer ID",
+                    "Member Name",
+                    "Loan Start Date",
+                    "Loan Amount",
+                    "Interest Amount",
+                    "Paid Amount",
+                    "Balance",
+                    "Status"
+                ]
+
+                available_export_columns = [
+                    col
+                    for col in export_columns
+                    if col in loan_export.columns
+                ]
+
+                loan_export = loan_export[
+                    available_export_columns
+                ]
+
+                # ================= EXCEL =================
+
+                excel_buffer = BytesIO()
+
+                with pd.ExcelWriter(
+                    excel_buffer,
+                    engine="openpyxl"
+                ) as writer:
+
+                    loan_export.to_excel(
+                        writer,
+                        index=False,
+                        sheet_name="Loan Report",
+                        startrow=7
+                    )
+
+                    workbook = writer.book
+                    worksheet = writer.sheets["Loan Report"]
+
+                    # ===== LOGO =====
+                    try:
+                        logo = ExcelImage("logo.png")
+                        logo.width = 65
+                        logo.height = 65
+                        worksheet.add_image(logo, "A1")
+                    except:
+                        pass
+
+                    # ===== HEADER =====
+                    worksheet.merge_cells("B1:H1")
+                    worksheet["B1"] = "बाल युवा मंगलदल समिति"
+                    worksheet["B1"].font = Font(
+                        size=18,
+                        bold=True,
+                        color="F8D568"
+                    )
+                    worksheet["B1"].alignment = Alignment(
+                        horizontal="center"
+                    )
+
+                    worksheet.merge_cells("B2:H2")
+                    worksheet["B2"] = "मयलगांव"
+                    worksheet["B2"].font = Font(
+                        size=14,
+                        bold=True,
+                        color="EFD58A"
+                    )
+                    worksheet["B2"].alignment = Alignment(
+                        horizontal="center"
+                    )
+
+                    worksheet.merge_cells("B3:H3")
+                    worksheet["B3"] = "हमारा गांव • हमारी पहचान • हमारा अभियान"
+                    worksheet["B3"].alignment = Alignment(
+                        horizontal="center"
+                    )
+
+                    worksheet.merge_cells("A5:H5")
+                    worksheet["A5"] = "LOANS REPORT"
+                    worksheet["A5"].font = Font(
+                        size=16,
+                        bold=True
+                    )
+                    worksheet["A5"].alignment = Alignment(
+                        horizontal="center"
+                    )
+
+                    worksheet.merge_cells("A6:H6")
+                    worksheet["A6"] = (
+                        f"Generated On : "
+                        f"{datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%d-%m-%Y %I:%M %p')}"
+                    )
+                    worksheet["A6"].alignment = Alignment(
+                        horizontal="center"
+                    )
+
+                    # ===== TABLE HEADER STYLE =====
+                    for cell in worksheet[8]:
+                        cell.font = Font(bold=True)
+                        cell.fill = PatternFill(
+                            fill_type="solid",
+                            fgColor="EFD58A"
+                        )
+
+                    # ===== COLUMN WIDTHS =====
+                    worksheet.column_dimensions["A"].width = 18
+                    worksheet.column_dimensions["B"].width = 25
+                    worksheet.column_dimensions["C"].width = 18
+                    worksheet.column_dimensions["D"].width = 18
+                    worksheet.column_dimensions["E"].width = 18
+                    worksheet.column_dimensions["F"].width = 18
+                    worksheet.column_dimensions["G"].width = 18
+                    worksheet.column_dimensions["H"].width = 18
+
+                excel_buffer.seek(0)
+                
+                # ================= PDF =================
+
+                pdf_buffer = BytesIO()
+
+                doc = SimpleDocTemplate(
+                    pdf_buffer,
+                    topMargin=15,
+                    bottomMargin=20
+                )
+
+                styles = getSampleStyleSheet()
+
+                title_style = styles["Heading1"]
+                title_style.alignment = TA_CENTER
+
+                center_style = styles["BodyText"]
+                center_style.alignment = TA_CENTER
+
+                elements = []
 
                 # ===== LOGO =====
-
                 try:
-                    logo = ExcelImage("logo.png")
-                    logo.width = 65
-                    logo.height = 65
-                    worksheet.add_image(logo, "A1")
+                    logo = Image("logo.png")
+                    logo.drawHeight = 90
+                    logo.drawWidth = 90
+                    logo.hAlign = "CENTER"
+                    elements.append(logo)
                 except:
                     pass
 
                 # ===== HEADER =====
-
-                worksheet.merge_cells("B1:H1")
-                worksheet["B1"] = "बाल युवा मंगलदल समिति"
-                worksheet["B1"].font = Font(
-                    size=18,
-                    bold=True,
-                    color="F8D568"
-                )
-                worksheet["B1"].alignment = Alignment(
-                    horizontal="center"
-                )
-
-                worksheet.merge_cells("B2:H2")
-                worksheet["B2"] = "मयलगांव"
-                worksheet["B2"].font = Font(
-                    size=14,
-                    bold=True,
-                    color="EFD58A"
-                )
-                worksheet["B2"].alignment = Alignment(
-                    horizontal="center"
-                )
-
-                worksheet.merge_cells("B3:H3")
-                worksheet["B3"] = "हमारा गांव • हमारी पहचान • हमारा अभियान"
-                worksheet["B3"].alignment = Alignment(
-                    horizontal="center"
-                )
-
-                worksheet.merge_cells("A5:H5")
-                worksheet["A5"] = "LOANS REPORT"
-                worksheet["A5"].font = Font(
-                    size=16,
-                    bold=True
-                )
-                worksheet["A5"].alignment = Alignment(
-                    horizontal="center"
-                )
-
-                worksheet.merge_cells("A6:H6")
-                worksheet["A6"] = (
-                    f"Generated On : "
-                    f"{datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%d-%m-%Y %I:%M %p')}"
-                )
-                worksheet["A6"].alignment = Alignment(
-                    horizontal="center"
-                )
-
-                # ===== TABLE HEADER STYLE =====
-
-                for cell in worksheet[8]:
-                    cell.font = Font(bold=True)
-                    cell.fill = PatternFill(
-                        fill_type="solid",
-                        fgColor="EFD58A"
+                elements.append(
+                    Paragraph(
+                        "<b>Bal Yuva Mangal Dal Samiti</b>",
+                        title_style
                     )
+                )
 
-                # ===== COLUMN WIDTHS =====
+                elements.append(
+                    Paragraph(
+                        "<b>Mayalgaon</b>",
+                        center_style
+                    )
+                )
 
-                worksheet.column_dimensions["A"].width = 18
-                worksheet.column_dimensions["B"].width = 25
-                worksheet.column_dimensions["C"].width = 18
-                worksheet.column_dimensions["D"].width = 18
-                worksheet.column_dimensions["E"].width = 18
-                worksheet.column_dimensions["F"].width = 18
-                worksheet.column_dimensions["G"].width = 18
-                worksheet.column_dimensions["H"].width = 18
+                elements.append(
+                    Paragraph(
+                        "Hamara Gaon • Hamari Pehchan • Hamara Abhiyan",
+                        center_style
+                    )
+                )
 
-            excel_buffer.seek(0)
-            # ================= PDF =================
+                elements.append(Spacer(1, 10))
 
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Table,
-    TableStyle,
-    Paragraph,
-    Spacer,
-    Image
-)
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.enums import TA_CENTER
+                elements.append(
+                    Paragraph(
+                        "<b>LOANS REPORT</b>",
+                        title_style
+                    )
+                )
 
-pdf_buffer = BytesIO()
+                elements.append(
+                    Paragraph(
+                        f"Generated On : {datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%d-%m-%Y %I:%M %p')}",
+                        center_style
+                    )
+                )
 
-doc = SimpleDocTemplate(
-    pdf_buffer,
-    topMargin=15,
-    bottomMargin=20
-)
+                elements.append(Spacer(1, 10))
 
-styles = getSampleStyleSheet()
+                # ===== SUMMARY =====
+                generated_by = st.session_state.get(
+                    "current_user",
+                    "Admin"
+                )
 
-title_style = styles["Heading1"]
-title_style.alignment = TA_CENTER
+                summary_text = (
+                    f"<b>Total Loan :</b> INR {total_loan:,.0f}"
+                    f"&nbsp;&nbsp;&nbsp;&nbsp;"
+                    f"<b>Paid :</b> INR {total_paid:,.0f}"
+                    f"&nbsp;&nbsp;&nbsp;&nbsp;"
+                    f"<b>Interest :</b> INR {total_interest:,.0f}"
+                    f"&nbsp;&nbsp;&nbsp;&nbsp;"
+                    f"<b>Balance :</b> INR {total_balance:,.0f}"
+                )
 
-center_style = styles["BodyText"]
-center_style.alignment = TA_CENTER
+                elements.append(
+                    Paragraph(
+                        summary_text,
+                        center_style
+                    )
+                )
 
-elements = []
+                elements.append(Spacer(1, 15))
 
-# ===== LOGO =====
+                # ===== TABLE =====
+                table_data = [loan_export.columns.tolist()]
 
-try:
-    logo = Image("logo.png")
-    logo.drawHeight = 90
-    logo.drawWidth = 90
-    logo.hAlign = "CENTER"
-    elements.append(logo)
-except:
-    pass
+                for row in loan_export.values.tolist():
+                    table_data.append(row)
 
-# ===== HEADER =====
+                table = Table(table_data)
 
-elements.append(
-    Paragraph(
-        "<b>Bal Yuva Mangal Dal Samiti</b>",
-        title_style
-    )
-)
+                table.setStyle(
+                    TableStyle([
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EFD58A")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, -1), 8),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ])
+                )
 
-elements.append(
-    Paragraph(
-        "<b>Mayalgaon</b>",
-        center_style
-    )
-)
+                elements.append(table)
 
-elements.append(
-    Paragraph(
-        "Hamara Gaon • Hamari Pehchan • Hamara Abhiyan",
-        center_style
-    )
-)
+                elements.append(Spacer(1, 25))
 
-elements.append(Spacer(1, 10))
+                # ===== FOOTER =====
+                elements.append(
+                    Paragraph(
+                        "━━━━━━━━━━━━━━━━━━━━━━━━━━",
+                        center_style
+                    )
+                )
 
-elements.append(
-    Paragraph(
-        "<b>LOANS REPORT</b>",
-        title_style
-    )
-)
+                elements.append(
+                    Paragraph(
+                        "<b>Bal Yuva Mangal Dal Samiti</b>",
+                        center_style
+                    )
+                )
 
-elements.append(
-    Paragraph(
-        f"Generated On : {datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%d-%m-%Y %I:%M %p')}",
-        center_style
-    )
-)
+                elements.append(
+                    Paragraph(
+                        "Mayalgaon",
+                        center_style
+                    )
+                )
 
-elements.append(Spacer(1, 10))
+                elements.append(
+                    Paragraph(
+                        f"Report Generated By : {generated_by}",
+                        center_style
+                    )
+                )
 
-# ===== SUMMARY =====
+                elements.append(
+                    Paragraph(
+                        "* End of Report *",
+                        center_style
+                    )
+                )
 
-generated_by = st.session_state.get(
-    "current_user",
-    "Admin"
-)
+                doc.build(elements)
 
-summary_text = (
-    f"<b>Total Loan :</b> INR {total_loan:,.0f}"
-    f"&nbsp;&nbsp;&nbsp;&nbsp;"
-    f"<b>Paid :</b> INR {total_paid:,.0f}"
-    f"&nbsp;&nbsp;&nbsp;&nbsp;"
-    f"<b>Interest :</b> INR {total_interest:,.0f}"
-    f"&nbsp;&nbsp;&nbsp;&nbsp;"
-    f"<b>Balance :</b> INR {total_balance:,.0f}"
-)
+                # ===== DOWNLOAD BUTTONS =====
+                st.download_button(
+                    label="Download Excel Report",
+                    data=excel_buffer.getvalue(),
+                    file_name="loans_report.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True
+                )
 
-elements.append(
-    Paragraph(
-        summary_text,
-        center_style
-    )
-)
-
-elements.append(Spacer(1, 15))
-
-# ===== TABLE =====
-
-table_data = [loan_export.columns.tolist()]
-
-for row in loan_export.values.tolist():
-    table_data.append(row)
-
-table = Table(table_data)
-
-table.setStyle(
-    TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EFD58A")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
-        ("GRID", (0, 0), (-1, -1), 1, colors.black),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 8),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-    ])
-)
-
-elements.append(table)
-
-elements.append(Spacer(1, 25))
-
-# ===== FOOTER =====
-
-elements.append(
-    Paragraph(
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━",
-        center_style
-    )
-)
-
-elements.append(
-    Paragraph(
-        "<b>Bal Yuva Mangal Dal Samiti</b>",
-        center_style
-    )
-)
-
-elements.append(
-    Paragraph(
-        "Mayalgaon",
-        center_style
-    )
-)
-
-elements.append(
-    Paragraph(
-        f"Report Generated By : {generated_by}",
-        center_style
-    )
-)
-
-elements.append(
-    Paragraph(
-        "* End of Report *",
-        center_style
-    )
-)
-
-doc.build(elements)
+                st.download_button(
+                    label="Download PDF Report",
+                    data=pdf_buffer.getvalue(),
+                    file_name="loans_report.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+            else:
+                st.info("No active timeline or loan records found to export for the given selection.")
 
             # ================= DOWNLOAD =================
 
