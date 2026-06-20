@@ -2378,11 +2378,7 @@ elif menu == "Reports":
                 worksheet.column_dimensions["H"].width = 15
                 
             excel_buffer.seek(0)
-            st.download_button(
-                label="📥 Download Excel Report",
-                data=excel_buffer,
-                file_name=f"Collections_Report_{datetime.now().strftime('%d-%m-%Y')}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            
             )
 
             # ===== PDF =====
@@ -2399,8 +2395,8 @@ elif menu == "Reports":
 
             try:
                 pdf_logo = Image("logo.png")
-                pdf_logo.drawHeight = 60
-                pdf_logo.drawWidth = 60
+                pdf_logo.drawHeight = 100
+                pdf_logo.drawWidth = 100
                 elements.append(pdf_logo)
             except:
                 pass
@@ -2499,11 +2495,7 @@ elif menu == "Reports":
             doc.build(elements)
             
             pdf_buffer.seek(0)
-            st.download_button(
-                label="📥 Download PDF Report",
-                data=pdf_buffer,
-                file_name=f"Collections_Report_{datetime.now().strftime('%d-%m-%Y')}.pdf",
-                mime="application/pdf"
+            
             )
             # ===== DOWNLOAD =====
 
