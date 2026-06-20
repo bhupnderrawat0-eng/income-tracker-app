@@ -5,13 +5,26 @@ import hashlib
 import datetime
 import urllib.parse
 from io import BytesIO
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-from reportlab.lib import colors
 import time
-import hashlib
+
 from supabase import create_client, Client
-import pandas as pd
-import streamlit as st
+
+# ===== EXCEL EXPORT =====
+from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.drawing.image import Image as ExcelImage
+
+# ===== PDF EXPORT =====
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle,
+    Paragraph,
+    Spacer,
+    Image
+)
+
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 
 # ================= PASSWORD HASH FUNCTION =================
 def hash_pass(password):
