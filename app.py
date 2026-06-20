@@ -2399,8 +2399,8 @@ elif menu == "Reports":
 
             try:
                 pdf_logo = Image("logo.png")
-                pdf_logo.drawHeight = 120
-                pdf_logo.drawWidth = 120
+                pdf_logo.drawHeight = 100
+                pdf_logo.drawWidth = 100
                 pdf_logo.hAlign = "CENTER"
                 elements.append(pdf_logo)
             except:
@@ -2429,7 +2429,7 @@ elif menu == "Reports":
                 )
             )
 
-            elements.append(Spacer(1, 12))
+            elements.append(Spacer(1, 10))
 
             elements.append(
                 Paragraph(
@@ -2446,20 +2446,20 @@ elif menu == "Reports":
             )
 
             elements.append(Spacer(1, 15))
-
+            
             # ===== SUMMARY =====
 
             elements.append(
                 Paragraph(
                     f"""
                     <para align='center'>
-                    <b>Expected Total :</b> INR {expected_total:,.0f}
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <b>Collected :</b> INR {collected_total:,.0f}
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <b>Pending :</b> INR {pending_total:,.0f}
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <b>Efficiency :</b> {efficiency:.1f}%
+                    <b>Expected:</b> INR {expected_total:,.0f}
+                    &nbsp;&nbsp; | &nbsp;&nbsp;
+                    <b>Collected:</b> INR {collected_total:,.0f}
+                    &nbsp;&nbsp; | &nbsp;&nbsp;
+                    <b>Pending:</b> INR {pending_total:,.0f}
+                    &nbsp;&nbsp; | &nbsp;&nbsp;
+                    <b>Efficiency:</b> {efficiency:.1f}%
                     </para>
                     """,
                     styles["Normal"]
@@ -2467,7 +2467,7 @@ elif menu == "Reports":
             )
 
             elements.append(Spacer(1, 20))
-
+            
             # ===== TABLE =====
 
             pdf_data = [list(export_df.columns)]
@@ -2499,7 +2499,7 @@ elif menu == "Reports":
 
             elements.append(
                 Paragraph(
-                    "<para align='center'>────────────────────────</para>",
+                    "<para align='center'>--------------------------------</para>",
                     styles["Normal"]
                 )
             )
@@ -2527,7 +2527,7 @@ elif menu == "Reports":
 
             elements.append(
                 Paragraph(
-                    "<para align='center'>* End of Report *</para>",
+                    "<para align='center'><i>End of Report</i></para>",
                     styles["Normal"]
                 )
             )
