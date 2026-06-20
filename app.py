@@ -2378,8 +2378,6 @@ elif menu == "Reports":
                 worksheet.column_dimensions["H"].width = 15
                 
             excel_buffer.seek(0)
-            
-            )
 
             # ===== PDF =====
 
@@ -2496,7 +2494,6 @@ elif menu == "Reports":
             
             pdf_buffer.seek(0)
             
-            )
             # ===== DOWNLOAD =====
 
             st.download_button(
