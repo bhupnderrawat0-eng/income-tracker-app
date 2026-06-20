@@ -3333,6 +3333,19 @@ elif menu == "Reports":
                     )
                 )
                 
+                # ===== BUILD PDF =====
+                doc.build(elements)
+
+                pdf_buffer.seek(0)
+
+                # ===== DOWNLOAD BUTTON =====
+                st.download_button(
+                    label="📄 Download Loans PDF",
+                    data=pdf_buffer.getvalue(),
+                    file_name="loan_summary_report.pdf",
+                    mime="application/pdf"
+                )
+                
                 # ================= DOWNLOAD =================
 
                 st.download_button(
@@ -3350,6 +3363,7 @@ elif menu == "Reports":
                     mime="application/pdf",
                     use_container_width=True
                 )
+                
             # =====================================================
             # LOAN TIMELINE EXPORT
             # =====================================================
