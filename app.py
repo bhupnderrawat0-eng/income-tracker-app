@@ -3116,7 +3116,7 @@ with tab2:
 
             # ===== HEADER =====
 
-            worksheet.merge_cells("B1:I1")
+            worksheet.merge_cells("B1:H1")
             worksheet["B1"] = "बाल युवा मंगलदल समिति"
             worksheet["B1"].font = Font(
                 size=18,
@@ -3127,7 +3127,7 @@ with tab2:
                 horizontal="center"
             )
 
-            worksheet.merge_cells("B2:I2")
+            worksheet.merge_cells("B2:H2")
             worksheet["B2"] = "मयलगांव"
             worksheet["B2"].font = Font(
                 size=14,
@@ -3138,7 +3138,7 @@ with tab2:
                 horizontal="center"
             )
 
-            worksheet.merge_cells("B3:I3")
+            worksheet.merge_cells("B3:H3")
             worksheet["B3"] = "हमारा गांव • हमारी पहचान • हमारा अभियान"
             worksheet["B3"].alignment = Alignment(
                 horizontal="center"
