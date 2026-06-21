@@ -2931,48 +2931,41 @@ elif menu == "Reports":
 
             timeline_export = timeline_df.copy()
 
-            timeline_excel = BytesIO()
-
-            with pd.ExcelWriter(
-                timeline_excel,
-                engine="openpyxl"
-            ) as writer:
-
-                timeline_export.to_excel(
-                    writer,
-                    index=False,
-                    sheet_name="Loan Timeline"
+            # Clean Status for export
+            if "Status" in timeline_export.columns:
+                timeline_export["Status"] = (
+                    timeline_export["Status"]
+                    .astype(str)
+                    .str.replace("⚠️", "", regex=False)
+                    .str.replace("✅", "", regex=False)
+                    .str.strip()
                 )
 
-            # ================= PDF =================
+            # ================= COMMON EXCEL =================
 
-            timeline_pdf = BytesIO()
-
-            doc = SimpleDocTemplate(
-                timeline_pdf
+            timeline_excel = generate_excel_report(
+                df=timeline_export,
+                report_title="LOAN TIMELINE REPORT"
             )
 
-            timeline_table_data = [
-                timeline_export.columns.tolist()
-            ]
+            # ================= COMMON PDF =================
 
-            for row in timeline_export.values.tolist():
-                timeline_table_data.append(row)
-
-            timeline_table = Table(
-                timeline_table_data
+            timeline_summary = (
+                f"Total Loan : INR {total_loan:,.0f} | "
+                f"Paid : INR {total_paid:,.0f} | "
+                f"Interest : INR {total_interest:,.0f} | "
+                f"Balance : INR {total_balance:,.0f}"
             )
 
-            timeline_table.setStyle(
-                TableStyle([
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
-                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                    ("FONTSIZE", (0, 0), (-1, -1), 8),
-                ])
+            timeline_pdf = generate_pdf_report(
+                df=timeline_export,
+                report_title="LOAN TIMELINE REPORT",
+                summary_text=timeline_summary,
+                generated_by=st.session_state.get(
+                    "current_user",
+                    "Admin"
+                )
             )
-
-            doc.build([timeline_table])
-
             # ================= DOWNLOAD =================
 
             st.download_button(
