@@ -7,7 +7,6 @@ import pandas as pd
 
 from openpyxl.drawing.image import Image as ExcelImage
 from openpyxl.styles import Font, Alignment, PatternFill
-from openpyxl.utils import get_column_letter
 
 # ================= PDF IMPORTS =================
 
@@ -64,28 +63,29 @@ def generate_excel_report(
 
         # ================= HEADER =================
 
-        end_col = max(len(df.columns), 8)
-        end_letter = get_column_letter(end_col)
-
-        worksheet.merge_cells(f"C1:{end_letter}1")
+        worksheet.merge_cells("C1:H1")
         worksheet["C1"] = "बाल युवा मंगलदल समिति"
         worksheet["C1"].font = Font(
             size=18,
             bold=True,
             color="F8D568"
         )
-        worksheet["C1"].alignment = Alignment(horizontal="center")
+        worksheet["C1"].alignment = Alignment(
+            horizontal="center"
+        )
 
-        worksheet.merge_cells(f"C2:{end_letter}2")
+        worksheet.merge_cells("C2:H2")
         worksheet["C2"] = "मयलगांव"
         worksheet["C2"].font = Font(
             size=14,
             bold=True,
             color="EFD58A"
         )
-        worksheet["C2"].alignment = Alignment(horizontal="center")
+        worksheet["C2"].alignment = Alignment(
+            horizontal="center"
+        )
 
-        worksheet.merge_cells(f"C3:{end_letter}3")
+        worksheet.merge_cells("C3:H3")
         worksheet["C3"] = (
             "हमारा गांव • हमारी पहचान • हमारा अभियान"
         )
@@ -93,22 +93,28 @@ def generate_excel_report(
             size=12,
             italic=True
         )
-        worksheet["C3"].alignment = Alignment(horizontal="center")
+        worksheet["C3"].alignment = Alignment(
+            horizontal="center"
+        )
 
-        worksheet.merge_cells(f"A5:{end_letter}5")
+        worksheet.merge_cells("A5:H5")
         worksheet["A5"] = report_title
         worksheet["A5"].font = Font(
             size=16,
             bold=True
         )
-        worksheet["A5"].alignment = Alignment(horizontal="center")
+        worksheet["A5"].alignment = Alignment(
+            horizontal="center"
+        )
 
-        worksheet.merge_cells(f"A6:{end_letter}6")
+        worksheet.merge_cells("A6:H6")
         worksheet["A6"] = (
             f"Generated On : "
             f"{datetime.now().strftime('%d-%m-%Y %I:%M %p')}"
         )
-        worksheet["A6"].alignment = Alignment(horizontal="center")
+        worksheet["A6"].alignment = Alignment(
+            horizontal="center"
+        )
 
         # ================= TABLE HEADER STYLE =================
 
@@ -120,11 +126,18 @@ def generate_excel_report(
             )
             cell.alignment = Alignment(horizontal="center")
 
-        # ================= COLUMN WIDTH =================
+        # ================= FIXED COLUMN WIDTH =================
 
-        for i in range(1, len(df.columns) + 1):
-            col_letter = get_column_letter(i)
-            worksheet.column_dimensions[col_letter].width = 25
+        worksheet.column_dimensions["A"].width = 18
+        worksheet.column_dimensions["B"].width = 25
+        worksheet.column_dimensions["C"].width = 18
+        worksheet.column_dimensions["D"].width = 20
+        worksheet.column_dimensions["E"].width = 18
+        worksheet.column_dimensions["F"].width = 22
+        worksheet.column_dimensions["G"].width = 15
+        worksheet.column_dimensions["H"].width = 15
+        worksheet.column_dimensions["I"].width = 15
+        worksheet.column_dimensions["J"].width = 15
 
     excel_buffer.seek(0)
 
