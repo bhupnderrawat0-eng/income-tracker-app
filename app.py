@@ -8,6 +8,7 @@ from io import BytesIO
 import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from report_utils import generate_excel_report
 
 from supabase import create_client, Client
 
