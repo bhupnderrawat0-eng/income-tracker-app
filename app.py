@@ -2802,9 +2802,23 @@ elif menu == "Reports":
 
                 for _, loan in loan_filtered.iterrows():
                     loan_id = loan["id"]
-                    total_paid_individual = payments_df[
+                    loan_payments = payments_df[
                         payments_df["loan_id"] == loan_id
-                    ]["amount"].sum()
+                    ].copy()
+
+                    if not loan_payments.empty:
+                        loan_payments["date"] = pd.to_datetime(
+                            loan_payments["date"],
+                            errors="coerce"
+                        )
+                        loan_payments = loan_payments[
+                            (loan_payments["date"].dt.date >= loan_start)
+                            &
+                            (loan_payments["date"].dt.date <= loan_end)
+                        ]
+                        total_paid_individual = loan_payments["amount"].sum()
+                    else:
+                        total_paid_individual = 0
 
                     loan_records_df.loc[
                         loan_records_df["Customer ID"] == loan["customer_id"],
