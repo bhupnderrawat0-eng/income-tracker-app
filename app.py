@@ -3270,21 +3270,31 @@ elif menu == "Reports":
 
                 elements.append(Spacer(1, 15))
 
-                # ===== CLEAN STATUS =====
-                loan_export["Status"] = (
-                    loan_export["Status"]
-                    .astype(str)
-                    .str.replace("⚠️", "", regex=False)
-                    .str.replace("✅", "", regex=False)
-                    .str.replace("■", "", regex=False)
-                    .str.replace("⬛", "", regex=False)
-                    .str.strip()
-                )
+                # ===== MONTH WISE DATA FOR PDF =====
+                pdf_df = timeline_df.copy()
+
+                # Optional: Date formatting
+                if "Loan Start Date" in pdf_df.columns:
+                    pdf_df["Loan Start Date"] = pd.to_datetime(
+                        pdf_df["Loan Start Date"]
+                    ).dt.strftime("%d-%m-%Y")
+
+                # Clean status if exists
+                if "Status" in pdf_df.columns:
+                    pdf_df["Status"] = (
+                        pdf_df["Status"]
+                        .astype(str)
+                        .str.replace("⚠️", "", regex=False)
+                        .str.replace("✅", "", regex=False)
+                        .str.replace("■", "", regex=False)
+                        .str.replace("⬛", "", regex=False)
+                        .str.strip()
+                    )
 
                 # ===== TABLE =====
-                table_data = [loan_export.columns.tolist()]
+                table_data = [pdf_df.columns.tolist()]
 
-                for row in loan_export.values.tolist():
+                for row in pdf_df.values.tolist():
                     table_data.append(row)
 
                 table = Table(table_data)
@@ -3338,14 +3348,7 @@ elif menu == "Reports":
 
                 pdf_buffer.seek(0)
 
-                # ===== DOWNLOAD BUTTON =====
-                st.download_button(
-                    label="📄 Download Loans PDF",
-                    data=pdf_buffer.getvalue(),
-                    file_name="loan_summary_report.pdf",
-                    mime="application/pdf"
-                )
-                
+                              
                 # ================= DOWNLOAD =================
 
                 st.download_button(
