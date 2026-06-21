@@ -3179,10 +3179,15 @@ elif menu == "Reports":
 
                 pdf_buffer = BytesIO()
 
+                from reportlab.lib.pagesizes import A4, landscape
+
                 doc = SimpleDocTemplate(
                     pdf_buffer,
+                    pagesize=landscape(A4),
                     topMargin=15,
-                    bottomMargin=20
+                    bottomMargin=20,
+                    leftMargin=20,
+                    rightMargin=20
                 )
 
                 styles = getSampleStyleSheet()
@@ -3273,13 +3278,13 @@ elif menu == "Reports":
                 # ===== MONTH WISE DATA FOR PDF =====
                 pdf_df = timeline_df.copy()
 
-                # Optional: Date formatting
+                # Date Formatting
                 if "Loan Start Date" in pdf_df.columns:
                     pdf_df["Loan Start Date"] = pd.to_datetime(
                         pdf_df["Loan Start Date"]
                     ).dt.strftime("%d-%m-%Y")
 
-                # Clean status if exists
+                # Clean Status Column
                 if "Status" in pdf_df.columns:
                     pdf_df["Status"] = (
                         pdf_df["Status"]
@@ -3297,7 +3302,21 @@ elif menu == "Reports":
                 for row in pdf_df.values.tolist():
                     table_data.append(row)
 
-                table = Table(table_data)
+                table = Table(
+                    table_data,
+                    colWidths=[
+                        70,   # Customer ID
+                        70,   # Member Name
+                        75,   # Loan Start Date
+                        65,   # Loan Month
+                        60,   # Loan Amount
+                        70,   # Interest Amount
+                        65,   # Principal Paid
+                        60,   # Interest Paid
+                        55,   # Balance
+                        45    # Status
+                    ]
+                )
 
                 table.setStyle(
                     TableStyle([
@@ -3307,6 +3326,10 @@ elif menu == "Reports":
                         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                         ("FONTSIZE", (0, 0), (-1, -1), 8),
                         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("ROWBACKGROUNDS", (0, 1), (-1, -1),
+                         [colors.white, colors.HexColor("#F7F7F7")]),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
                     ])
                 )
 
@@ -3342,7 +3365,7 @@ elif menu == "Reports":
                         center_style
                     )
                 )
-                
+
                 # ===== BUILD PDF =====
                 doc.build(elements)
 
