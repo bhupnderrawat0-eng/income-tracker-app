@@ -2250,152 +2250,118 @@ elif menu == "Reports":
             else:
                 st.dataframe(defaulters, use_container_width=True)
 
-            # ================= EXPORT =================
+            from io import BytesIO
+import pandas as pd
+from datetime import datetime
 
-            st.markdown("### ⬇️ Export Reports")
+from openpyxl.drawing.image import Image as ExcelImage
+from openpyxl.styles import Font, Alignment, PatternFill
 
-            # ===== CLEAN EXPORT DATA =====
 
-            export_df = filtered_df.copy()
+def generate_excel_report(
+    df,
+    report_title,
+    file_name="report.xlsx"
+):
 
-            export_df["Balance"] = export_df["expected_amount"] - export_df["amount"]
-            export_df["Status"] = export_df["Balance"].apply(
-                lambda x: "Paid" if x <= 0 else "Pending"
+    excel_buffer = BytesIO()
+
+    with pd.ExcelWriter(
+        excel_buffer,
+        engine="openpyxl"
+    ) as writer:
+
+        # ================= DATA =================
+        df.to_excel(
+            writer,
+            index=False,
+            sheet_name="Report",
+            startrow=7
+        )
+
+        workbook = writer.book
+        worksheet = writer.sheets["Report"]
+
+        # ================= LOGO =================
+        try:
+            logo = ExcelImage("logo.png")
+            logo.width = 90
+            logo.height = 90
+            worksheet.add_image(logo, "A1")
+        except:
+            pass
+
+        # ================= HEADER =================
+        worksheet.merge_cells("C1:H1")
+        worksheet["C1"] = "बाल युवा मंगलदल समिति"
+        worksheet["C1"].font = Font(
+            size=18,
+            bold=True,
+            color="F8D568"
+        )
+        worksheet["C1"].alignment = Alignment(
+            horizontal="center"
+        )
+
+        worksheet.merge_cells("C2:H2")
+        worksheet["C2"] = "मयलगांव"
+        worksheet["C2"].font = Font(
+            size=14,
+            bold=True,
+            color="EFD58A"
+        )
+        worksheet["C2"].alignment = Alignment(
+            horizontal="center"
+        )
+
+        worksheet.merge_cells("C3:H3")
+        worksheet["C3"] = (
+            "हमारा गांव • हमारी पहचान • हमारा अभियान"
+        )
+        worksheet["C3"].font = Font(
+            size=12,
+            italic=True
+        )
+        worksheet["C3"].alignment = Alignment(
+            horizontal="center"
+        )
+
+        worksheet.merge_cells("A5:H5")
+        worksheet["A5"] = report_title
+        worksheet["A5"].font = Font(
+            size=16,
+            bold=True
+        )
+        worksheet["A5"].alignment = Alignment(
+            horizontal="center"
+        )
+
+        worksheet.merge_cells("A6:H6")
+        worksheet["A6"] = (
+            f"Generated On : "
+            f"{datetime.now().strftime('%d-%m-%Y %I:%M %p')}"
+        )
+        worksheet["A6"].alignment = Alignment(
+            horizontal="center"
+        )
+
+        # ================= TABLE HEADER STYLE =================
+        for cell in worksheet[8]:
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(
+                fill_type="solid",
+                fgColor="D9D9D9"
             )
+            cell.alignment = Alignment(horizontal="center")
 
-            export_df = export_df.rename(
-                columns={
-                    "customer_id": "Customer ID",
-                    "Member Name": "Member Name",
-                    "start_date": "Start Date",
-                    "Month": "Collection Month",
-                    "expected_amount": "Expected Amount",
-                    "amount": "Actual Amount Received"
-                }
-            )
+        # ================= FIXED COLUMN WIDTH =================
+        # Abhi testing ke liye fixed width rakh rahe hain
+        for col in ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]:
+            worksheet.column_dimensions[col].width = 25
 
-            export_df = export_df[
-                [
-                    "Customer ID",
-                    "Member Name",
-                    "Start Date",
-                    "Collection Month",
-                    "Expected Amount",
-                    "Actual Amount Received",
-                    "Balance",
-                    "Status"
-                ]
-            ]
+    excel_buffer.seek(0)
 
-            # ===== EXCEL =====
-
-            excel_buffer = BytesIO()
-
-            with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
-
-                export_df.to_excel(
-                    writer,
-                    index=False,
-                    sheet_name="Collections Report",
-                    startrow=7
-                )
-
-                workbook = writer.book
-                worksheet = writer.sheets["Collections Report"]
-
-                # ===== LOGO =====
-                try:
-                    logo = ExcelImage("logo.png")
-                    logo.width = 90
-                    logo.height = 90
-                    worksheet.add_image(logo, "A1")
-                except:
-                    pass
-
-                # ===== HEADER =====
-                worksheet.merge_cells("C1:H1")
-                worksheet["C1"] = "बाल युवा मंगलदल समिति"
-                worksheet["C1"].font = Font(
-                    size=18,
-                    bold=True,
-                    color="F8D568"
-                )
-                worksheet["C1"].alignment = Alignment(
-                    horizontal="center"
-                )
-
-                worksheet.merge_cells("C2:H2")
-                worksheet["C2"] = "मयलगांव"
-                worksheet["C2"].font = Font(
-                    size=14,
-                    bold=True,
-                    color="EFD58A"
-                )
-                worksheet["C2"].alignment = Alignment(
-                    horizontal="center"
-                )
-
-                worksheet.merge_cells("C3:H3")
-                worksheet["C3"] = "हमारा गांव • हमारी पहचान • हमारा अभियान"
-                worksheet["C3"].font = Font(
-                    size=12,
-                    italic=True
-                )
-                worksheet["C3"].alignment = Alignment(
-                    horizontal="center"
-                )
-
-                worksheet.merge_cells("A5:H5")
-                worksheet["A5"] = "COLLECTIONS REPORT"
-                worksheet["A5"].font = Font(
-                    size=16,
-                    bold=True
-                )
-                worksheet["A5"].alignment = Alignment(
-                    horizontal="center"
-                )
-
-                worksheet.merge_cells("A6:H6")
-                worksheet["A6"] = (
-                    f"Generated On : "
-                    f"{datetime.now().strftime('%d-%m-%Y %I:%M %p')}"
-                )
-                worksheet["A6"].alignment = Alignment(
-                    horizontal="center"
-                )
-
-                # ===== TABLE HEADER STYLE =====
-                for cell in worksheet[8]:
-                    cell.font = Font(bold=True)
-                    cell.fill = PatternFill(
-                        fill_type="solid",
-                        fgColor="D9D9D9"
-                    )
-
-                # ===== COLUMN WIDTHS =====
-                worksheet.column_dimensions["A"].width = 18
-                worksheet.column_dimensions["B"].width = 25
-                worksheet.column_dimensions["C"].width = 18
-                worksheet.column_dimensions["D"].width = 20
-                worksheet.column_dimensions["E"].width = 18
-                worksheet.column_dimensions["F"].width = 22
-                worksheet.column_dimensions["G"].width = 15
-                worksheet.column_dimensions["H"].width = 15
-                
-            excel_buffer.seek(0)
-
-            test_excel = generate_excel_report(
-                df=export_df,
-                report_title="COLLECTIONS REPORT"
-            )
-
-            st.download_button(
-                label="🧪 Test Common Excel",
-                data=test_excel.getvalue(),
-                file_name="collections_test.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                use_container_width=True
-            )
+    return excel_buffer
             
             # ===== PDF =====
 
