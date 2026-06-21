@@ -2863,296 +2863,33 @@ elif menu == "Reports":
                     available_export_columns
                 ]
 
-                # ================= EXCEL =================
+                # ================= COMMON EXCEL EXPORT =================
 
-                excel_buffer = BytesIO()
-
-                with pd.ExcelWriter(
-                    excel_buffer,
-                    engine="openpyxl"
-                ) as writer:
-
-                    loan_export.to_excel(
-                        writer,
-                        index=False,
-                        sheet_name="Loan Report",
-                        startrow=7
-                    )
-
-                    workbook = writer.book
-                    worksheet = writer.sheets["Loan Report"]
-
-                    # ===== LOGO =====
-                    try:
-                        logo = ExcelImage("logo.png")
-                        logo.width = 65
-                        logo.height = 65
-                        worksheet.add_image(logo, "A1")
-                    except:
-                        pass
-
-                    # ===== HEADER =====
-                    worksheet.merge_cells("B1:H1")
-                    worksheet["B1"] = "बाल युवा मंगलदल समिति"
-                    worksheet["B1"].font = Font(
-                        size=18,
-                        bold=True,
-                        color="F8D568"
-                    )
-                    worksheet["B1"].alignment = Alignment(
-                        horizontal="center"
-                    )
-
-                    worksheet.merge_cells("B2:H2")
-                    worksheet["B2"] = "मयलगांव"
-                    worksheet["B2"].font = Font(
-                        size=14,
-                        bold=True,
-                        color="EFD58A"
-                    )
-                    worksheet["B2"].alignment = Alignment(
-                        horizontal="center"
-                    )
-
-                    worksheet.merge_cells("B3:H3")
-                    worksheet["B3"] = "हमारा गांव • हमारी पहचान • हमारा अभियान"
-                    worksheet["B3"].alignment = Alignment(
-                        horizontal="center"
-                    )
-
-                    worksheet.merge_cells("A5:H5")
-                    worksheet["A5"] = "LOANS REPORT"
-                    worksheet["A5"].font = Font(
-                        size=16,
-                        bold=True
-                    )
-                    worksheet["A5"].alignment = Alignment(
-                        horizontal="center"
-                    )
-
-                    worksheet.merge_cells("A6:H6")
-                    worksheet["A6"] = (
-                        f"Generated On : "
-                        f"{datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%d-%m-%Y %I:%M %p')}"
-                    )
-                    worksheet["A6"].alignment = Alignment(
-                        horizontal="center"
-                    )
-
-                    # ===== TABLE HEADER STYLE =====
-                    for cell in worksheet[8]:
-                        cell.font = Font(bold=True)
-                        cell.fill = PatternFill(
-                            fill_type="solid",
-                            fgColor="EFD58A"
-                        )
-
-                    # ===== COLUMN WIDTHS =====
-                    worksheet.column_dimensions["A"].width = 18
-                    worksheet.column_dimensions["B"].width = 25
-                    worksheet.column_dimensions["C"].width = 18
-                    worksheet.column_dimensions["D"].width = 18
-                    worksheet.column_dimensions["E"].width = 18
-                    worksheet.column_dimensions["F"].width = 18
-                    worksheet.column_dimensions["G"].width = 18
-                    worksheet.column_dimensions["H"].width = 18
-
-                excel_buffer.seek(0)
+excel_buffer = generate_excel_report(
+    df=loan_export,
+    report_title="LOANS REPORT"
+)
                 
-                # ================= PDF =================
+                # ================= COMMON PDF EXPORT =================
 
-                pdf_buffer = BytesIO()
+generated_by = st.session_state.get(
+    "current_user",
+    "Admin"
+)
 
-                from reportlab.lib.pagesizes import A4, landscape
+summary_text = (
+    f"Total Loan : INR {total_loan:,.0f} | "
+    f"Paid : INR {total_paid:,.0f} | "
+    f"Interest : INR {total_interest:,.0f} | "
+    f"Balance : INR {total_balance:,.0f}"
+)
 
-                doc = SimpleDocTemplate(
-                    pdf_buffer,
-                    pagesize=landscape(A4),
-                    topMargin=15,
-                    bottomMargin=20,
-                    leftMargin=20,
-                    rightMargin=20
-                )
-
-                styles = getSampleStyleSheet()
-
-                title_style = styles["Heading1"]
-                title_style.alignment = TA_CENTER
-
-                center_style = styles["BodyText"]
-                center_style.alignment = TA_CENTER
-
-                elements = []
-
-                # ===== LOGO =====
-                try:
-                    logo = Image("logo.png")
-                    logo.drawHeight = 90
-                    logo.drawWidth = 90
-                    logo.hAlign = "CENTER"
-                    elements.append(logo)
-                except:
-                    pass
-
-                # ===== HEADER =====
-                elements.append(
-                    Paragraph(
-                        "<b>Bal Yuva Mangal Dal Samiti</b>",
-                        title_style
-                    )
-                )
-
-                elements.append(
-                    Paragraph(
-                        "<b>Mayalgaon</b>",
-                        center_style
-                    )
-                )
-
-                elements.append(
-                    Paragraph(
-                        "Hamara Gaon • Hamari Pehchan • Hamara Abhiyan",
-                        center_style
-                    )
-                )
-
-                elements.append(Spacer(1, 10))
-
-                elements.append(
-                    Paragraph(
-                        "<b>LOANS REPORT</b>",
-                        title_style
-                    )
-                )
-
-                elements.append(
-                    Paragraph(
-                        f"Generated On : {datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%d-%m-%Y %I:%M %p')}",
-                        center_style
-                    )
-                )
-
-                elements.append(Spacer(1, 10))
-
-                # ===== SUMMARY =====
-                generated_by = st.session_state.get(
-                    "current_user",
-                    "Admin"
-                )
-
-                summary_text = (
-                    f"<b>Total Loan :</b> INR {total_loan:,.0f}"
-                    f"&nbsp;&nbsp;&nbsp;&nbsp;"
-                    f"<b>Paid :</b> INR {total_paid:,.0f}"
-                    f"&nbsp;&nbsp;&nbsp;&nbsp;"
-                    f"<b>Interest :</b> INR {total_interest:,.0f}"
-                    f"&nbsp;&nbsp;&nbsp;&nbsp;"
-                    f"<b>Balance :</b> INR {total_balance:,.0f}"
-                )
-
-                elements.append(
-                    Paragraph(
-                        summary_text,
-                        center_style
-                    )
-                )
-
-                elements.append(Spacer(1, 15))
-
-                # ===== MONTH WISE DATA FOR PDF =====
-                pdf_df = timeline_df.copy()
-
-                # Date Formatting
-                if "Loan Start Date" in pdf_df.columns:
-                    pdf_df["Loan Start Date"] = pd.to_datetime(
-                        pdf_df["Loan Start Date"]
-                    ).dt.strftime("%d-%m-%Y")
-
-                # Clean Status Column
-                if "Status" in pdf_df.columns:
-                    pdf_df["Status"] = (
-                        pdf_df["Status"]
-                        .astype(str)
-                        .str.replace("⚠️", "", regex=False)
-                        .str.replace("✅", "", regex=False)
-                        .str.replace("■", "", regex=False)
-                        .str.replace("⬛", "", regex=False)
-                        .str.strip()
-                    )
-
-                # ===== TABLE =====
-                table_data = [pdf_df.columns.tolist()]
-
-                for row in pdf_df.values.tolist():
-                    table_data.append(row)
-
-                # Auto width table
-                table = Table(
-                    table_data,
-                    repeatRows=1
-                )
-
-                table.setStyle(
-                    TableStyle([
-                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EFD58A")),
-                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
-                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                        ("FONTSIZE", (0, 0), (-1, -1), 8),
-                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-
-                        # Alternate row colors
-                        ("ROWBACKGROUNDS", (0, 1), (-1, -1),
-                         [colors.white, colors.HexColor("#F7F7F7")]),
-
-                        # Padding
-                        ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                        ("TOPPADDING", (0, 0), (-1, -1), 6),
-                        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-
-                        ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-                    ])
-                )
-
-                elements.append(table)
-
-                elements.append(Spacer(1, 25))
-
-                # ===== FOOTER =====
-                elements.append(
-                    Paragraph(
-                        "<b>Bal Yuva Mangal Dal Samiti</b>",
-                        center_style
-                    )
-                )
-
-                elements.append(
-                    Paragraph(
-                        "Mayalgaon",
-                        center_style
-                    )
-                )
-
-                elements.append(
-                    Paragraph(
-                        f"Report Generated By : {generated_by}",
-                        center_style
-                    )
-                )
-
-                elements.append(
-                    Paragraph(
-                        "* End of Report *",
-                        center_style
-                    )
-                )
-
-                # ===== BUILD PDF =====
-                doc.build(elements)
-
-                pdf_buffer.seek(0)                 
+pdf_buffer = generate_pdf_report(
+    df=loan_export,
+    report_title="LOANS REPORT",
+    summary_text=summary_text,
+    generated_by=generated_by
+)                
                 # ================= DOWNLOAD =================
 
                 st.download_button(
