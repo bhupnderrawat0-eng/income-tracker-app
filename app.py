@@ -2375,6 +2375,7 @@ elif menu == "Reports":
             available_columns = [col for col in display_columns if col in records_df.columns]
 
             st.dataframe(records_df[available_columns], use_container_width=True)
+            
     # =========================================================
     # ================= LOANS REPORT ==========================
     # =========================================================
@@ -2865,31 +2866,31 @@ elif menu == "Reports":
 
                 # ================= COMMON EXCEL EXPORT =================
 
-excel_buffer = generate_excel_report(
-    df=loan_export,
-    report_title="LOANS REPORT"
-)
+                excel_buffer = generate_excel_report(
+                    df=loan_export,
+                    report_title="LOANS REPORT"
+                )
                 
                 # ================= COMMON PDF EXPORT =================
 
-generated_by = st.session_state.get(
-    "current_user",
-    "Admin"
-)
+                generated_by = st.session_state.get(
+                    "current_user",
+                    "Admin"
+                )
 
-summary_text = (
-    f"Total Loan : INR {total_loan:,.0f} | "
-    f"Paid : INR {total_paid:,.0f} | "
-    f"Interest : INR {total_interest:,.0f} | "
-    f"Balance : INR {total_balance:,.0f}"
-)
+                summary_text = (
+                    f"Total Loan : INR {total_loan:,.0f} | "
+                    f"Paid : INR {total_paid:,.0f} | "
+                    f"Interest : INR {total_interest:,.0f} | "
+                    f"Balance : INR {total_balance:,.0f}"
+                )
 
-pdf_buffer = generate_pdf_report(
-    df=loan_export,
-    report_title="LOANS REPORT",
-    summary_text=summary_text,
-    generated_by=generated_by
-)                
+                pdf_buffer = generate_pdf_report(
+                    df=loan_export,
+                    report_title="LOANS REPORT",
+                    summary_text=summary_text,
+                    generated_by=generated_by
+                )                
                 # ================= DOWNLOAD =================
 
                 st.download_button(
