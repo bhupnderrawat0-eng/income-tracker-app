@@ -7,6 +7,7 @@ import pandas as pd
 
 from openpyxl.drawing.image import Image as ExcelImage
 from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.utils import get_column_letter
 
 # ================= PDF IMPORTS =================
 
@@ -64,7 +65,7 @@ def generate_excel_report(
         # ================= HEADER =================
 
         end_col = max(len(df.columns), 8)
-        end_letter = chr(64 + min(end_col, 26))
+        end_letter = get_column_letter(end_col)
 
         worksheet.merge_cells(f"C1:{end_letter}1")
         worksheet["C1"] = "बाल युवा मंगलदल समिति"
@@ -121,8 +122,8 @@ def generate_excel_report(
 
         # ================= COLUMN WIDTH =================
 
-        for col_cells in worksheet.columns:
-            col_letter = col_cells[0].column_letter
+        for i in range(1, len(df.columns) + 1):
+            col_letter = get_column_letter(i)
             worksheet.column_dimensions[col_letter].width = 25
 
     excel_buffer.seek(0)
@@ -239,9 +240,7 @@ def generate_pdf_report(
     # ================= TABLE =================
 
     table_data = [clean_df.columns.tolist()]
-
-    for row in clean_df.values.tolist():
-        table_data.append(row)
+    table_data += clean_df.values.tolist()
 
     table = Table(table_data)
 
