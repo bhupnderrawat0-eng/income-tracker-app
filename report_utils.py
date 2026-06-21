@@ -177,8 +177,8 @@ def generate_pdf_report(
 
     try:
         logo = Image("logo.png")
-        logo.drawHeight = 90
-        logo.drawWidth = 90
+        logo.drawHeight = 140
+        logo.drawWidth = 140
         logo.hAlign = "CENTER"
         elements.append(logo)
     except:
