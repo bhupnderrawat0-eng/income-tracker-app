@@ -103,18 +103,26 @@ def generate_excel_report(
             )
 
         # ===== AUTO WIDTH =====
-        for column_cells in worksheet.columns:
+from openpyxl.utils import get_column_letter
 
-            length = max(
-                len(str(cell.value))
-                if cell.value else 0
-                for cell in column_cells
-            )
+for col_num, column_cells in enumerate(
+        worksheet.iter_cols(min_row=8),
+        1):
 
-            worksheet.column_dimensions[
-                column_cells[0].column_letter
-            ].width = length + 5
+    max_length = 0
 
-    excel_buffer.seek(0)
+    for cell in column_cells:
+        try:
+            if cell.value:
+                max_length = max(
+                    max_length,
+                    len(str(cell.value))
+                )
+        except:
+            pass
 
-    return excel_buffer
+    adjusted_width = max_length + 5
+
+    worksheet.column_dimensions[
+        get_column_letter(col_num)
+    ].width = adjusted_width
