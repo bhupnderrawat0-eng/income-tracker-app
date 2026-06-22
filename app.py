@@ -2965,11 +2965,11 @@ elif menu == "Reports":
                     "current_user",
                     "Admin"
                 ),
-                landscape_mode=True
+                landscape_mode=True,
                 custom_col_widths=[
                     75, 70, 65, 60, 55,
                     55, 55, 55, 55, 45
-            ]
+                ]
             )
             # ================= DOWNLOAD =================
 
