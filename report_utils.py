@@ -22,6 +22,7 @@ from reportlab.platypus import (
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import A4, landscape
 
 
 # =====================================================
@@ -152,13 +153,16 @@ def generate_pdf_report(
     df,
     report_title="REPORT",
     summary_text="",
-    generated_by="Admin"
+    generated_by="Admin",
+    landscape_mode=False
 ):
 
     pdf_buffer = BytesIO()
-
+    
+    page_size = landscape(A4) if landscape_mode else A4
     doc = SimpleDocTemplate(
         pdf_buffer,
+        pagesize=page_size,
         topMargin=20,
         bottomMargin=20
     )
