@@ -2966,6 +2966,10 @@ elif menu == "Reports":
                     "Admin"
                 ),
                 landscape_mode=True
+                custom_col_widths=[
+                    75, 70, 65, 60, 55,
+                    55, 55, 55, 55, 45
+            ]
             )
             # ================= DOWNLOAD =================
 
