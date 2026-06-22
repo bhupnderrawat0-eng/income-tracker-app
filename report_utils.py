@@ -154,7 +154,8 @@ def generate_pdf_report(
     report_title="REPORT",
     summary_text="",
     generated_by="Admin",
-    landscape_mode=False
+    landscape_mode=False,
+    custom_col_widths=None
 ):
 
     pdf_buffer = BytesIO()
@@ -259,7 +260,17 @@ def generate_pdf_report(
     table_data = [clean_df.columns.tolist()]
     table_data += clean_df.values.tolist()
 
-    table = Table(table_data)
+    if custom_col_widths:
+        table = Table(
+            table_data,
+            colWidths=custom_col_widths,
+            repeatRows=1
+        )
+    else:
+        table = Table(
+            table_data,
+            repeatRows=1
+        )
 
     table.setStyle(
         TableStyle([
