@@ -2964,7 +2964,8 @@ elif menu == "Reports":
                 generated_by=st.session_state.get(
                     "current_user",
                     "Admin"
-                )
+                ),
+                landscape_mode=True
             )
             # ================= DOWNLOAD =================
 
