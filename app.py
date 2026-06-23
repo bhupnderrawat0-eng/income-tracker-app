@@ -357,7 +357,7 @@ else:
 
 # ================= ROLE BASED MENU =================
 if is_admin:
-    menu_list = ["Dashboard", "Members", "Collection Rates", "Collections", "loans", "Donations", "Expenses", "Reports", "Reminders", "Users", "AI"]
+    menu_list = ["Dashboard", "Members", "Collection Rates", "Collections", "loans", "Donations", "Expenses", "Reports", "Reminders", "Users", "Backup & Restore", "AI"]
 elif is_editor:
     menu_list = ["Dashboard", "Members", "Collection Rates", "Collections", "loans", "Donations", "Expenses", "Reports", "Reminders"]
 else:
