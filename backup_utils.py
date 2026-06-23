@@ -140,6 +140,22 @@ def restore_full_backup(uploaded_file, supabase):
                             else:
                                 row[key] = value
 
+                # ================= REMOVE AUTO GENERATED ID =================
+
+                auto_id_tables = [
+                    "reminders",
+                    "expenses",
+                    "donations",
+                    "audit_logs"
+                ]
+
+                if table_name in auto_id_tables:
+
+                    for row in records:
+
+                        if "id" in row:
+                            del row["id"]
+
                 # ================= DELETE OLD DATA =================
 
                 try:
