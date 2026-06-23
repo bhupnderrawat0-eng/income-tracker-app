@@ -101,6 +101,7 @@ def restore_full_backup(uploaded_file, supabase):
         if table_name in excel_file.sheet_names:
 
             try:
+
                 df = pd.read_excel(
                     excel_file,
                     sheet_name=table_name
@@ -110,26 +111,55 @@ def restore_full_backup(uploaded_file, supabase):
                 if df.empty:
                     continue
 
-                # Remove "No Data Found" sheets
+                # Skip "No Data Found" sheets
                 if "Message" in df.columns:
                     continue
 
-                records = df.to_dict(orient="records")
+                # Convert NaN to None
+                df = df.where(pd.notnull(df), None)
 
-                # Delete old data
-                supabase.table(table_name).delete().neq(
-                    "id", ""
-                ).execute()
+                records = df.to_dict(
+                    orient="records"
+                )
 
-                # Insert new data
+                # ===== DEBUG =====
+                print("=" * 50)
+                print("TABLE :", table_name)
+                print("RECORDS :", records)
+                print("=" * 50)
+
+                # Delete existing data
+                supabase.table(table_name)\
+                    .delete()\
+                    .neq("id", "")\
+                    .execute()
+
+                # Insert backup data
                 if records:
-                    supabase.table(table_name).insert(
-                        records
-                    ).execute()
 
-                restored_tables.append(table_name)
+                    response = (
+                        supabase.table(table_name)
+                        .insert(records)
+                        .execute()
+                    )
+
+                    print(
+                        f"{table_name} inserted successfully"
+                    )
+
+                restored_tables.append(
+                    table_name
+                )
 
             except Exception as e:
-                print(f"{table_name}: {e}")
+
+                print(
+                    f"ERROR in {table_name}: {str(e)}"
+                )
+
+                # Error screen par dikhane ke liye
+                raise Exception(
+                    f"{table_name}: {str(e)}"
+                )
 
     return restored_tables
