@@ -71,6 +71,9 @@ def create_full_backup(supabase):
         f"meeting_backup_"
         f"{datetime.now().strftime('%d-%m-%Y_%I-%M-%p')}.xlsx"
     )
+    
+    return backup_buffer, filename
+
 # =====================================================
 # ================ RESTORE DATABASE ===================
 # =====================================================
@@ -130,5 +133,3 @@ def restore_full_backup(uploaded_file, supabase):
                 print(f"{table_name}: {e}")
 
     return restored_tables
-
-    return backup_buffer, filename
