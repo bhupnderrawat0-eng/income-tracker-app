@@ -3142,72 +3142,86 @@ elif menu == "Reports":
 
             export_df = filtered_df.copy()
 
-            export_df["date"] = export_df["date"].astype(str)
+            export_df["date"] = pd.to_datetime(
+                export_df["date"]
+            ).dt.strftime("%d-%m-%Y")
 
-            export_df = export_df[
-                ["id", "name", "amount", "date", "note"]
-                if all(col in export_df.columns for col in ["id", "name", "amount", "date", "note"])
-                else [col for col in ["id", "name", "amount", "date", "note"] if col in export_df.columns]
-            ].copy()
+            export_columns = [
+                "id",
+                "name",
+                "amount",
+                "date",
+                "note"
+            ]
 
-            export_df.columns = [
-                "ID",
-                "Donor Name",
-                "Amount",
-                "Date",
-                "Note"
-            ][:len(export_df.columns)]
+            export_columns = [
+                col for col in export_columns
+                if col in export_df.columns
+            ]
 
-            excel_buffer = BytesIO()
+            export_df = export_df[export_columns].copy()
 
-            with pd.ExcelWriter(
-                excel_buffer,
-                engine="openpyxl"
-            ) as writer:
+            column_mapping = {
+                "id": "ID",
+                "name": "Donor Name",
+                "amount": "Amount",
+                "date": "Date",
+                "note": "Note"
+            }
 
-                export_df.to_excel(
-                    writer,
-                    index=False,
-                    sheet_name="Donations Report"
-                )
-
-            pdf_buffer = BytesIO()
-            doc = SimpleDocTemplate(pdf_buffer)
-            pdf_data = [list(export_df.columns)]
-            pdf_data += export_df.values.tolist()
-
-            table = Table(pdf_data)
-            table.setStyle(
-                TableStyle([
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
-                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                    ("FONTSIZE", (0, 0), (-1, -1), 8),
-                ])
+            export_df.rename(
+                columns=column_mapping,
+                inplace=True
             )
-            doc.build([table])
+
+            summary_text = (
+                f"<b>Total Amount :</b> ₹ {total_amount:,.0f}"
+                f"&nbsp;&nbsp;&nbsp;&nbsp;"
+                f"<b>Total Entries :</b> {total_entries}"
+                f"&nbsp;&nbsp;&nbsp;&nbsp;"
+                f"<b>Highest Donation :</b> ₹ {highest_donation:,.0f}"
+                f"&nbsp;&nbsp;&nbsp;&nbsp;"
+                f"<b>Average Donation :</b> ₹ {average_donation:,.0f}"
+            )
 
             e1, e2 = st.columns(2)
 
             with e1:
+
+                excel_file = generate_excel_report(
+                    df=export_df,
+                    report_title="DONATIONS REPORT"
+                )
+
                 st.download_button(
                     label="📥 Download Excel Report",
-                    data=excel_buffer.getvalue(),
+                    data=excel_file,
                     file_name="donations_report.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     use_container_width=True
                 )
 
             with e2:
+
+                pdf_file = generate_pdf_report(
+                    df=export_df,
+                    report_title="DONATIONS REPORT",
+                    summary_text=summary_text,
+                    generated_by=st.session_state.get(
+                        "username",
+                        "Admin"
+                    )
+                )
+
                 st.download_button(
                     label="📄 Download PDF Report",
-                    data=pdf_buffer.getvalue(),
+                    data=pdf_file,
                     file_name="donations_report.pdf",
                     mime="application/pdf",
                     use_container_width=True
                 )
 
             st.markdown("---")
-
             # ================= TABLE =================
 
             show_cols = [
