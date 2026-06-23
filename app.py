@@ -4527,6 +4527,35 @@ div[data-testid="stLinkButton"] a:focus {
                 st.success(
                     "✅ No Active Loan Balances"
                 )
+# ================= BACKUP & RESTORE =================
+
+elif menu == "Backup & Restore":
+
+    st.title("💾 Backup & Restore")
+
+    st.info(
+        "Create a full database backup before making major changes."
+    )
+
+    st.markdown("---")
+
+    st.subheader("📥 Full Database Backup")
+
+    backup_file, file_name = create_full_backup(
+        supabase
+    )
+
+    st.download_button(
+        label="⬇️ Download Full Backup",
+        data=backup_file,
+        file_name=file_name,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
+
+    st.success(
+        "This backup contains Members, Collections, Loans, Donations, Expenses, Reminders and Users data."
+    )
 # ================= AI =================
 elif menu == "AI":
     st.subheader("🤖 AI Insights (Coming Soon)")
