@@ -399,6 +399,7 @@ if not is_mobile:
                 "people",
                 "cash",
                 "bank",
+                "briefcase"
                 "gift",
                 "credit-card",
                 "bar-chart",
