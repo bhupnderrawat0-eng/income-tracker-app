@@ -399,11 +399,13 @@ if not is_mobile:
                 "people",
                 "cash",
                 "bank",
-                "briefcase"
+                "briefcase",
                 "gift",
                 "credit-card",
                 "bar-chart",
+                "bell",
                 "person",
+                "cloud-arrow-down",
                 "robot"
             ][:len(menu_list)],
             default_index=0,
