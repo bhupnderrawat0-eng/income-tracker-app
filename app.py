@@ -4577,6 +4577,11 @@ elif menu == "Backup & Restore":
         "Please take a fresh backup before restoring."
     )
 
+    st.info(
+        "📤 Select your previously downloaded backup (.xlsx) file "
+        "and then click Restore Database."
+    )
+
     uploaded_backup = st.file_uploader(
         "Upload Backup File",
         type=["xlsx"]
@@ -4615,13 +4620,18 @@ elif menu == "Backup & Restore":
                     )
 
                 st.success(
-                    "Restore completed successfully!"
+                    "🎉 Restore completed successfully!"
                 )
 
-                st.write("### Restored Tables")
+                st.write(
+                    "### Restored Tables"
+                )
 
                 for table in restored_tables:
-                    st.write(f"✅ {table}")
+
+                    st.write(
+                        f"✅ {table}"
+                    )
 
                 st.cache_data.clear()
 
