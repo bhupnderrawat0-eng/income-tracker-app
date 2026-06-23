@@ -288,6 +288,32 @@ html, body, .stApp {
     border-radius: 18px;
     background: transparent !important;
 }
+/* ===== FILE UPLOADER PREMIUM BLUE ===== */
+
+[data-testid="stFileUploader"] {
+    background: rgba(99,102,241,0.12) !important;
+    border: 1px solid rgba(99,102,241,0.35) !important;
+    border-radius: 14px !important;
+    padding: 12px !important;
+    backdrop-filter: blur(18px);
+}
+
+[data-testid="stFileUploader"] section {
+    background: linear-gradient(
+        135deg,
+        rgba(99,102,241,0.25),
+        rgba(124,58,237,0.25)
+    ) !important;
+
+    border: 1px dashed rgba(255,255,255,0.25) !important;
+    border-radius: 12px !important;
+}
+
+[data-testid="stFileUploader"] small,
+[data-testid="stFileUploader"] label,
+[data-testid="stFileUploader"] span {
+    color: white !important;
+}
 </style>
 """, unsafe_allow_html=True)
 # ================= SESSION =================
