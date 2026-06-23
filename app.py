@@ -4530,7 +4530,9 @@ div[data-testid="stLinkButton"] a:focus {
                 st.success(
                     "✅ No Active Loan Balances"
                 )
-# ================= BACKUP & RESTORE =================
+# =====================================================
+# ============== BACKUP & RESTORE =====================
+# =====================================================
 
 elif menu == "Backup & Restore":
 
@@ -4541,6 +4543,8 @@ elif menu == "Backup & Restore":
     )
 
     st.markdown("---")
+
+    # ================= BACKUP =================
 
     st.subheader("📥 Full Database Backup")
 
@@ -4557,8 +4561,68 @@ elif menu == "Backup & Restore":
     )
 
     st.success(
-        "This backup contains Members, Collections, Loans, Donations, Expenses, Reminders and Users data."
+        "This backup contains Members, Collections, "
+        "Collection Rates, Loans, Loan Payments, "
+        "Donations, Expenses, Reminders and Users data."
     )
+
+    st.markdown("---")
+
+    # ================= RESTORE =================
+
+    st.subheader("♻️ Restore Database")
+
+    st.warning(
+        "⚠️ Restoring backup will replace existing data. "
+        "Please take a fresh backup before restoring."
+    )
+
+    uploaded_backup = st.file_uploader(
+        "Upload Backup File",
+        type=["xlsx"]
+    )
+
+    if uploaded_backup is not None:
+
+        st.info(
+            f"Selected File: {uploaded_backup.name}"
+        )
+
+        if st.button(
+            "♻️ Restore Database",
+            use_container_width=True
+        ):
+
+            try:
+
+                with st.spinner(
+                    "Restoring database..."
+                ):
+
+                    restored_tables = (
+                        restore_full_backup(
+                            uploaded_backup,
+                            supabase
+                        )
+                    )
+
+                st.success(
+                    "Restore completed successfully!"
+                )
+
+                st.write(
+                    "Restored Tables:"
+                )
+
+                for table in restored_tables:
+                    st.write(f"✅ {table}")
+
+                st.cache_data.clear()
+
+            except Exception as e:
+                st.error(
+                    f"Restore failed: {e}"
+                )
 # ================= AI =================
 elif menu == "AI":
     st.subheader("🤖 AI Insights (Coming Soon)")
