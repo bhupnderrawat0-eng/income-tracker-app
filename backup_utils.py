@@ -120,41 +120,65 @@ def restore_full_backup(uploaded_file, supabase):
                     orient="records"
                 )
 
-                # Replace NaN values with None
+                # ================= CLEAN DATA =================
+
                 for row in records:
 
                     for key, value in row.items():
 
+                        # NaN -> None
                         if pd.isna(value):
                             row[key] = None
 
-                # ===== DEBUG =====
-                print("=" * 50)
-                print("TABLE :", table_name)
-                print("RECORDS :", records)
-                print("=" * 50)
+                        # Empty String -> None
+                        elif isinstance(value, str):
 
-                # Delete old data
-                supabase.table(table_name)\
-                    .delete()\
-                    .neq("id", "")\
-                    .execute()
+                            value = value.strip()
 
-                # Insert backup data
-                if records:
+                            if value == "":
+                                row[key] = None
+                            else:
+                                row[key] = value
 
-                    response = (
+                # ================= DELETE OLD DATA =================
+
+                try:
+
+                    existing_rows = (
                         supabase.table(table_name)
-                        .insert(records)
+                        .select("id")
                         .execute()
                     )
 
+                    if existing_rows.data:
+
+                        for item in existing_rows.data:
+
+                            supabase.table(table_name)\
+                                .delete()\
+                                .eq("id", item["id"])\
+                                .execute()
+
+                except Exception as e:
+
                     print(
-                        f"{table_name} restored successfully"
+                        f"Delete Error ({table_name}): {e}"
                     )
+
+                # ================= INSERT NEW DATA =================
+
+                if records:
+
+                    supabase.table(table_name)\
+                        .insert(records)\
+                        .execute()
 
                 restored_tables.append(
                     table_name
+                )
+
+                print(
+                    f"{table_name} restored successfully"
                 )
 
             except Exception as e:
