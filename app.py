@@ -4573,7 +4573,7 @@ elif menu == "Backup & Restore":
     st.subheader("♻️ Restore Database")
 
     st.warning(
-        "⚠️ Restoring backup will replace existing data. "
+        "⚠️ Restoring backup will replace existing data.\n\n"
         "Please take a fresh backup before restoring."
     )
 
@@ -4584,14 +4584,22 @@ elif menu == "Backup & Restore":
 
     if uploaded_backup is not None:
 
-        st.info(
-            f"Selected File: {uploaded_backup.name}"
+        st.success(
+            f"📄 Selected File: {uploaded_backup.name}"
         )
 
-        if st.button(
-            "♻️ Restore Database",
-            use_container_width=True
-        ):
+    if st.button(
+        "♻️ Restore Database",
+        use_container_width=True
+    ):
+
+        if uploaded_backup is None:
+
+            st.warning(
+                "Please upload a backup file first."
+            )
+
+        else:
 
             try:
 
@@ -4610,9 +4618,7 @@ elif menu == "Backup & Restore":
                     "Restore completed successfully!"
                 )
 
-                st.write(
-                    "Restored Tables:"
-                )
+                st.write("### Restored Tables")
 
                 for table in restored_tables:
                     st.write(f"✅ {table}")
@@ -4620,6 +4626,7 @@ elif menu == "Backup & Restore":
                 st.cache_data.clear()
 
             except Exception as e:
+
                 st.error(
                     f"Restore failed: {e}"
                 )
