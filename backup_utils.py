@@ -89,7 +89,6 @@ def restore_full_backup(uploaded_file, supabase):
         "donations",
         "expenses",
         "reminders",
-        "users"
     ]
 
     excel_file = pd.ExcelFile(uploaded_file)
