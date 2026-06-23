@@ -115,12 +115,18 @@ def restore_full_backup(uploaded_file, supabase):
                 if "Message" in df.columns:
                     continue
 
-                # Convert NaN to None
-                df = df.where(pd.notnull(df), None)
-
+                # Convert dataframe to records
                 records = df.to_dict(
                     orient="records"
                 )
+
+                # Replace NaN values with None
+                for row in records:
+
+                    for key, value in row.items():
+
+                        if pd.isna(value):
+                            row[key] = None
 
                 # ===== DEBUG =====
                 print("=" * 50)
@@ -128,7 +134,7 @@ def restore_full_backup(uploaded_file, supabase):
                 print("RECORDS :", records)
                 print("=" * 50)
 
-                # Delete existing data
+                # Delete old data
                 supabase.table(table_name)\
                     .delete()\
                     .neq("id", "")\
@@ -144,7 +150,7 @@ def restore_full_backup(uploaded_file, supabase):
                     )
 
                     print(
-                        f"{table_name} inserted successfully"
+                        f"{table_name} restored successfully"
                     )
 
                 restored_tables.append(
@@ -157,7 +163,6 @@ def restore_full_backup(uploaded_file, supabase):
                     f"ERROR in {table_name}: {str(e)}"
                 )
 
-                # Error screen par dikhane ke liye
                 raise Exception(
                     f"{table_name}: {str(e)}"
                 )
