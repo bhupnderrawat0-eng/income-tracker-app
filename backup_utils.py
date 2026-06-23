@@ -2,7 +2,6 @@ from io import BytesIO
 from datetime import datetime
 import pandas as pd
 
-
 # =====================================================
 # ============= FULL DATABASE BACKUP ==================
 # =====================================================
@@ -72,5 +71,64 @@ def create_full_backup(supabase):
         f"meeting_backup_"
         f"{datetime.now().strftime('%d-%m-%Y_%I-%M-%p')}.xlsx"
     )
+# =====================================================
+# ================ RESTORE DATABASE ===================
+# =====================================================
+
+def restore_full_backup(uploaded_file, supabase):
+
+    tables = [
+        "members",
+        "collections",
+        "collection_rates",
+        "loans",
+        "loan_payments",
+        "donations",
+        "expenses",
+        "reminders",
+        "users"
+    ]
+
+    excel_file = pd.ExcelFile(uploaded_file)
+
+    restored_tables = []
+
+    for table_name in tables:
+
+        if table_name in excel_file.sheet_names:
+
+            try:
+                df = pd.read_excel(
+                    excel_file,
+                    sheet_name=table_name
+                )
+
+                # Skip empty sheets
+                if df.empty:
+                    continue
+
+                # Remove "No Data Found" sheets
+                if "Message" in df.columns:
+                    continue
+
+                records = df.to_dict(orient="records")
+
+                # Delete old data
+                supabase.table(table_name).delete().neq(
+                    "id", ""
+                ).execute()
+
+                # Insert new data
+                if records:
+                    supabase.table(table_name).insert(
+                        records
+                    ).execute()
+
+                restored_tables.append(table_name)
+
+            except Exception as e:
+                print(f"{table_name}: {e}")
+
+    return restored_tables
 
     return backup_buffer, filename
