@@ -314,6 +314,27 @@ html, body, .stApp {
 [data-testid="stFileUploader"] span {
     color: white !important;
 }
+/* ===== FILE UPLOADER BUTTON ===== */
+
+[data-testid="stFileUploader"] button {
+    background: linear-gradient(
+        135deg,
+        #6366f1,
+        #7c3aed
+    ) !important;
+
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+}
+
+[data-testid="stFileUploader"] button:hover {
+    background: linear-gradient(
+        135deg,
+        #7c3aed,
+        #6366f1
+    ) !important;
+}
 </style>
 """, unsafe_allow_html=True)
 # ================= SESSION =================
