@@ -4530,7 +4530,7 @@ div[data-testid="stLinkButton"] a:focus {
                 st.success(
                     "✅ No Active Loan Balances"
                 )
-# =====================================================
+[23:10, 23/6/2026] My no: # =====================================================
 # ============== BACKUP & RESTORE =====================
 # =====================================================
 
@@ -4634,6 +4634,111 @@ elif menu == "Backup & Restore":
                     )
 
                 st.cache_data.clear()
+
+            except Exception as e:
+
+                st.error(
+                    f"Restore failed: {e}"
+                )
+[23:13, 23/6/2026] My no: # =====================================================
+# ============== BACKUP & RESTORE =====================
+# =====================================================
+
+elif menu == "Backup & Restore":
+
+    st.title("💾 Backup & Restore")
+
+    st.info(
+        "Create a full database backup before making major changes."
+    )
+
+    st.markdown("---")
+
+    # ================= BACKUP =================
+
+    st.subheader("📥 Full Database Backup")
+
+    backup_file, file_name = create_full_backup(
+        supabase
+    )
+
+    st.download_button(
+        label="⬇️ Download Full Backup",
+        data=backup_file,
+        file_name=file_name,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        use_container_width=True
+    )
+
+    st.success(
+        "This backup contains Members, Collections, "
+        "Collection Rates, Loans, Loan Payments, "
+        "Donations, Expenses, Reminders and Users data."
+    )
+
+    st.markdown("---")
+
+    # ================= RESTORE =================
+
+    st.subheader("♻️ Restore Database")
+
+    st.warning(
+        "⚠️ Restoring backup will replace existing data.\n\n"
+        "Please take a fresh backup before restoring."
+    )
+
+    uploaded_backup = st.file_uploader(
+        "📤 Upload Backup (.xlsx)",
+        type=["xlsx"]
+    )
+
+    if uploaded_backup is not None:
+
+        st.success(
+            f"📄 Selected File: {uploaded_backup.name}"
+        )
+
+    if st.button(
+        "♻️ Restore Database",
+        use_container_width=True
+    ):
+
+        if uploaded_backup is None:
+
+            st.warning(
+                "Please upload a backup file first."
+            )
+
+        else:
+
+            try:
+
+                with st.spinner(
+                    "Restoring database..."
+                ):
+
+                    restored_tables = (
+                        restore_full_backup(
+                            uploaded_backup,
+                            supabase
+                        )
+                    )
+
+                st.success(
+                    "🎉 Restore completed successfully!"
+                )
+
+                st.write("### Restored Tables")
+
+                for table in restored_tables:
+
+                    st.write(
+                        f"✅ {table}"
+                    )
+
+                st.cache_data.clear()
+
+                st.rerun()
 
             except Exception as e:
 
