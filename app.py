@@ -2078,12 +2078,11 @@ elif menu == "Reports":
 
     # ================= TABS =================
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, = st.tabs([
         "💰 Collections",
         "🏦 Loans",
         "🎁 Donations",
         "💸 Expenses",
-        "🔔 Reminders"
     ])
 
     # =========================================================
@@ -3549,7 +3548,7 @@ elif menu == "Reports":
 
     )
 
-    f1, f2, f3, f4, f5 = st.columns(5)
+    f1, f2, f3, f4, = st.columns(5)
 
     with f1:
 
@@ -3578,13 +3577,7 @@ elif menu == "Reports":
             "💸 Expenses",
             f"₹ {total_expense_all:,.0f}"
         )
-
-    with f5:
-
-        st.metric(
-            "📈 Profit",
-            f"₹ {profit:,.0f}"
-        )
+   
 # ================= USERS =================
 if menu == "Users":
 
