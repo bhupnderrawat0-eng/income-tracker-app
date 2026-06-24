@@ -357,6 +357,32 @@ if st.session_state.get("logged_in"):
     # update activity time
     st.session_state.last_active = time.time()
 
+def add_bg_from_local(image_file):
+    with open(image_file, "rb") as image:
+        encoded = base64.b64encode(image.read()).decode()
+
+    st.markdown(
+        f"""
+        <style>
+
+        .stApp {{
+            background-image:
+                linear-gradient(
+                    rgba(0,0,0,0.45),
+                    rgba(0,0,0,0.45)
+                ),
+                url("data:image/png;base64,{encoded}");
+
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 # ================= LOGIN HEADER =================
 
 col1, col2, col3 = st.columns([1, 4, 1])
