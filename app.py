@@ -367,7 +367,7 @@ if not st.session_state.get("logged_in", False):
         border-radius:20px;
         border:1px solid rgba(255,255,255,0.08);
         backdrop-filter: blur(14px);
-        max-width:500px;
+        max-width:600px;
         margin:auto;
     }
 
@@ -375,15 +375,24 @@ if not st.session_state.get("logged_in", False):
         color:white !important;
         font-weight:600;
     }
+
+    div.stForm button {
+        width:100% !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
 
-        st.image("logo.png", width=140)
+        # ===== CENTER LOGO =====
+        logo_col1, logo_col2, logo_col3 = st.columns([1.5, 1, 1.5])
 
+        with logo_col2:
+            st.image("logo.png", width=140)
+
+        # ===== TITLE =====
         st.markdown("""
         <h1 style='
             text-align:center;
@@ -427,6 +436,7 @@ if not st.session_state.get("logged_in", False):
         </p>
         """, unsafe_allow_html=True)
 
+        # ===== LOGIN FORM =====
         with st.form("login_form"):
 
             u = st.text_input("👤 Username")
