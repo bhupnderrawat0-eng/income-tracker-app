@@ -358,41 +358,45 @@ if st.session_state.get("logged_in"):
 
 # ================= LOGIN HEADER =================
 
-col1, col2 = st.columns([0.9, 2.1])
+col1, col2, col3 = st.columns([1.2, 2.5, 0.3])
 
 with col1:
     st.markdown(
         """
         <div style="
-            margin-top:100px; 
-            text-align:center;
+            margin-top:80px;
+            text-align:right;
+            padding-right:20px;
         ">
         """,
         unsafe_allow_html=True
     )
 
-    st.image("logo.png", width=180)
+    st.image("logo.png", width=240)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
 with col2:
 
     st.markdown("""
-        <div style="margin-top:40px;">
+        <div style="
+            margin-top:60px;
+            padding-left:0px;
+        ">
 
         <h1 style="
             color:#f7d774;
-            font-size:52px;
+            font-size:58px;
             font-weight:700;
             margin-bottom:10px;
-            line-height:1.2;
+            line-height:1.1;
         ">
             बाल युवा मंगलदल समिति
         </h1>
 
         <h2 style="
             color:#f7d774;
-            font-size:34px;
+            font-size:38px;
             margin-top:0px;
             margin-bottom:20px;
         ">
