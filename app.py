@@ -363,7 +363,7 @@ if not st.session_state.get("logged_in", False):
 
     with c2:
 
-        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br><br><br>", unsafe_allow_html=True)
 
         st.image("logo.png", width=180)
 
@@ -391,6 +391,20 @@ if not st.session_state.get("logged_in", False):
             ">
                 मयलगांव
             </h4>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            """
+            <p style="
+                color:#94A3B8;
+                font-size:14px;
+                text-align:center;
+                margin-bottom:20px;
+            ">
+                हमारा गांव • हमारी पहचान • हमारा अभियान
+            </p>
             """,
             unsafe_allow_html=True
         )
@@ -507,7 +521,6 @@ if not st.session_state.get("logged_in", False):
         )
 
     st.stop()
-
 # ================= ROLE SETUP =================
 role = st.session_state.get("role", None)
 
