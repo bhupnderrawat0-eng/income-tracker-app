@@ -365,24 +365,29 @@ def add_bg_from_local(image_file):
         f"""
         <style>
         html, body, [data-testid="stAppViewContainer"] {
-    height: 100vh;
-    overflow: hidden !important;
-}
+            height: 100vh;
+            overflow: hidden !important;
+        }
 
-section.main > div {
-    padding-top: 0rem !important;
-    padding-bottom: 0rem !important;
-}
+        section.main > div {
+            padding-top: 0rem !important;
+            padding-bottom: 0rem !important;
+        }
 
-.block-container {
-    padding-top: 1rem !important;
-    padding-bottom: 0rem !important;
-    max-width: 100% !important;
-}
+        .block-container {
+            padding-top: 1rem !important;
+            padding-bottom: 0rem !important;
+            max-width: 100% !important;
+        }
 
-[data-testid="stVerticalBlock"] {
-    gap: 0rem !important;
-}
+        [data-testid="stVerticalBlock"] {
+            gap: 0rem !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
 add_bg_from_local("login_bg.png")
 # ================= LOGIN HEADER =================
 
