@@ -406,14 +406,14 @@ def add_bg_from_local(image_file):
 add_bg_from_local("login_bg.png")
 # ================= LOGIN HEADER =================
 
-col1, col2, col3 = st.columns([1, 4, 1])
+col1, col2, = st.columns([1.4, 2])
 
-with col2:
+with col1:
 
     st.markdown("""
         <div style="
             margin-top:60px;
-            text-align:center;
+            text-align:left;
         ">
 
         <h1 style="
