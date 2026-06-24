@@ -358,21 +358,21 @@ if st.session_state.get("logged_in"):
 
 # ================= LOGIN HEADER =================
 
-col1, col2, col3 = st.columns([1.5, 2.0, 0.2])
+col1, col2, col3 = st.columns([1.6, 2.0, 0.1])
 
 with col1:
     st.markdown(
         """
         <div style="
-            margin-top:55px;
+            margin-top:70px;
             text-align:right;
-            padding-right:-10px;
+            padding-right:-40px;
         ">
         """,
         unsafe_allow_html=True
     )
 
-    st.image("logo.png", width=300)
+    st.image("logo.png", width=280)
 
     st.markdown("</div>", unsafe_allow_html=True)
 
