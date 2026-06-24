@@ -479,7 +479,7 @@ if not st.session_state.get("logged_in", False):
     </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1.5, 1.5, 0.5])
+    col1, col2, col3 = st.columns([2.2, 0.8, 0.1])
 
     with col1:
         
