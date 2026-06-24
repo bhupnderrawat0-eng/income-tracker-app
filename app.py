@@ -363,47 +363,65 @@ if not st.session_state.get("logged_in", False):
 
     with c2:
 
-        st.markdown("<br><br>", unsafe_allow_html=True)
-
-        st.markdown("""
-        <div class="glass-card" style="
-            text-align:center;
-            padding:35px;
-            margin-top:20px;
-        ">
-        """, unsafe_allow_html=True)
+        st.markdown("<br><br><br>", unsafe_allow_html=True)
 
         st.image("logo.png", width=180)
 
-        st.markdown("""
+        st.markdown(
+            """
             <h2 style="
                 color:#F8D568;
                 margin-bottom:0px;
                 font-weight:700;
+                text-align:center;
             ">
                 बाल युवा मंगलदल समिति
             </h2>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
 
-        st.markdown("""
+        st.markdown(
+            """
             <h4 style="
                 color:#EFD58A;
                 margin-top:8px;
                 margin-bottom:10px;
+                text-align:center;
             ">
                 मयलगांव
             </h4>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
 
-        st.markdown("""
+        st.markdown(
+            """
             <p style="
                 color:#CBD5E1;
                 font-size:15px;
-                margin-bottom:25px;
+                margin-bottom:10px;
+                text-align:center;
             ">
                 Secure Finance Management System
             </p>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            """
+            <p style="
+                color:#94A3B8;
+                font-size:14px;
+                margin-bottom:20px;
+                text-align:center;
+            ">
+                Welcome Back 👋 Please login to continue
+            </p>
+            """,
+            unsafe_allow_html=True
+        )
 
         with st.form("login_form"):
 
@@ -474,17 +492,19 @@ if not st.session_state.get("logged_in", False):
                             f"Login Error: {e}"
                         )
 
-        st.markdown("""
+        st.markdown(
+            """
             <p style="
-                color:#94A3B8;
+                color:#64748B;
                 font-size:12px;
+                text-align:center;
                 margin-top:20px;
             ">
                 Version 1.0 • Secure • Reliable • Fast
             </p>
-        """, unsafe_allow_html=True)
-
-        st.markdown("</div>", unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True
+        )
 
     st.stop()
 
