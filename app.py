@@ -358,7 +358,7 @@ if st.session_state.get("logged_in"):
 
 # ================= LOGIN HEADER =================
 
-col1, col2 = st.columns([1, 2])
+col1, col2 = st.columns([0.7, 2.3])
 
 with col1:
     st.markdown(
