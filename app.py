@@ -383,6 +383,7 @@ def add_bg_from_local(image_file):
         """,
         unsafe_allow_html=True
     )
+add_bg_from_local("login_bg.png")
 # ================= LOGIN HEADER =================
 
 col1, col2, col3 = st.columns([1, 4, 1])
