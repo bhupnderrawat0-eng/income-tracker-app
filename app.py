@@ -494,9 +494,7 @@ if not st.session_state.get("logged_in", False):
         font-weight:600;
     }
 
-    div.stForm button {
-        width:100% !important;
-    }
+    
     </style>
     """, unsafe_allow_html=True)
 
