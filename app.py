@@ -358,36 +358,134 @@ if st.session_state.get("logged_in"):
 
 # ===== LOGIN SYSTEM =====
 if not st.session_state.get("logged_in", False):
-    with st.form("login_form"):
-        u = st.text_input("Username")
-        p = st.text_input("Password", type="password")
-        submitted = st.form_submit_button("Login")
 
-        if submitted:
-            if u == "" or p == "":
-                st.warning("Enter Username & Password")
-            else:
-                try:
-                    user_data = supabase.table("users").select("*").eq("username", u).execute()
+    c1, c2, c3 = st.columns([1, 1.3, 1])
 
-                    if user_data.data:
-                        user = user_data.data[0]
+    with c2:
 
-                        if user["password"] == hash_pass(p):
-                            # ✅ SESSION SET
-                            st.session_state.logged_in = True
-                            st.session_state.current_user = user["username"]
-                            st.session_state.role = user["role"]
+        st.markdown("<br><br>", unsafe_allow_html=True)
 
-                            # ✅ START TIMER
-                            st.session_state.last_active = time.time()
-                            st.rerun()
+        st.markdown("""
+        <div class="glass-card" style="
+            text-align:center;
+            padding:35px;
+            margin-top:20px;
+        ">
+        """, unsafe_allow_html=True)
+
+        st.image("logo.png", width=180)
+
+        st.markdown("""
+            <h2 style="
+                color:#F8D568;
+                margin-bottom:0px;
+                font-weight:700;
+            ">
+                बाल युवा मंगलदल समिति
+            </h2>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+            <h4 style="
+                color:#EFD58A;
+                margin-top:8px;
+                margin-bottom:10px;
+            ">
+                मयलगांव
+            </h4>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+            <p style="
+                color:#CBD5E1;
+                font-size:15px;
+                margin-bottom:25px;
+            ">
+                Secure Finance Management System
+            </p>
+        """, unsafe_allow_html=True)
+
+        with st.form("login_form"):
+
+            u = st.text_input(
+                "👤 Username"
+            )
+
+            p = st.text_input(
+                "🔒 Password",
+                type="password"
+            )
+
+            submitted = st.form_submit_button(
+                "🚀 Login",
+                use_container_width=True
+            )
+
+            if submitted:
+
+                if u == "" or p == "":
+                    st.warning(
+                        "Enter Username & Password"
+                    )
+
+                else:
+
+                    try:
+
+                        user_data = (
+                            supabase.table("users")
+                            .select("*")
+                            .eq("username", u)
+                            .execute()
+                        )
+
+                        if user_data.data:
+
+                            user = user_data.data[0]
+
+                            if user["password"] == hash_pass(p):
+
+                                st.session_state.logged_in = True
+                                st.session_state.current_user = user["username"]
+                                st.session_state.role = user["role"]
+                                st.session_state.last_active = time.time()
+
+                                st.success(
+                                    "Login Successful ✅"
+                                )
+
+                                time.sleep(1)
+
+                                st.rerun()
+
+                            else:
+                                st.error(
+                                    "Wrong Password"
+                                )
+
                         else:
-                            st.error("Wrong Password")
-                    else:
-                        st.error("User not found")
-                except Exception as e:
-                    st.error(f"Login Error: {e}")
+                            st.error(
+                                "User not found"
+                            )
+
+                    except Exception as e:
+
+                        st.error(
+                            f"Login Error: {e}"
+                        )
+
+        st.markdown("""
+            <p style="
+                color:#94A3B8;
+                font-size:12px;
+                margin-top:20px;
+            ">
+                Version 1.0 • Secure • Reliable • Fast
+            </p>
+        """, unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
     st.stop()
 
 # ================= ROLE SETUP =================
