@@ -359,109 +359,87 @@ if st.session_state.get("logged_in"):
 # ===== LOGIN SYSTEM =====
 if not st.session_state.get("logged_in", False):
 
-    c1, c2, c3 = st.columns([1, 1.3, 1])
+    st.markdown("""
+    <style>
+    div[data-testid="stForm"]{
+        background: rgba(255,255,255,0.05);
+        padding:30px;
+        border-radius:20px;
+        border:1px solid rgba(255,255,255,0.08);
+        backdrop-filter: blur(14px);
+        max-width:500px;
+        margin:auto;
+    }
 
-    with c2:
+    div[data-testid="stForm"] label{
+        color:white !important;
+        font-weight:600;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-        st.markdown("<br><br><br><br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1,2,1])
 
-        st.image("logo.png", width=180)
+    with col2:
 
-        st.markdown(
-            """
-            <h2 style="
-                color:#F8D568;
-                margin-bottom:0px;
-                font-weight:700;
-                text-align:center;
-            ">
-                बाल युवा मंगलदल समिति
-            </h2>
-            """,
-            unsafe_allow_html=True
-        )
+        st.image("logo.png", width=140)
 
-        st.markdown(
-            """
-            <h4 style="
-                color:#EFD58A;
-                margin-top:8px;
-                margin-bottom:10px;
-                text-align:center;
-            ">
-                मयलगांव
-            </h4>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+        <h1 style='
+            text-align:center;
+            color:#F8D568;
+            margin-bottom:5px;
+        '>
+            बाल युवा मंगलदल समिति
+        </h1>
+        """, unsafe_allow_html=True)
 
-        st.markdown(
-            """
-            <p style="
-                color:#94A3B8;
-                font-size:14px;
-                text-align:center;
-                margin-bottom:20px;
-            ">
-                हमारा गांव • हमारी पहचान • हमारा अभियान
-            </p>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+        <h3 style='
+            text-align:center;
+            color:#EFD58A;
+            margin-top:0px;
+            margin-bottom:5px;
+        '>
+            मयलगांव
+        </h3>
+        """, unsafe_allow_html=True)
 
-        st.markdown(
-            """
-            <p style="
-                color:#CBD5E1;
-                font-size:15px;
-                margin-bottom:10px;
-                text-align:center;
-            ">
-                Secure Finance Management System
-            </p>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+        <p style='
+            text-align:center;
+            color:#B8C7E0;
+            font-size:15px;
+            margin-bottom:5px;
+        '>
+            हमारा गांव • हमारी पहचान • हमारा अभियान
+        </p>
+        """, unsafe_allow_html=True)
 
-        st.markdown(
-            """
-            <p style="
-                color:#94A3B8;
-                font-size:14px;
-                margin-bottom:20px;
-                text-align:center;
-            ">
-                Welcome Back 👋 Please login to continue
-            </p>
-            """,
-            unsafe_allow_html=True
-        )
+        st.markdown("""
+        <p style='
+            text-align:center;
+            color:#D1D5DB;
+            font-size:14px;
+            margin-bottom:20px;
+        '>
+            Secure Finance Management System
+        </p>
+        """, unsafe_allow_html=True)
 
         with st.form("login_form"):
 
-            u = st.text_input(
-                "👤 Username"
-            )
+            u = st.text_input("👤 Username")
+            p = st.text_input("🔒 Password", type="password")
 
-            p = st.text_input(
-                "🔒 Password",
-                type="password"
-            )
-
-            submitted = st.form_submit_button(
-                "🚀 Login",
-                use_container_width=True
-            )
+            submitted = st.form_submit_button("🚀 Login")
 
             if submitted:
 
                 if u == "" or p == "":
-                    st.warning(
-                        "Enter Username & Password"
-                    )
+                    st.warning("Enter Username & Password")
 
                 else:
-
                     try:
 
                         user_data = (
@@ -482,43 +460,16 @@ if not st.session_state.get("logged_in", False):
                                 st.session_state.role = user["role"]
                                 st.session_state.last_active = time.time()
 
-                                st.success(
-                                    "Login Successful ✅"
-                                )
-
-                                time.sleep(1)
-
                                 st.rerun()
 
                             else:
-                                st.error(
-                                    "Wrong Password"
-                                )
+                                st.error("Wrong Password")
 
                         else:
-                            st.error(
-                                "User not found"
-                            )
+                            st.error("User not found")
 
                     except Exception as e:
-
-                        st.error(
-                            f"Login Error: {e}"
-                        )
-
-        st.markdown(
-            """
-            <p style="
-                color:#64748B;
-                font-size:12px;
-                text-align:center;
-                margin-top:20px;
-            ">
-                Version 1.0 • Secure • Reliable • Fast
-            </p>
-            """,
-            unsafe_allow_html=True
-        )
+                        st.error(f"Login Error: {e}")
 
     st.stop()
 # ================= ROLE SETUP =================
