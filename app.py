@@ -203,8 +203,8 @@ div.stForm button {
 }
 
 [data-testid="stTextInput"] button svg {
-    width: 12px !important;
-    height: 12px !important;
+    width: 20px !important;
+    height: 20px !important;
 }
 div.stForm button:hover {
     transform: translateY(-2px);
