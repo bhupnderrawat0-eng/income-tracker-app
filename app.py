@@ -364,29 +364,25 @@ def add_bg_from_local(image_file):
     st.markdown(
         f"""
         <style>
-        html, body, [data-testid="stAppViewContainer"] {{
-            height: 100vh;
-            overflow: hidden;
-        }}
+        html, body, [data-testid="stAppViewContainer"] {
+    height: 100vh;
+    overflow: hidden !important;
+}
 
-        .stApp {{
-            background-image:
-                linear-gradient(
-                    rgba(0,0,0,0.10),
-                    rgba(0,0,0,0.10)
-                ),
-                url("data:image/png;base64,{encoded}");
+section.main > div {
+    padding-top: 0rem !important;
+    padding-bottom: 0rem !important;
+}
 
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+.block-container {
+    padding-top: 1rem !important;
+    padding-bottom: 0rem !important;
+    max-width: 100% !important;
+}
 
+[data-testid="stVerticalBlock"] {
+    gap: 0rem !important;
+}
 add_bg_from_local("login_bg.png")
 # ================= LOGIN HEADER =================
 
