@@ -356,6 +356,68 @@ if st.session_state.get("logged_in"):
     # update activity time
     st.session_state.last_active = time.time()
 
+# ================= LOGIN HEADER =================
+
+col1, col2 = st.columns([1, 2])
+
+with col1:
+    st.markdown(
+        """
+        <div style="
+            margin-top:70px;
+            margin-left:-30px;
+            text-align:center;
+        ">
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.image("logo.png", width=180)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+with col2:
+
+    st.markdown("""
+        <div style="margin-top:40px;">
+
+        <h1 style="
+            color:#f7d774;
+            font-size:52px;
+            font-weight:700;
+            margin-bottom:10px;
+            line-height:1.2;
+        ">
+            बाल युवा मंगलदल समिति
+        </h1>
+
+        <h2 style="
+            color:#f7d774;
+            font-size:34px;
+            margin-top:0px;
+            margin-bottom:20px;
+        ">
+            मयलगांव
+        </h2>
+
+        <p style="
+            color:white;
+            font-size:18px;
+            margin-bottom:8px;
+        ">
+            हमारा गांव • हमारी पहचान • हमारा अभियान
+        </p>
+
+        <p style="
+            color:#d8d8d8;
+            font-size:16px;
+            margin-bottom:30px;
+        ">
+            Secure Finance Management System
+        </p>
+
+        </div>
+    """, unsafe_allow_html=True)
 # ===== LOGIN SYSTEM =====
 if not st.session_state.get("logged_in", False):
 
