@@ -185,14 +185,30 @@ div.stButton > button:hover {
     box-shadow: 0 0 12px rgba(124,58,237,0.4);
 }
 
-/* ===== FORM BUTTON (LOGIN SAFE) ===== */
-div.stForm button {
+/* ===== LOGIN BUTTON ONLY ===== */
+div.stForm button[kind="formSubmit"] {
     background: linear-gradient(135deg,#16a34a,#22c55e) !important;
     color: white !important;
     border-radius: 12px !important;
     padding: 10px 20px !important;
     border: none !important;
     transition: all 0.25s ease;
+}
+
+div.stForm button[kind="formSubmit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 10px rgba(34,197,94,0.5);
+}
+
+/* ===== PASSWORD EYE BUTTON ===== */
+[data-testid="stTextInput"] button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+[data-testid="stTextInput"] button:hover {
+    background: transparent !important;
 }
 /* ===== PASSWORD EYE BUTTON FIX ===== */
 [data-testid="stTextInput"] button {
