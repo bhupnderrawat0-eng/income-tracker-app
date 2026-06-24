@@ -365,7 +365,7 @@ with col1:
         """
         <div style="
             margin-top:100px;
-            margin-left:280px;
+            margin-left:320px;
             text-align:center;
         ">
         """,
