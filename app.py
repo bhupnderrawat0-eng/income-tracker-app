@@ -387,7 +387,6 @@ def add_bg_from_local(image_file):
         """,
         unsafe_allow_html=True,
     )
-
 add_bg_from_local("login_bg.png")
 # ================= LOGIN HEADER =================
 
