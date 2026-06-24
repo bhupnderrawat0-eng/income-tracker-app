@@ -209,21 +209,16 @@ div.stForm button:hover {
 [data-testid="stTextInput"] button:hover {
     background: transparent !important;
 }
-/* ===== PASSWORD EYE BUTTON FIX ===== */
+/** PASSWORD EYE FIX **/
 [data-testid="stTextInput"] button {
-    width: 45px !important;
-    min-width: 45px !important;
-    height: 42px !important;
-    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 [data-testid="stTextInput"] button svg {
-    width: 20px !important;
-    height: 20px !important;
-}
-div.stForm button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 10px rgba(34,197,94,0.5);
+    width: 14px !important;
+    height: 14px !important;
 }
 
 /* ===== METRIC CARDS ===== */
