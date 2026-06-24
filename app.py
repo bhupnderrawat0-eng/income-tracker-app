@@ -358,14 +358,14 @@ if st.session_state.get("logged_in"):
 
 # ================= LOGIN HEADER =================
 
-col1, col2 = st.columns([1, 2])
+col1, col2 = st.columns([1.2, 1.8])
 
 with col1:
     st.markdown(
         """
         <div style="
-            margin-top:70px;
-            margin-left:-30px;
+            margin-top:100px;
+            margin-left:80px;
             text-align:center;
         ">
         """,
@@ -444,7 +444,7 @@ if not st.session_state.get("logged_in", False):
     </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([0.8, 2.4, 0.8])
 
     with col2:
         
