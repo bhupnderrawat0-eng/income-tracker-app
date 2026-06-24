@@ -364,25 +364,41 @@ def add_bg_from_local(image_file):
     st.markdown(
         f"""
         <style>
-        html, body, [data-testid="stAppViewContainer"] {
+
+        .stApp {{
+            background-image:
+                linear-gradient(
+                    rgba(0,0,0,0.10),
+                    rgba(0,0,0,0.10)
+                ),
+                url("data:image/png;base64,{encoded}");
+
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+
+        html, body, [data-testid="stAppViewContainer"] {{
             height: 100vh;
             overflow: hidden !important;
-        }
+        }}
 
-        section.main > div {
+        section.main > div {{
             padding-top: 0rem !important;
             padding-bottom: 0rem !important;
-        }
+        }}
 
-        .block-container {
+        .block-container {{
             padding-top: 1rem !important;
             padding-bottom: 0rem !important;
             max-width: 100% !important;
-        }
+        }}
 
-        [data-testid="stVerticalBlock"] {
+        [data-testid="stVerticalBlock"] {{
             gap: 0rem !important;
-        }
+        }}
+
         </style>
         """,
         unsafe_allow_html=True,
