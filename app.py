@@ -366,7 +366,7 @@ with col1:
         <div style="
             margin-top:70px;
             text-align:right;
-            margin-right:-120px;
+            margin-right:-230px;
         ">
         """,
         unsafe_allow_html=True
