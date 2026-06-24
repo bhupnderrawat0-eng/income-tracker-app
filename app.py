@@ -447,57 +447,7 @@ if not st.session_state.get("logged_in", False):
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
-
-        # ===== CENTER LOGO =====
-        logo_col1, logo_col2, logo_col3 = st.columns([1.5, 1, 1.5])
-
-        with logo_col2:
-            st.image("logo.png", width=140)
-
-        # ===== TITLE =====
-        st.markdown("""
-        <h1 style='
-            text-align:center;
-            color:#F8D568;
-            margin-bottom:5px;
-        '>
-            बाल युवा मंगलदल समिति
-        </h1>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <h3 style='
-            text-align:center;
-            color:#EFD58A;
-            margin-top:0px;
-            margin-bottom:5px;
-        '>
-            मयलगांव
-        </h3>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <p style='
-            text-align:center;
-            color:#B8C7E0;
-            font-size:15px;
-            margin-bottom:5px;
-        '>
-            हमारा गांव • हमारी पहचान • हमारा अभियान
-        </p>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <p style='
-            text-align:center;
-            color:#D1D5DB;
-            font-size:14px;
-            margin-bottom:20px;
-        '>
-            Secure Finance Management System
-        </p>
-        """, unsafe_allow_html=True)
-
+        
         # ===== LOGIN FORM =====
         with st.form("login_form"):
 
