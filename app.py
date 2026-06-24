@@ -406,7 +406,7 @@ def add_bg_from_local(image_file):
 add_bg_from_local("login_bg.png")
 # ================= LOGIN HEADER =================
 
-col1, col2, = st.columns([1.4, 2])
+col1, col2, = st.columns([2.2, 1])
 
 with col1:
 
@@ -418,7 +418,7 @@ with col1:
 
         <h1 style="
             color:#f7d774;
-            font-size:58px;
+            font-size:52px;
             font-weight:700;
             margin-bottom:10px;
             line-height:1.1;
@@ -479,9 +479,9 @@ if not st.session_state.get("logged_in", False):
     </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([0.8, 2.4, 0.8])
+    col1, col2, col3 = st.columns([1.5, 1.5, 0.5])
 
-    with col2:
+    with col1:
         
         # ===== LOGIN FORM =====
         with st.form("login_form"):
