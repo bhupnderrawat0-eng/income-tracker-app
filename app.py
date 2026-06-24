@@ -368,8 +368,8 @@ def add_bg_from_local(image_file):
         .stApp {{
             background-image:
                 linear-gradient(
-                    rgba(0,0,0,0.45),
-                    rgba(0,0,0,0.45)
+                    rgba(0,0,0,0.10),
+                    rgba(0,0,0,0.10)
                 ),
                 url("data:image/png;base64,{encoded}");
 
