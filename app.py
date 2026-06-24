@@ -364,6 +364,10 @@ def add_bg_from_local(image_file):
     st.markdown(
         f"""
         <style>
+        html, body, [data-testid="stAppViewContainer"] {{
+            height: 100vh;
+            overflow: hidden;
+        }}
 
         .stApp {{
             background-image:
@@ -378,11 +382,11 @@ def add_bg_from_local(image_file):
             background-repeat: no-repeat;
             background-attachment: fixed;
         }}
-
         </style>
         """,
         unsafe_allow_html=True
     )
+
 add_bg_from_local("login_bg.png")
 # ================= LOGIN HEADER =================
 
