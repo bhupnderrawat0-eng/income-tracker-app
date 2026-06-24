@@ -194,7 +194,18 @@ div.stForm button {
     border: none !important;
     transition: all 0.25s ease;
 }
+/* ===== PASSWORD EYE BUTTON FIX ===== */
+[data-testid="stTextInput"] button {
+    width: 45px !important;
+    min-width: 45px !important;
+    height: 42px !important;
+    padding: 0 !important;
+}
 
+[data-testid="stTextInput"] button svg {
+    width: 16px !important;
+    height: 16px !important;
+}
 div.stForm button:hover {
     transform: translateY(-2px);
     box-shadow: 0 0 10px rgba(34,197,94,0.5);
