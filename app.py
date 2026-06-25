@@ -286,17 +286,6 @@ html, body, .stApp {
     overflow-x: hidden !important;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-    .block-container {
-        padding: 10px !important;
-    }
-
-    div.stButton > button {
-        width: 100% !important;
-    }
-}
-
 /* ===== LOGO CONTAINER FIX ===== */
 .stImage {
     background: transparent !important;
@@ -364,6 +353,7 @@ html, body, .stApp {
 }
 </style>
 """, unsafe_allow_html=True)
+load_mobile_css()
 # ================= SESSION =================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
