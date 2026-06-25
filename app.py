@@ -17,6 +17,11 @@ from backup_utils import (
     create_full_backup,
     restore_full_backup
 )
+from mobile_ui import (
+    is_mobile,
+    load_mobile_css,
+    show_mobile_header
+)
 from supabase import create_client, Client
 
 # ===== EXCEL EXPORT =====
