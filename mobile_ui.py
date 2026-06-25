@@ -1,0 +1,95 @@
+import streamlit as st
+
+
+# ================= DEVICE DETECTION =================
+def is_mobile():
+
+    user_agent = st.context.headers.get(
+        "user-agent",
+        ""
+    ).lower()
+
+    return (
+        "android" in user_agent
+        or
+        "iphone" in user_agent
+    )
+
+
+# ================= MOBILE CSS =================
+def load_mobile_css():
+
+    st.markdown("""
+    <style>
+
+    @media (max-width:768px){
+
+        .block-container{
+            padding:12px !important;
+        }
+
+        h1{
+            font-size:30px !important;
+        }
+
+        h2{
+            font-size:24px !important;
+        }
+
+        h3{
+            font-size:20px !important;
+        }
+
+        p{
+            font-size:14px !important;
+        }
+
+        div.stButton > button{
+            width:100% !important;
+            min-height:48px !important;
+        }
+
+        [data-testid="metric-container"]{
+            padding:12px !important;
+        }
+
+    }
+
+    </style>
+    """, unsafe_allow_html=True)
+
+
+# ================= MOBILE HEADER =================
+def show_mobile_header():
+
+    st.image(
+        "logo.png",
+        width=120
+    )
+
+    st.markdown(
+        """
+        <h3 style="
+            text-align:center;
+            color:#F8D568;
+        ">
+            बाल युवा मंगलदल समिति
+        </h3>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# ================= METRIC COLUMNS =================
+def get_metric_columns():
+
+    if is_mobile():
+
+        row1 = st.columns(2)
+        row2 = st.columns(2)
+
+        return row1, row2
+
+    else:
+
+        return st.columns(4)
