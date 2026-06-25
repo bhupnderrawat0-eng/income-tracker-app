@@ -642,12 +642,35 @@ if not is_mobile():
             default_index=0,
         )
 else:
-    menu = st.radio(
-        "Navigation",
+
+    st.markdown("### 📱 Navigation")
+
+    menu = st.selectbox(
+        "",
         menu_list,
-        horizontal=True
+        label_visibility="collapsed"
     )
-st.write("")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown(
+            f"""
+            <div style="
+                font-size:14px;
+                color:#cbd5e1;
+                margin-top:8px;
+            ">
+                👋 {st.session_state.get("current_user","Admin")}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with col2:
+        if st.button("🚪 Logout", use_container_width=True):
+            st.session_state.clear()
+            st.rerun()
 # ================= HEADER =================
 
 if is_mobile():
