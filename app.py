@@ -583,14 +583,6 @@ is_admin = role == "Admin"
 is_editor = role == "Editor"
 is_viewer = role == "Viewer"
 
-# ================= DEVICE DETECTION (FINAL FIX) =================
-user_agent = st.context.headers.get("user-agent", "").lower()
-
-if "android" in user_agent or "iphone" in user_agent:
-    is_mobile = True
-else:
-    is_mobile = False
-
 # ================= ROLE BASED MENU =================
 if is_admin:
     menu_list = ["Dashboard", "Members", "Collection Rates", "Collections", "loans", "Donations", "Expenses", "Reports", "Reminders", "Users", "Backup & Restore", "AI"]
@@ -600,7 +592,7 @@ else:
     menu_list = ["Dashboard", "Reports"]
 
 # ================= MENU =================
-if not is_mobile:
+if not is_mobile():
     with st.sidebar:
         st.markdown(
             f"""
