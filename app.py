@@ -453,7 +453,7 @@ if is_mobile():
         <p style="
             color:white;
             font-size:15px;
-            margin-bottom:6px;
+            margin-bottom:5px;
         ">
             हमारा गांव • हमारी पहचान
         </p>
@@ -461,6 +461,7 @@ if is_mobile():
         <p style="
             color:#d8d8d8;
             font-size:13px;
+            margin-bottom:25px
         ">
             Secure Finance Management System
         </p>
