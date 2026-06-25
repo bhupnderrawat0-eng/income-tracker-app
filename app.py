@@ -649,63 +649,112 @@ else:
     )
 st.write("")
 # ================= HEADER =================
-col1, col2 = st.columns([6, 1])
 
-with col1:
+if is_mobile():
 
-    logo_col, title_col = st.columns([1.8, 4.2])
+    st.image("logo.png", width=140)
 
-    with logo_col:
-        st.image("logo.png", width=260)
+    st.markdown(
+        """
+        <h3 style="
+            color:#F8D568;
+            text-align:center;
+            margin-bottom:0px;
+            font-weight:700;
+        ">
+            बाल युवा मंगलदल समिति
+        </h3>
+        """,
+        unsafe_allow_html=True
+    )
 
-    with title_col:
+    st.markdown(
+        """
+        <h4 style="
+            color:#EFD58A;
+            text-align:center;
+            margin-top:5px;
+            margin-bottom:8px;
+            font-weight:600;
+        ">
+            मयलगांव
+        </h4>
+        """,
+        unsafe_allow_html=True
+    )
 
-        st.write("")
+    st.markdown(
+        """
+        <p style="
+            color:#B8C7E0;
+            text-align:center;
+            font-size:13px;
+        ">
+            हमारा गांव • हमारी पहचान • हमारा अभियान
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
 
-        st.markdown(
-            """
-            <h2 style="
-                color:#F8D568;
-                margin-bottom:0px;
-                font-weight:700;
-            ">
-                बाल युवा मंगलदल समिति
-            </h2>
-            """,
-            unsafe_allow_html=True
-        )
+else:
 
-        st.markdown(
-            """
-            <h3 style="
-                color:#EFD58A;
-                margin-top:5px;
-                margin-bottom:8px;
-                font-weight:600;
-            ">
-                मयलगांव
-            </h3>
-            """,
-            unsafe_allow_html=True
-        )
+    col1, col2 = st.columns([6, 1])
 
-        st.markdown(
-            """
-            <p style="
-                color:#B8C7E0;
-                font-size:16px;
-                font-weight:600
-                letter-spacing:0.5px
-                margin-top:0px;
-            ">
-                हमारा गांव • हमारी पहचान • हमारा अभियान
-            </p>
-            """,
-            unsafe_allow_html=True
-        )
+    with col1:
 
-with col2:
-    pass
+        logo_col, title_col = st.columns([1.8, 4.2])
+
+        with logo_col:
+            st.image("logo.png", width=260)
+
+        with title_col:
+
+            st.write("")
+
+            st.markdown(
+                """
+                <h2 style="
+                    color:#F8D568;
+                    margin-bottom:0px;
+                    font-weight:700;
+                ">
+                    बाल युवा मंगलदल समिति
+                </h2>
+                """,
+                unsafe_allow_html=True
+            )
+
+            st.markdown(
+                """
+                <h3 style="
+                    color:#EFD58A;
+                    margin-top:5px;
+                    margin-bottom:8px;
+                    font-weight:600;
+                ">
+                    मयलगांव
+                </h3>
+                """,
+                unsafe_allow_html=True
+            )
+
+            st.markdown(
+                """
+                <p style="
+                    color:#B8C7E0;
+                    font-size:16px;
+                    font-weight:600;
+                    letter-spacing:0.5px;
+                    margin-top:0px;
+                ">
+                    हमारा गांव • हमारी पहचान • हमारा अभियान
+                </p>
+                """,
+                unsafe_allow_html=True
+            )
+
+    with col2:
+        pass
 
 st.markdown("---")
 # ================= DASHBOARD =================
