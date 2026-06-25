@@ -539,7 +539,7 @@ if not st.session_state.get("logged_in", False):
 
     col1, col2, col3 = st.columns([1.0, 2.4, 0.8])
 
-    with col2: # Form ko center column (col2) mein rakha taaki desktop par layout sahi dikhe
+    with col1: 
         # ===== LOGIN FORM =====
         with st.form("login_form"):
             u = st.text_input("👤 Username")
