@@ -420,95 +420,53 @@ def add_bg_from_local(image_file):
         """,
         unsafe_allow_html=True,
     )
-add_bg_from_local("login_bg.png")
 
-# ================= LOGIN HEADER =================
-if is_mobile():
-    st.markdown("""
-        <div style="
-            margin-top:20px;
-            text-align:center;
-            padding:10px;
-        ">
+# ================= LOGIN SYSTEM =================
+if not st.session_state.get("logged_in", False):
 
-        <h1 style="
-            color:#f7d774;
-            font-size:34px;
-            font-weight:700;
-            margin-bottom:8px;
-            line-height:1.2;
-        ">
-            बाल युवा मंगलदल समिति
-        </h1>
+    # Login page background only
+    add_bg_from_local("login_bg.png")
 
-        <h2 style="
-            color:#f7d774;
-            font-size:24px;
-            margin-top:0px;
-            margin-bottom:15px;
-        ">
-            मयलगांव
-        </h2>
-
-        <p style="
-            color:white;
-            font-size:15px;
-            margin-bottom:5px;
-        ">
-            हमारा गांव • हमारी पहचान
-        </p>
-
-        <p style="
-            color:#d8d8d8;
-            font-size:13px;
-            margin-bottom:25px
-        ">
-            Secure Finance Management System
-        </p>
-
-        </div>
-    """, unsafe_allow_html=True)
-else:
-    col1, col2 = st.columns([2.2, 1])
-
-    with col1:
+    # ================= LOGIN HEADER =================
+    if is_mobile():
         st.markdown("""
             <div style="
-                margin-top:60px;
-                text-align:left;
+                margin-top:20px;
+                text-align:center;
+                padding:10px;
             ">
 
             <h1 style="
                 color:#f7d774;
-                font-size:52px;
+                font-size:34px;
                 font-weight:700;
-                margin-bottom:10px;
-                line-height:1.1;
+                margin-bottom:8px;
+                line-height:1.2;
             ">
                 बाल युवा मंगलदल समिति
             </h1>
 
             <h2 style="
                 color:#f7d774;
-                font-size:38px;
+                font-size:24px;
                 margin-top:0px;
-                margin-bottom:20px;
+                margin-bottom:15px;
             ">
                 मयलगांव
             </h2>
 
             <p style="
                 color:white;
-                font-size:18px;
-                margin-bottom:8px;
+                font-size:15px;
+                margin-bottom:5px;
             ">
-                हमारा गांव • हमारी पहचान • हमारा अभियान
+                हमारा गांव • हमारी पहचान
             </p>
 
             <p style="
                 color:#d8d8d8;
-                font-size:16px;
-                margin-bottom:30px;
+                font-size:13px;
+                margin-bottom:25px
             ">
                 Secure Finance Management System
             </p>
@@ -516,8 +474,54 @@ else:
             </div>
         """, unsafe_allow_html=True)
 
-# ===== LOGIN SYSTEM =====
-if not st.session_state.get("logged_in", False):
+    else:
+        col1, col2 = st.columns([2.2, 1])
+
+        with col1:
+            st.markdown("""
+                <div style="
+                    margin-top:60px;
+                    text-align:left;
+                ">
+
+                <h1 style="
+                    color:#f7d774;
+                    font-size:52px;
+                    font-weight:700;
+                    margin-bottom:10px;
+                    line-height:1.1;
+                ">
+                    बाल युवा मंगलदल समिति
+                </h1>
+
+                <h2 style="
+                    color:#f7d774;
+                    font-size:38px;
+                    margin-top:0px;
+                    margin-bottom:20px;
+                ">
+                    मयलगांव
+                </h2>
+
+                <p style="
+                    color:white;
+                    font-size:18px;
+                    margin-bottom:8px;
+                ">
+                    हमारा गांव • हमारी पहचान • हमारा अभियान
+                </p>
+
+                <p style="
+                    color:#d8d8d8;
+                    font-size:16px;
+                    margin-bottom:30px;
+                ">
+                    Secure Finance Management System
+                </p>
+
+                </div>
+            """, unsafe_allow_html=True)
+
     st.markdown("""
     <style>
     div[data-testid="stForm"]{
@@ -539,8 +543,7 @@ if not st.session_state.get("logged_in", False):
 
     col1, col2, col3 = st.columns([1.0, 2.4, 0.8])
 
-    with col1: 
-        # ===== LOGIN FORM =====
+    with col1:
         with st.form("login_form"):
             u = st.text_input("👤 Username")
             p = st.text_input("🔒 Password", type="password")
