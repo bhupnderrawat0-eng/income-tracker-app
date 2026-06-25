@@ -353,7 +353,6 @@ html, body, .stApp {
 }
 </style>
 """, unsafe_allow_html=True)
-
 load_mobile_css()
 
 # ================= SESSION =================
@@ -421,7 +420,6 @@ def add_bg_from_local(image_file):
         """,
         unsafe_allow_html=True,
     )
-
 add_bg_from_local("login_bg.png")
 
 # ================= LOGIN HEADER =================
@@ -472,6 +470,7 @@ if is_mobile():
     """, unsafe_allow_html=True)
 else:
     col1, col2 = st.columns([2.2, 1])
+
     with col1:
         st.markdown("""
             <div style="
@@ -540,7 +539,7 @@ if not st.session_state.get("logged_in", False):
 
     col1, col2, col3 = st.columns([1.0, 2.4, 0.8])
 
-    with col2:  # Yahan column 2 user-input ke liye correct center layout dega
+    with col2: # Form ko center column (col2) mein rakha taaki desktop par layout sahi dikhe
         # ===== LOGIN FORM =====
         with st.form("login_form"):
             u = st.text_input("👤 Username")
