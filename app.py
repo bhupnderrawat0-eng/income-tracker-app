@@ -214,7 +214,7 @@ div.stForm button:hover {
 [data-testid="stTextInput"] button:hover {
     background: transparent !important;
 }
-/** PASSWORD EYE FIX **/
+/* PASSWORD EYE FIX */
 [data-testid="stTextInput"] button {
     background: transparent !important;
     border: none !important;
@@ -353,7 +353,9 @@ html, body, .stApp {
 }
 </style>
 """, unsafe_allow_html=True)
+
 load_mobile_css()
+
 # ================= SESSION =================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -419,11 +421,11 @@ def add_bg_from_local(image_file):
         """,
         unsafe_allow_html=True,
     )
+
 add_bg_from_local("login_bg.png")
+
 # ================= LOGIN HEADER =================
-
 if is_mobile():
-
     st.markdown("""
         <div style="
             margin-top:20px;
@@ -468,13 +470,9 @@ if is_mobile():
 
         </div>
     """, unsafe_allow_html=True)
-
 else:
-
     col1, col2 = st.columns([2.2, 1])
-
     with col1:
-
         st.markdown("""
             <div style="
                 margin-top:60px;
@@ -518,9 +516,9 @@ else:
 
             </div>
         """, unsafe_allow_html=True)
+
 # ===== LOGIN SYSTEM =====
 if not st.session_state.get("logged_in", False):
-
     st.markdown("""
     <style>
     div[data-testid="stForm"]{
@@ -537,31 +535,24 @@ if not st.session_state.get("logged_in", False):
         color:white !important;
         font-weight:600;
     }
-
-    
     </style>
     """, unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns([1.0, 2.4, 0.8])
 
-    with col1:
-        
+    with col2:  # Yahan column 2 user-input ke liye correct center layout dega
         # ===== LOGIN FORM =====
         with st.form("login_form"):
-
             u = st.text_input("👤 Username")
             p = st.text_input("🔒 Password", type="password")
 
             submitted = st.form_submit_button("🚀 Login")
 
             if submitted:
-
                 if u == "" or p == "":
                     st.warning("Enter Username & Password")
-
                 else:
                     try:
-
                         user_data = (
                             supabase.table("users")
                             .select("*")
@@ -570,24 +561,18 @@ if not st.session_state.get("logged_in", False):
                         )
 
                         if user_data.data:
-
                             user = user_data.data[0]
 
                             if user["password"] == hash_pass(p):
-
                                 st.session_state.logged_in = True
                                 st.session_state.current_user = user["username"]
                                 st.session_state.role = user["role"]
                                 st.session_state.last_active = time.time()
-
                                 st.rerun()
-
                             else:
                                 st.error("Wrong Password")
-
                         else:
                             st.error("User not found")
-
                     except Exception as e:
                         st.error(f"Login Error: {e}")
 
