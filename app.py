@@ -810,75 +810,76 @@ if menu == "Dashboard":
     total_exp = get_sum_cached("expenses")
 
     # ===== METRICS =====
-balance = total_col + total_don - total_exp
+    balance = total_col + total_don - total_exp
 
-if is_mobile():
+    if is_mobile():
 
-    st.markdown(f"""
-    <div class="mobile-balance-card">
-        💰 <b>Total Balance</b><br><br>
-        <span style="font-size:34px;font-weight:700;color:white;">
-            ₹ {balance}
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-
-    with col1:
         st.markdown(f"""
-        <div class="mobile-card">
-            <b>Collections</b><br><br>
-            <span style="font-size:24px;font-weight:700;">
-                ₹ {total_col}
+        <div class="mobile-balance-card">
+            💰 <b>Total Balance</b><br><br>
+            <span style="font-size:34px;font-weight:700;color:white;">
+                ₹ {balance}
             </span>
         </div>
         """, unsafe_allow_html=True)
 
-    with col2:
-        st.markdown(f"""
-        <div class="mobile-card">
-            <b>Loans</b><br><br>
-            <span style="font-size:24px;font-weight:700;">
-                ₹ {total_loan}
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
 
-    col3, col4 = st.columns(2)
+        with col1:
+            st.markdown(f"""
+            <div class="mobile-card">
+                <b>Collections</b><br><br>
+                <span style="font-size:24px;font-weight:700;">
+                    ₹ {total_col}
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
 
-    with col3:
-        st.markdown(f"""
-        <div class="mobile-card">
-            <b>Donations</b><br><br>
-            <span style="font-size:24px;font-weight:700;">
-                ₹ {total_don}
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"""
+            <div class="mobile-card">
+                <b>Loans</b><br><br>
+                <span style="font-size:24px;font-weight:700;">
+                    ₹ {total_loan}
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
 
-    with col4:
-        st.markdown(f"""
-        <div class="mobile-card">
-            <b>Expenses</b><br><br>
-            <span style="font-size:24px;font-weight:700;">
-                ₹ {total_exp}
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+        col3, col4 = st.columns(2)
 
-else:
+        with col3:
+            st.markdown(f"""
+            <div class="mobile-card">
+                <b>Donations</b><br><br>
+                <span style="font-size:24px;font-weight:700;">
+                    ₹ {total_don}
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
 
-    c1, c2, c3, c4 = st.columns(4)
+        with col4:
+            st.markdown(f"""
+            <div class="mobile-card">
+                <b>Expenses</b><br><br>
+                <span style="font-size:24px;font-weight:700;">
+                    ₹ {total_exp}
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
 
-    c1.metric("Collections", f"₹ {total_col}")
-    c2.metric("Loans", f"₹ {total_loan}")
-    c3.metric("Donations", f"₹ {total_don}")
-    c4.metric("Expenses", f"₹ {total_exp}")
+    else:
 
-    st.metric("Balance", f"₹ {balance}")
-         
-        st.markdown("---")
+        c1, c2, c3, c4 = st.columns(4)
+
+        c1.metric("Collections", f"₹ {total_col}")
+        c2.metric("Loans", f"₹ {total_loan}")
+        c3.metric("Donations", f"₹ {total_don}")
+        c4.metric("Expenses", f"₹ {total_exp}")
+
+        st.metric("Balance", f"₹ {balance}")
+             
+    st.markdown("---")
+    
     # ===== COLLECTION TREND CHART =====
     st.markdown("### 📊 Collection Trend")
 
