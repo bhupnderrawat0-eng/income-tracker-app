@@ -643,34 +643,64 @@ if not is_mobile():
         )
 else:
 
-    st.markdown("### 📱 Navigation")
+    # ===== MOBILE APP BAR =====
+
+    top1, top2 = st.columns([4, 1])
+
+    with top1:
+        st.markdown(
+            f"""
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+                padding:8px 0px;
+            ">
+                <div style="
+                    width:45px;
+                    height:45px;
+                    border-radius:50%;
+                    overflow:hidden;
+                ">
+                    <img src="data:image/png;base64,{get_base64_image('logo.png')}"
+                         width="45">
+                </div>
+
+                <div>
+                    <div style="
+                        color:#F8D568;
+                        font-size:18px;
+                        font-weight:700;
+                        line-height:1.2;
+                    ">
+                        बाल युवा मंगलदल समिति
+                    </div>
+
+                    <div style="
+                        color:#B8C7E0;
+                        font-size:12px;
+                    ">
+                        👋 {st.session_state.get("current_user","Admin")}
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with top2:
+        if st.button("🚪", help="Logout"):
+            st.session_state.clear()
+            st.rerun()
+
+    st.markdown("<div style='margin-top:8px'></div>",
+                unsafe_allow_html=True)
 
     menu = st.selectbox(
         "",
         menu_list,
         label_visibility="collapsed"
     )
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown(
-            f"""
-            <div style="
-                font-size:14px;
-                color:#cbd5e1;
-                margin-top:8px;
-            ">
-                👋 {st.session_state.get("current_user","Admin")}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with col2:
-        if st.button("🚪 Logout", use_container_width=True):
-            st.session_state.clear()
-            st.rerun()
 # ================= HEADER =================
 
 if is_mobile():
