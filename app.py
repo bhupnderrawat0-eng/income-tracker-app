@@ -20,7 +20,10 @@ from backup_utils import (
 from mobile_ui import (
     is_mobile,
     load_mobile_css,
-    show_mobile_header
+    show_mobile_header,
+    show_mobile_topbar,
+    show_mobile_section_title,
+    show_mobile_metric_card
 )
 import base64
 
@@ -847,59 +850,58 @@ if menu == "Dashboard":
 
     if is_mobile():
 
-        st.markdown(f"""
+    show_mobile_topbar(
+        st.session_state.get(
+            "current_user",
+            "Admin"
+        )
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown(
+        f"""
         <div class="mobile-balance-card">
-            💰 <b>Total Balance</b><br><br>
-            <span style="font-size:34px;font-weight:700;color:white;">
+            <div class="mobile-balance-title">
+                💰 Total Balance
+            </div>
+
+            <div class="mobile-balance-amount">
                 ₹ {balance}
-            </span>
+            </div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True
+    )
 
-        col1, col2 = st.columns(2)
+    row1 = st.columns(2)
 
-        with col1:
-            st.markdown(f"""
-            <div class="mobile-card">
-                <b>Collections</b><br><br>
-                <span style="font-size:24px;font-weight:700;">
-                    ₹ {total_col}
-                </span>
-            </div>
-            """, unsafe_allow_html=True)
+    with row1[0]:
+        show_mobile_metric_card(
+            "Collections",
+            f"₹ {total_col}"
+        )
 
-        with col2:
-            st.markdown(f"""
-            <div class="mobile-card">
-                <b>Loans</b><br><br>
-                <span style="font-size:24px;font-weight:700;">
-                    ₹ {total_loan}
-                </span>
-            </div>
-            """, unsafe_allow_html=True)
+    with row1[1]:
+        show_mobile_metric_card(
+            "Loans",
+            f"₹ {total_loan}"
+        )
 
-        col3, col4 = st.columns(2)
+    row2 = st.columns(2)
 
-        with col3:
-            st.markdown(f"""
-            <div class="mobile-card">
-                <b>Donations</b><br><br>
-                <span style="font-size:24px;font-weight:700;">
-                    ₹ {total_don}
-                </span>
-            </div>
-            """, unsafe_allow_html=True)
+    with row2[0]:
+        show_mobile_metric_card(
+            "Donations",
+            f"₹ {total_don}"
+        )
 
-        with col4:
-            st.markdown(f"""
-            <div class="mobile-card">
-                <b>Expenses</b><br><br>
-                <span style="font-size:24px;font-weight:700;">
-                    ₹ {total_exp}
-                </span>
-            </div>
-            """, unsafe_allow_html=True)
-
+    with row2[1]:
+        show_mobile_metric_card(
+            "Expenses",
+            f"₹ {total_exp}"
+        )
+    
     else:
 
         c1, c2, c3, c4 = st.columns(4)
