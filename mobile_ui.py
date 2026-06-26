@@ -151,3 +151,70 @@ def get_metric_columns():
     else:
 
         return st.columns(4)
+# ================= MOBILE TOP BAR =================
+def show_mobile_topbar(username):
+
+    col1, col2 = st.columns([1, 4])
+
+    with col1:
+        st.image("logo.png", width=55)
+
+    with col2:
+
+        st.markdown(
+            f"""
+            <div style="
+                margin-top:5px;
+            ">
+                <div style="
+                    color:#F8D568;
+                    font-size:18px;
+                    font-weight:700;
+                ">
+                    बाल युवा मंगलदल समिति
+                </div>
+
+                <div style="
+                    color:#B8C7E0;
+                    font-size:13px;
+                ">
+                    👋 Welcome, {username}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+# ================= MOBILE SECTION TITLE =================
+def show_mobile_section_title(title):
+
+    st.markdown(
+        f"""
+        <div class="section-title">
+            {title}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# ================= MOBILE METRIC CARD =================
+def show_mobile_metric_card(title, value):
+
+    st.markdown(
+        f"""
+        <div class="mobile-card">
+
+            <div class="mobile-card-title">
+                {title}
+            </div>
+
+            <div class="mobile-card-value">
+                {value}
+            </div>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
