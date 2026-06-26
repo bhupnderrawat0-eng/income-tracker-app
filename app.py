@@ -1071,7 +1071,7 @@ elif menu == "Collections":
 
         month = st.selectbox(
             "Month",
-            [datetime.date(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
+            [datetime(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
         )
 
         selected_month_date = datetime.datetime.strptime(
