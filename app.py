@@ -642,9 +642,7 @@ if not is_mobile():
             default_index=0,
         )
 else:
-
     # ===== MOBILE APP BAR =====
-
     top1, top2 = st.columns([4, 1])
 
     with top1:
