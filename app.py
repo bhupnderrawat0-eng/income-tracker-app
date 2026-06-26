@@ -810,6 +810,96 @@ if menu == "Dashboard":
     total_exp = get_sum_cached("expenses")
 
     # ===== METRICS =====
+
+balance = total_col + total_don - total_exp
+
+if is_mobile():
+
+    st.markdown(
+        f"""
+        <div class="mobile-balance-card">
+            <div class="mobile-balance-title">
+                💰 Total Balance
+            </div>
+
+            <div class="mobile-balance-amount">
+                ₹ {balance}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    row1 = st.columns(2)
+
+    with row1[0]:
+        st.markdown(
+            f"""
+            <div class="mobile-card">
+                <div class="mobile-card-title">
+                    Collections
+                </div>
+
+                <div class="mobile-card-value">
+                    ₹ {total_col}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with row1[1]:
+        st.markdown(
+            f"""
+            <div class="mobile-card">
+                <div class="mobile-card-title">
+                    Loans
+                </div>
+
+                <div class="mobile-card-value">
+                    ₹ {total_loan}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    row2 = st.columns(2)
+
+    with row2[0]:
+        st.markdown(
+            f"""
+            <div class="mobile-card">
+                <div class="mobile-card-title">
+                    Donations
+                </div>
+
+                <div class="mobile-card-value">
+                    ₹ {total_don}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with row2[1]:
+        st.markdown(
+            f"""
+            <div class="mobile-card">
+                <div class="mobile-card-title">
+                    Expenses
+                </div>
+
+                <div class="mobile-card-value">
+                    ₹ {total_exp}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+else:
+
     c1, c2, c3, c4 = st.columns(4)
 
     c1.metric("Collections", f"₹ {total_col}")
@@ -817,8 +907,8 @@ if menu == "Dashboard":
     c3.metric("Donations", f"₹ {total_don}")
     c4.metric("Expenses", f"₹ {total_exp}")
 
-    st.metric("Balance", f"₹ {total_col + total_don - total_exp}")
-
+    st.metric("Balance", f"₹ {balance}")
+     
     st.markdown("---")
 
     # ===== COLLECTION TREND CHART =====
