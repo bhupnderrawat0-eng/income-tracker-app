@@ -850,57 +850,57 @@ if menu == "Dashboard":
 
     if is_mobile():
 
-    show_mobile_topbar(
-        st.session_state.get(
-            "current_user",
-            "Admin"
+        show_mobile_topbar(
+            st.session_state.get(
+                "current_user",
+                "Admin"
+            )
         )
-    )
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
-    st.markdown(
-        f"""
-        <div class="mobile-balance-card">
-            <div class="mobile-balance-title">
-                💰 Total Balance
+        st.markdown(
+            f"""
+            <div class="mobile-balance-card">
+                <div class="mobile-balance-title">
+                    💰 Total Balance
+                </div>
+
+                <div class="mobile-balance-amount">
+                    ₹ {balance}
+                </div>
             </div>
-
-            <div class="mobile-balance-amount">
-                ₹ {balance}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    row1 = st.columns(2)
-
-    with row1[0]:
-        show_mobile_metric_card(
-            "Collections",
-            f"₹ {total_col}"
+            """,
+            unsafe_allow_html=True
         )
 
-    with row1[1]:
-        show_mobile_metric_card(
-            "Loans",
-            f"₹ {total_loan}"
-        )
+        row1 = st.columns(2)
 
-    row2 = st.columns(2)
+        with row1[0]:
+            show_mobile_metric_card(
+                "Collections",
+                f"₹ {total_col}"
+            )
 
-    with row2[0]:
-        show_mobile_metric_card(
-            "Donations",
-            f"₹ {total_don}"
-        )
+        with row1[1]:
+            show_mobile_metric_card(
+                "Loans",
+                f"₹ {total_loan}"
+            )
 
-    with row2[1]:
-        show_mobile_metric_card(
-            "Expenses",
-            f"₹ {total_exp}"
-        )
+        row2 = st.columns(2)
+
+        with row2[0]:
+            show_mobile_metric_card(
+                "Donations",
+                f"₹ {total_don}"
+            )
+
+        with row2[1]:
+            show_mobile_metric_card(
+                "Expenses",
+                f"₹ {total_exp}"
+            )
     
     else:
 
