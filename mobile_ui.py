@@ -54,6 +54,64 @@ def load_mobile_css():
         }
 
     }
+    /* ================= PREMIUM MOBILE CARDS ================= */
+
+    .mobile-balance-card{
+        background: linear-gradient(
+            135deg,
+            rgba(139,92,246,0.85),
+            rgba(79,70,229,0.85)
+        );
+
+        padding:22px;
+        border-radius:22px;
+        text-align:center;
+        margin-bottom:18px;
+        box-shadow:0 8px 24px rgba(0,0,0,0.35);
+    }
+
+    .mobile-balance-title{
+        color:white;
+        font-size:14px;
+        opacity:0.9;
+    }
+
+    .mobile-balance-amount{
+        color:white;
+        font-size:34px;
+        font-weight:700;
+        margin-top:8px;
+    }
+
+    .mobile-card{
+        background:rgba(255,255,255,0.05);
+        backdrop-filter:blur(10px);
+        border:1px solid rgba(255,255,255,0.08);
+        border-radius:18px;
+        padding:18px;
+        margin-bottom:12px;
+        text-align:center;
+    }
+
+    .mobile-card-title{
+        color:#cbd5e1;
+        font-size:13px;
+        margin-bottom:8px;
+    }
+
+    .mobile-card-value{
+        color:white;
+        font-size:24px;
+        font-weight:700;
+    }
+
+    .section-title{
+        color:#F8D568;
+        font-size:18px;
+        font-weight:600;
+        margin-top:20px;
+        margin-bottom:12px;
+    }
 
     </style>
     """, unsafe_allow_html=True)
