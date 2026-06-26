@@ -1074,7 +1074,7 @@ elif menu == "Collections":
             [datetime(2026, m, 1).strftime("%B %Y") for m in range(1, 13)]
         )
 
-        selected_month_date = datetime.datetime.strptime(
+        selected_month_date = datetime.strptime(
             month,
             "%B %Y"
         ).date()
@@ -1089,7 +1089,7 @@ elif menu == "Collections":
             ).execute().data
 
             for rate in rates:
-                rate_date = datetime.datetime.strptime(
+                rate_date = datetime.strptime(
                     rate["effective_from"],
                     "%Y-%m-%d"
                 ).date()
