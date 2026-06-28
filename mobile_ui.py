@@ -17,7 +17,11 @@ def is_mobile():
 
 
 # ================= MOBILE CSS =================
-def load_mobile_css():
+def show_mobile_metric_card(title, value):
+
+    with st.container(border=True):
+        st.markdown(f"*{title}*")
+        st.markdown(f"## {value}")
 
     st.markdown("""
     <style>
