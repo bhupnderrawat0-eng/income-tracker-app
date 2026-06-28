@@ -758,23 +758,13 @@ if menu == "Dashboard":
     balance = total_col + total_don - total_exp
 
     if is_mobile():
-        
-        st.markdown("<br>", unsafe_allow_html=True)
 
-        st.markdown(
-            f"""
-            <div class="mobile-balance-card">
-                <div class="mobile-balance-title">
-                    💰 Total Balance
-                </div>
+    st.markdown("<br>", unsafe_allow_html=True)
 
-                <div class="mobile-balance-amount">
-                    ₹ {balance}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    show_mobile_metric_card(
+        "💰 Total Balance",
+        f"₹ {balance}"
+    )
 
         row1 = st.columns(2)
 
