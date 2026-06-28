@@ -4,123 +4,128 @@ import streamlit as st
 # ================= DEVICE DETECTION =================
 def is_mobile():
 
-    user_agent = st.context.headers.get("user-agent", "").lower()
+    user_agent = st.context.headers.get(
+        "user-agent",
+        ""
+    ).lower()
 
-    return "android" in user_agent or "iphone" in user_agent
+    return (
+        "android" in user_agent
+        or
+        "iphone" in user_agent
+    )
 
 
 # ================= MOBILE CSS =================
-def show_mobile_metric_card(title, value):
-
-    with st.container(border=True):
-        st.markdown(f"{title}")
-        st.markdown(f"## {value}")
+def load_mobile_css():
 
     st.markdown(
         """
-    <style>
+        <style>
 
-    @media (max-width:768px){
+        @media (max-width:768px){
 
-        .block-container{
-            padding:12px !important;
+            .block-container{
+                padding:12px !important;
+            }
+
+            h1{
+                font-size:30px !important;
+            }
+
+            h2{
+                font-size:24px !important;
+            }
+
+            h3{
+                font-size:20px !important;
+            }
+
+            p{
+                font-size:14px !important;
+            }
+
+            div.stButton > button{
+                width:100% !important;
+                min-height:48px !important;
+            }
+
+            [data-testid="metric-container"]{
+                padding:12px !important;
+            }
+
         }
 
-        h1{
-            font-size:30px !important;
+        .mobile-balance-card{
+            background: linear-gradient(
+                135deg,
+                rgba(139,92,246,0.85),
+                rgba(79,70,229,0.85)
+            );
+
+            padding:22px;
+            border-radius:22px;
+            text-align:center;
+            margin-bottom:18px;
+            box-shadow:0 8px 24px rgba(0,0,0,0.35);
         }
 
-        h2{
-            font-size:24px !important;
+        .mobile-balance-title{
+            color:white;
+            font-size:14px;
+            opacity:0.9;
         }
 
-        h3{
-            font-size:20px !important;
+        .mobile-balance-amount{
+            color:white;
+            font-size:34px;
+            font-weight:700;
+            margin-top:8px;
         }
 
-        p{
-            font-size:14px !important;
+        .mobile-card{
+            background:rgba(255,255,255,0.05);
+            backdrop-filter:blur(10px);
+            border:1px solid rgba(255,255,255,0.08);
+            border-radius:18px;
+            padding:18px;
+            margin-bottom:12px;
+            text-align:center;
         }
 
-        div.stButton > button{
-            width:100% !important;
-            min-height:48px !important;
+        .mobile-card-title{
+            color:#cbd5e1;
+            font-size:13px;
+            margin-bottom:8px;
         }
 
-        [data-testid="metric-container"]{
-            padding:12px !important;
+        .mobile-card-value{
+            color:white;
+            font-size:24px;
+            font-weight:700;
         }
 
-    }
-    /* ================= PREMIUM MOBILE CARDS ================= */
+        .section-title{
+            color:#F8D568;
+            font-size:18px;
+            font-weight:600;
+            margin-top:20px;
+            margin-bottom:12px;
+        }
 
-    .mobile-balance-card{
-        background: linear-gradient(
-            135deg,
-            rgba(139,92,246,0.85),
-            rgba(79,70,229,0.85)
-        );
-
-        padding:22px;
-        border-radius:22px;
-        text-align:center;
-        margin-bottom:18px;
-        box-shadow:0 8px 24px rgba(0,0,0,0.35);
-    }
-
-    .mobile-balance-title{
-        color:white;
-        font-size:14px;
-        opacity:0.9;
-    }
-
-    .mobile-balance-amount{
-        color:white;
-        font-size:34px;
-        font-weight:700;
-        margin-top:8px;
-    }
-
-    .mobile-card{
-        background:rgba(255,255,255,0.05);
-        backdrop-filter:blur(10px);
-        border:1px solid rgba(255,255,255,0.08);
-        border-radius:18px;
-        padding:18px;
-        margin-bottom:12px;
-        text-align:center;
-    }
-
-    .mobile-card-title{
-        color:#cbd5e1;
-        font-size:13px;
-        margin-bottom:8px;
-    }
-
-    .mobile-card-value{
-        color:white;
-        font-size:24px;
-        font-weight:700;
-    }
-
-    .section-title{
-        color:#F8D568;
-        font-size:18px;
-        font-weight:600;
-        margin-top:20px;
-        margin-bottom:12px;
-    }
-
-    </style>
-    """,
-        unsafe_allow_html=True,
+        </style>
+        """,
+        unsafe_allow_html=True
     )
 
 
 # ================= MOBILE HEADER =================
 def show_mobile_header():
 
-    st.image("logo.png", width=120)
+    st.image(
+        "logo.png",
+        width=120
+    )
 
     st.markdown(
         """
@@ -131,7 +136,7 @@ def show_mobile_header():
             बाल युवा मंगलदल समिति
         </h3>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 
@@ -181,7 +186,7 @@ def show_mobile_topbar(username):
                 </div>
             </div>
             """,
-            unsafe_allow_html=True,
+            unsafe_allow_html=True
         )
 
 
@@ -194,42 +199,13 @@ def show_mobile_section_title(title):
             {title}
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 
-# ================= MOBILE METRIC CARD (OVERWRITE) =================
+# ================= MOBILE METRIC CARD =================
 def show_mobile_metric_card(title, value):
 
-    st.markdown(
-        f"""
-        <div style="
-            background:rgba(255,255,255,0.05);
-            backdrop-filter:blur(10px);
-            border:1px solid rgba(255,255,255,0.08);
-            border-radius:18px;
-            padding:18px;
-            margin-bottom:12px;
-            text-align:center;
-        ">
-
-            <div style="
-                color:#cbd5e1;
-                font-size:13px;
-                margin-bottom:8px;
-            ">
-                {title}
-            </div>
-
-            <div style="
-                color:white;
-                font-size:24px;
-                font-weight:700;
-            ">
-                {value}
-            </div>
-
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    with st.container(border=True):
+        st.markdown(f"*{title}*")
+        st.markdown(f"### {value}")
