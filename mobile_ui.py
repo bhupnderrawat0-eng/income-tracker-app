@@ -164,32 +164,9 @@ def show_mobile_topbar(username):
         st.image("logo.png", width=55)
 
     with col2:
-
-        st.markdown(
-            f"""
-            <div style="
-                margin-top:5px;
-            ">
-                <div style="
-                    color:#F8D568;
-                    font-size:18px;
-                    font-weight:700;
-                ">
-                    बाल युवा मंगलदल समिति
-                </div>
-
-                <div style="
-                    color:#B8C7E0;
-                    font-size:13px;
-                ">
-                    👋 Welcome, {username}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
+        st.markdown("### बाल युवा मंगलदल समिति")
+        st.caption(f"👋 Welcome, {username}")
+           
 # ================= MOBILE SECTION TITLE =================
 def show_mobile_section_title(title):
 
