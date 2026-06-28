@@ -709,52 +709,6 @@ else:
     )
 # ================= HEADER =================
 
-if is_mobile():
-
-    st.image("logo.png", width=140)
-
-    st.markdown(
-        """
-        <h3 style="
-            color:#F8D568;
-            text-align:center;
-            margin-bottom:0px;
-            font-weight:700;
-        ">
-            बाल युवा मंगलदल समिति
-        </h3>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        """
-        <h4 style="
-            color:#EFD58A;
-            text-align:center;
-            margin-top:5px;
-            margin-bottom:8px;
-            font-weight:600;
-        ">
-            मयलगांव
-        </h4>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        """
-        <p style="
-            color:#B8C7E0;
-            text-align:center;
-            font-size:13px;
-        ">
-            हमारा गांव • हमारी पहचान • हमारा अभियान
-        </p>
-        """,
-        unsafe_allow_html=True
-    )
-
 else:
 
     col1, col2 = st.columns([6, 1])
