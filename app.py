@@ -759,12 +759,12 @@ if menu == "Dashboard":
 
     if is_mobile():
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
-    show_mobile_metric_card(
-        "💰 Total Balance",
-        f"₹ {balance}"
-    )
+        show_mobile_metric_card(
+            "💰 Total Balance",
+            f"₹ {balance}"
+        )
 
         row1 = st.columns(2)
 
@@ -807,37 +807,38 @@ if menu == "Dashboard":
              
     st.markdown("---")
     
-    # ===== COLLECTION TREND CHART =====
-    st.markdown("### 📊 Collection Trend")
+    if not is_mobile():    
+        # ===== COLLECTION TREND CHART =====
+        st.markdown("### 📊 Collection Trend")
 
-    try:
-        data = get_collection_data()
+        try:
+            data = get_collection_data()
 
-        if data:
-            df = pd.DataFrame(data)
+            if data:
+                df = pd.DataFrame(data)
 
-            df["date"] = pd.to_datetime(df["date"])
+                df["date"] = pd.to_datetime(df["date"])
 
-            fig = px.line(
-                df,
-                x="date",
-                y="amount",
-                title="Collection Growth",
-            )
+                fig = px.line(
+                    df,
+                    x="date",
+                    y="amount",
+                    title="Collection Growth",
+                )
 
-            fig.update_layout(
-                plot_bgcolor="rgba(0,0,0,0)",
-                paper_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="white")
-            )
+                fig.update_layout(
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    font=dict(color="white")
+                )
 
-            st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True)
 
-        else:
-            st.info("No collection data available")
+            else:
+                st.info("No collection data available")
 
-    except Exception as e:
-        st.error(f"Chart Error: {e}")
+        except Exception as e:
+            st.error(f"Chart Error: {e}")
 # ========================= MEMBERS =========================
 elif menu == "Members":
 
