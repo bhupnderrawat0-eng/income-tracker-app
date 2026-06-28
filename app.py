@@ -761,41 +761,41 @@ if menu == "Dashboard":
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-         row1 = st.columns(2)
+        row1 = st.columns(2)
 
-    with row1[0]:
-        show_mobile_metric_card(
-            "💰 Balance",
-            f"₹ {balance}"
-        )
+        with row1[0]:
+            show_mobile_metric_card(
+                "💰 Balance",
+                f"₹ {balance}"
+            )
 
-    with row1[1]:
-        show_mobile_metric_card(
-            "💵 Collections",
-            f"₹ {total_col}"
-        )
+        with row1[1]:
+            show_mobile_metric_card(
+                "💵 Collections",
+                f"₹ {total_col}"
+            )
 
-    row2 = st.columns(2)
+        row2 = st.columns(2)
 
-    with row2[0]:
-        show_mobile_metric_card(
-            "💳 Loans",
-            f"₹ {total_loan}"
-        )
+        with row2[0]:
+            show_mobile_metric_card(
+                "💳 Loans",
+                f"₹ {total_loan}"
+            )
 
-    with row2[1]:
-        show_mobile_metric_card(
-            "🎁 Donations",
-            f"₹ {total_don}"
-        )
+        with row2[1]:
+            show_mobile_metric_card(
+                "🎁 Donations",
+                f"₹ {total_don}"
+            )
 
-    row3 = st.columns(2)
+        row3 = st.columns(2)
 
-    with row3[0]:
-        show_mobile_metric_card(
-            "💸 Expenses",
-            f"₹ {total_exp}"
-        )
+        with row3[0]:
+            show_mobile_metric_card(
+                "💸 Expenses",
+                f"₹ {total_exp}"
+            )
     
     else:
 
