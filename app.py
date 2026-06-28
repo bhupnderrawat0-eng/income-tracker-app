@@ -708,8 +708,8 @@ else:
         label_visibility="collapsed"
     )
     
-    # ================= HEADER =================
-    if not is_mobile():
+# ================= HEADER =================
+if not is_mobile():
     col1, col2 = st.columns([6, 1])
 
     with col1:
