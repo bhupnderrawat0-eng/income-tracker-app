@@ -4,26 +4,20 @@ import streamlit as st
 # ================= DEVICE DETECTION =================
 def is_mobile():
 
-    user_agent = st.context.headers.get(
-        "user-agent",
-        ""
-    ).lower()
+    user_agent = st.context.headers.get("user-agent", "").lower()
 
-    return (
-        "android" in user_agent
-        or
-        "iphone" in user_agent
-    )
+    return "android" in user_agent or "iphone" in user_agent
 
 
 # ================= MOBILE CSS =================
 def show_mobile_metric_card(title, value):
 
     with st.container(border=True):
-        st.markdown(f"*{title}*")
+        st.markdown(f"{title}")
         st.markdown(f"## {value}")
 
-    st.markdown("""
+    st.markdown(
+        """
     <style>
 
     @media (max-width:768px){
@@ -118,16 +112,15 @@ def show_mobile_metric_card(title, value):
     }
 
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 # ================= MOBILE HEADER =================
 def show_mobile_header():
 
-    st.image(
-        "logo.png",
-        width=120
-    )
+    st.image("logo.png", width=120)
 
     st.markdown(
         """
@@ -138,7 +131,7 @@ def show_mobile_header():
             बाल युवा मंगलदल समिति
         </h3>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
@@ -155,6 +148,8 @@ def get_metric_columns():
     else:
 
         return st.columns(4)
+
+
 # ================= MOBILE TOP BAR =================
 def show_mobile_topbar(username):
 
@@ -186,7 +181,7 @@ def show_mobile_topbar(username):
                 </div>
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
 
@@ -199,11 +194,11 @@ def show_mobile_section_title(title):
             {title}
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
-# ================= MOBILE METRIC CARD =================
+# ================= MOBILE METRIC CARD (OVERWRITE) =================
 def show_mobile_metric_card(title, value):
 
     st.markdown(
@@ -236,5 +231,5 @@ def show_mobile_metric_card(title, value):
 
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
