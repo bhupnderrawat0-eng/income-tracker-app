@@ -3,23 +3,14 @@ import streamlit as st
 
 # ================= DEVICE DETECTION =================
 def is_mobile():
-
-    user_agent = st.context.headers.get(
-        "user-agent",
-        ""
-    ).lower()
-
-    return (
-        "android" in user_agent
-        or
-        "iphone" in user_agent
-    )
+    user_agent = st.context.headers.get("user-agent", "").lower()
+    return "android" in user_agent or "iphone" in user_agent
 
 
 # ================= MOBILE CSS =================
 def load_mobile_css():
-
-    st.markdown("""
+    st.markdown(
+        """
     <style>
 
     @media (max-width:768px){
@@ -115,12 +106,13 @@ def load_mobile_css():
     }
 
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 
 # ================= MOBILE HEADER =================
 def show_mobile_header():
-
     st.image("logo.png", width=120)
 
     st.markdown(
@@ -138,7 +130,6 @@ def show_mobile_header():
 
 # ================= MOBILE TOP BAR =================
 def show_mobile_topbar(username):
-
     st.markdown(
         f"""
         <div style="
@@ -206,13 +197,12 @@ def show_mobile_topbar(username):
 
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
 # ================= SECTION TITLE =================
 def show_mobile_section_title(title):
-
     st.markdown(
         f"""
         <div class="section-title">
@@ -225,22 +215,16 @@ def show_mobile_section_title(title):
 
 # ================= METRIC COLUMNS =================
 def get_metric_columns():
-
     if is_mobile():
-
         row1 = st.columns(2)
         row2 = st.columns(2)
-
         return row1, row2
-
     else:
-
         return st.columns(4)
 
 
 # ================= MOBILE METRIC CARD =================
 def show_mobile_metric_card(title, value):
-
     st.markdown(
         f"""
         <div style="
