@@ -803,14 +803,7 @@ if menu == "Dashboard":
     balance = total_col + total_don - total_exp
 
     if is_mobile():
-
-        show_mobile_topbar(
-            st.session_state.get(
-                "current_user",
-                "Admin"
-            )
-        )
-
+        
         st.markdown("<br>", unsafe_allow_html=True)
 
         st.markdown(
