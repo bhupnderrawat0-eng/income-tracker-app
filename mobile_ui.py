@@ -243,13 +243,30 @@ def show_mobile_metric_card(title, value):
 
     st.markdown(
         f"""
-        <div class="mobile-card">
+        <div style="
+            background:rgba(255,255,255,0.04);
+            backdrop-filter:blur(10px);
+            border:1px solid rgba(255,255,255,0.06);
+            border-radius:18px;
+            padding:14px;
+            margin-bottom:10px;
+            min-height:120px;
+        ">
 
-            <div class="mobile-card-title">
+            <div style="
+                color:#cbd5e1;
+                font-size:16px;
+                font-weight:500;
+            ">
                 {title}
             </div>
 
-            <div class="mobile-card-value">
+            <div style="
+                color:white;
+                font-size:28px;
+                font-weight:700;
+                margin-top:25px;
+            ">
                 {value}
             </div>
 
