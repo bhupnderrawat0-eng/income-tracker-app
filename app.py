@@ -665,12 +665,7 @@ else:
         menu_list,
         label_visibility="collapsed"
     )
-    menu = st.selectbox(
-        "",
-        menu_list,
-        label_visibility="collapsed"
-    )
-    
+        
 # ================= HEADER =================
 if not is_mobile():
     col1, col2 = st.columns([6, 1])
