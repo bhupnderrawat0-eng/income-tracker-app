@@ -171,69 +171,7 @@ def show_mobile_metric_card(title, value):
 
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
-    # 1. Inject Clear and Proper Overrides for Mobile Layout Stability
-    st.markdown(
-        """
-        <style>
-        @media (max-width: 768px) {
-            /* Content ko bottom navigation ke upar rakhne ke liye space padding */
-            .block-container {
-                padding-bottom: 150px !important;
-            }
-
-            /* Main Layout block ko fixed position par lock karna */
-            div[data-testid="stHorizontalBlock"] {
-                position: fixed !important;
-                bottom: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                width: 100vw !important;
-                background-color: #111424 !important;
-                
-                /* Phone Ke Buttons (Safe Area Bottom) se clear space gap banana */
-                padding: 10px 14px !important;
-                padding-bottom: calc(18px + env(safe-area-inset-bottom, 24px)) !important;
-                
-                border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
-                border-radius: 24px 24px 0 0 !important;
-                z-index: 999999 !important;
-                box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6) !important;
-                
-                /* Grid setup force karna taaki buttons ek line me rahe aur failne na paaye */
-                display: flex !important;
-                flex-direction: row !important;
-                flex-wrap: nowrap !important;
-                justify-content: space-between !important;
-            }
-
-            /* Har ek column div ko ek barabar scale width milni chahiye */
-            div[data-testid="stHorizontalBlock"] > div {
-                width: 18% !important;
-                min-width: 18% !important;
-                max-width: 18% !important;
-                flex: 1 1 18% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-
-            /* Buttons ko sundar aur full height width dena slot me */
-            div[data-testid="stHorizontalBlock"] button {
-                width: 100% !important;
-                min-height: 50px !important;
-                height: 50px !important;
-                background: rgba(255, 255, 255, 0.04) !important;
-                border: 1px solid rgba(255, 255, 255, 0.08) !important;
-                border-radius: 14px !important;
-                font-size: 20px !important;
-                padding: 0 !important;
-            }
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # 2. Render Native Columns cleanly 
+    # Native horizontal row layout
     col1, col2, col3, col4, col5 = st.columns(5)
 
     if col1.button("🏠", key="nav_dash", use_container_width=True):
@@ -261,7 +199,8 @@ def show_mobile_navigation():
         st.rerun()
 
     if st.session_state.get("show_more", False):
-        st.markdown("<div style='margin-bottom:90px;'></div>", unsafe_allow_html=True)
+        # Is selectbox ko sticky navigation se baahar/upar rakhne ke liye ek space drop kiya hai
+        st.markdown("<div style='margin-bottom:80px;'></div>", unsafe_allow_html=True)
         more_menu = st.selectbox(
             "More Options", ["Loans", "Donations", "Expenses"], index=0
         )
