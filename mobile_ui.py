@@ -1,7 +1,3 @@
-import streamlit as st
-from streamlit_option_menu import option_menu
-
-
 # ================= DEVICE DETECTION =================
 def is_mobile():
     user_agent = st.context.headers.get("user-agent", "").lower()
@@ -16,8 +12,7 @@ def load_mobile_css():
         @media (max-width:768px){
             .block-container{
                 padding:12px !important;
-                /* Badha diya taaki content sticky nav bar ke peeche na chupe */
-                padding-bottom: 120px !important; 
+                padding-bottom: 30px !important; 
             }
             h1{
                 font-size:30px !important;
@@ -39,31 +34,21 @@ def load_mobile_css():
             [data-testid="metric-container"]{
                 padding:12px !important;
             }
-            
-            /* STICKY BOTTOM NAVIGATION FIX */
-            div[data-testid="stHorizontalBlock"] {
-                position: fixed !important;
-                bottom: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                background-color: #1a1f38 !important; /* Thoda solid background taaki peeche ka text na dikhe */
-                padding: 12px 10px !important;
-                /* Yeh line phone ke home/back button se space banayegi */
-                padding-bottom: calc(12px + env(safe-area-inset-bottom, 16px)) !important;
-                border-top: 1px solid rgba(255,255,255,0.1) !important;
-                border-radius: 20px 20px 0 0 !important; /* Sirf upar se round */
-                z-index: 999999 !important; /* Sabse upar rahega */
-                margin-top: 0px !important;
-                box-shadow: 0 -5px 25px rgba(0,0,0,0.5) !important;
-            }
         }
-        
         .section-title{
             color:#F8D568;
             font-size:18px;
             font-weight:600;
             margin-top:20px;
             margin-bottom:12px;
+        }
+        
+        /* Clean and simple layout for navigation buttons */
+        div[data-testid="stHorizontalBlock"] {
+            background-color: #111424 !important;
+            padding: 10px !important;
+            border-radius: 16px !important;
+            margin-top: 20px !important;
         }
         </style>
         """,
@@ -199,8 +184,6 @@ def show_mobile_navigation():
         st.rerun()
 
     if st.session_state.get("show_more", False):
-        # Is selectbox ko sticky navigation se baahar/upar rakhne ke liye ek space drop kiya hai
-        st.markdown("<div style='margin-bottom:80px;'></div>", unsafe_allow_html=True)
         more_menu = st.selectbox(
             "More Options", ["Loans", "Donations", "Expenses"], index=0
         )
