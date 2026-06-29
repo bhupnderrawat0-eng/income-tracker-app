@@ -148,9 +148,25 @@ def get_metric_columns():
 
 # ================= MOBILE METRIC CARD =================
 def show_mobile_metric_card(title, value):
-    st.markdown(f"""
-    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 18px; margin-bottom: 12px; text-align: center;">
-        <div style="color: #cbd5e1; font-size: 15px; margin-bottom: 12px;">{title}</div>
-        <div style="color: white; font-size: 26px; font-weight: 700;">{value}</div>
+    import streamlit.components.v1 as components
+
+    html_content = f"""
+    <div style="
+        background: rgba(255,255,255,0.05); 
+        border: 1px solid rgba(255,255,255,0.08); 
+        border-radius: 18px; 
+        padding: 18px; 
+        font-family: sans-serif;
+        text-align: center;
+    ">
+        <div style="color: #cbd5e1; font-size: 15px; margin-bottom: 12px;">
+            {title}
+        </div>
+        <div style="color: white; font-size: 26px; font-weight: 700;">
+            {value}
+        </div>
     </div>
-    """, unsafe_allow_html=True)
+    """
+    
+    # Isse Streamlit majboor ho jayega HTML render karne ke liye
+    components.html(html_content, height=110, scrolling=False)
