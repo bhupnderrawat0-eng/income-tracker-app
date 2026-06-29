@@ -184,21 +184,42 @@ def show_mobile_metric_card(title, value):
     
     # Isse Streamlit majboor ho jayega HTML render karne ke liye
     components.html(html_content, height=110, scrolling=False)
-# ================= MOBILE BOTTOM NAV =================
+# ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
 
-    menu = st.selectbox(
-        "",
-        [
-            "🏠 Dashboard",
-            "👥 Members",
-            "💰 Collections",
-            "📊 Reports",
-            "💳 Loans",
-            "🎁 Donations",
-            "💸 Expenses"
-        ],
-        label_visibility="collapsed"
-    )
+    col1, col2, col3, col4, col5 = st.columns(5)
 
-    return menu.split(" ", 1)[1]
+    if col1.button("🏠", use_container_width=True):
+        st.session_state.mobile_menu = "Dashboard"
+
+    if col2.button("👥", use_container_width=True):
+        st.session_state.mobile_menu = "Members"
+
+    if col3.button("💰", use_container_width=True):
+        st.session_state.mobile_menu = "Collections"
+
+    if col4.button("📊", use_container_width=True):
+        st.session_state.mobile_menu = "Reports"
+
+    if col5.button("☰", use_container_width=True):
+        st.session_state.show_more = (
+            not st.session_state.get("show_more", False)
+        )
+
+    if st.session_state.get("show_more", False):
+
+        more_menu = st.selectbox(
+            "More",
+            [
+                "Loans",
+                "Donations",
+                "Expenses"
+            ]
+        )
+
+        st.session_state.mobile_menu = more_menu
+
+    return st.session_state.get(
+        "mobile_menu",
+        "Dashboard"
+    )
