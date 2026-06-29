@@ -16,7 +16,7 @@ def load_mobile_css():
         @media (max-width:768px){
             .block-container{
                 padding:12px !important;
-                padding-bottom: 30px !important; 
+                padding-bottom: 140px !important; /* Content takki navbar ke piche na chupe */
             }
             h1{
                 font-size:30px !important;
@@ -46,13 +46,24 @@ def load_mobile_css():
             margin-top:20px;
             margin-bottom:12px;
         }
-        
-        /* Clean and simple layout for navigation buttons */
-        div[data-testid="stHorizontalBlock"] {
+
+        /* --- STAGE-3 COMPLETE FORCE INJECT OVERRIDE --- */
+        /* Streamlit ke standard rendering hierarchy ko clear karne ke liye top body levels ko inject target banaya hai */
+        div[data-testid="stAppViewBlockContainer"] iframe, 
+        iframe[title="streamlit_option_menu.option_menu"],
+        [data-testid="stVerticalBlockBorderWrapper"]:has(.fixed-nav-wrapper) {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            z-index: 999999 !important;
             background-color: #111424 !important;
-            padding: 10px !important;
-            border-radius: 16px !important;
-            margin-top: 20px !important;
+            box-shadow: 0px -8px 25px rgba(0,0,0,0.85) !important;
+        }
+        
+        .fixed-nav-wrapper {
+            width: 100% !important;
+            position: relative !important;
         }
         </style>
         """,
@@ -160,37 +171,55 @@ def show_mobile_metric_card(title, value):
 
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
-    # Native horizontal row layout
-    col1, col2, col3, col4, col5 = st.columns(5)
+    menu_options = ["Dashboard", "Members", "Collections", "Reports", "More"]
+    
+    default_index = 0
+    current_menu = st.session_state.get("mobile_menu", "Dashboard")
+    if current_menu in menu_options:
+        default_index = menu_options.index(current_menu)
+    elif current_menu in ["Loans", "Donations", "Expenses"]:
+        default_index = 4
 
-    if col1.button("🏠", key="nav_dash", use_container_width=True):
-        st.session_state.mobile_menu = "Dashboard"
+    # Wrapping component in the tracked element container
+    st.markdown('<div class="fixed-nav-wrapper">', unsafe_allow_html=True)
+    
+    selected = option_menu(
+        menu_title=None,
+        options=menu_options,
+        icons=["house", "people", "wallet2", "bar-chart-line", "list"],
+        menu_icon="cast",
+        default_index=default_index,
+        orientation="horizontal",
+        styles={
+            "container": {"padding": "0!important", "background-color": "#111424", "border-radius": "0px"},
+            "icon": {"color": "#FFF", "font-size": "20px"}, 
+            "nav-link": {"font-size": "0px", "text-align": "center", "margin":"0px", "padding":"14px 0px", "--hover-color": "rgba(255,255,255,0.1)"},
+            "nav-link-selected": {"background-color": "#5856D6"},
+        }
+    )
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if selected == "More":
+        st.session_state.show_more = True
+    else:
         st.session_state.show_more = False
-        st.rerun()
-
-    if col2.button("👥", key="nav_memb", use_container_width=True):
-        st.session_state.mobile_menu = "Members"
-        st.session_state.show_more = False
-        st.rerun()
-
-    if col3.button("💰", key="nav_coll", use_container_width=True):
-        st.session_state.mobile_menu = "Collections"
-        st.session_state.show_more = False
-        st.rerun()
-
-    if col4.button("📊", key="nav_repo", use_container_width=True):
-        st.session_state.mobile_menu = "Reports"
-        st.session_state.show_more = False
-        st.rerun()
-
-    if col5.button("☰", key="nav_more", use_container_width=True):
-        st.session_state.show_more = not st.session_state.get("show_more", False)
-        st.rerun()
+        if selected != current_menu:
+            st.session_state.mobile_menu = selected
+            st.rerun()
 
     if st.session_state.get("show_more", False):
+        current_more = st.session_state.get("mobile_menu", "Loans")
+        if current_more not in ["Loans", "Donations", "Expenses"]:
+            current_more = "Loans"
+            
         more_menu = st.selectbox(
-            "More Options", ["Loans", "Donations", "Expenses"], index=0
+            "More Options", 
+            ["Loans", "Donations", "Expenses"], 
+            index=["Loans", "Donations", "Expenses"].index(current_more)
         )
-        st.session_state.mobile_menu = more_menu
+        if st.session_state.get("mobile_menu") != more_menu:
+            st.session_state.mobile_menu = more_menu
+            st.rerun()
 
     return st.session_state.get("mobile_menu", "Dashboard")
