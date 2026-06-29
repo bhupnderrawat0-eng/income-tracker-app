@@ -93,47 +93,45 @@ def show_mobile_header():
 # ================= MOBILE TOP BAR =================
 def show_mobile_topbar(username):
 
-    st.markdown("""
-    <div style="
-        background: linear-gradient(135deg,#1E293B,#0F172A);
-        border:1px solid rgba(255,255,255,0.08);
-        border-radius:20px;
-        padding:20px;
-        margin-bottom:20px;
-        text-align:center;
-    ">
-    """, unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 2, 1])
 
-    st.image(
-        "logo.png",
-        width=90
+    with col2:
+        st.image(
+            "logo.png",
+            width=120
+        )
+
+    st.markdown(
+        """
+        <h2 style="
+            text-align:center;
+            color:#F8D568;
+            margin-top:-10px;
+            margin-bottom:5px;
+            font-size:34px;
+        ">
+            बाल युवा मंगलदल समिति
+        </h2>
+        """,
+        unsafe_allow_html=True
     )
 
     st.markdown(
         f"""
-        <h2 style="
-            text-align:center;
-            color:#F8D568;
-            margin-top:10px;
-            margin-bottom:8px;
-            font-size:30px;
-        ">
-            बाल युवा मंगलदल समिति
-        </h2>
-
         <p style="
             text-align:center;
             color:#CBD5E1;
-            font-size:18px;
+            font-size:20px;
             margin-top:0px;
+            margin-bottom:25px;
         ">
             👋 Welcome, {username}
         </p>
-
-        </div>
         """,
         unsafe_allow_html=True
     )
+
+    st.markdown("<hr>", unsafe_allow_html=True)
 # ================= MOBILE SECTION TITLE =================
 def show_mobile_section_title(title):
 
