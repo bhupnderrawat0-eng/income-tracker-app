@@ -1,16 +1,11 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 
+
 # ================= DEVICE DETECTION =================
 def is_mobile():
-    user_agent = st.context.headers.get(
-        "user-agent",
-        ""
-    ).lower()
-    return (
-        "android" in user_agent
-        or "iphone" in user_agent
-    )
+    user_agent = st.context.headers.get("user-agent", "").lower()
+    return "android" in user_agent or "iphone" in user_agent
 
 
 # ================= MOBILE CSS =================
@@ -88,14 +83,13 @@ def load_mobile_css():
         }
         </style>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
+
+
 # ================= MOBILE HEADER =================
 def show_mobile_header():
-    st.image(
-        "logo.png",
-        width=120
-    )
+    st.image("logo.png", width=120)
     st.markdown(
         """
         <h3 style="
@@ -105,7 +99,7 @@ def show_mobile_header():
             बाल युवा मंगलदल समिति
         </h3>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
@@ -113,10 +107,7 @@ def show_mobile_header():
 def show_mobile_topbar(username):
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image(
-            "logo.png",
-            width=120
-        )
+        st.image("logo.png", width=120)
     st.markdown(
         """
         <h2 style="
@@ -129,7 +120,7 @@ def show_mobile_topbar(username):
             बाल युवा मंगलदल समिति
         </h2>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
     st.markdown(
         f"""
@@ -143,7 +134,7 @@ def show_mobile_topbar(username):
             👋 Welcome, {username}
         </p>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
     st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -156,7 +147,7 @@ def show_mobile_section_title(title):
             {title}
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
@@ -173,6 +164,7 @@ def get_metric_columns():
 # ================= MOBILE METRIC CARD =================
 def show_mobile_metric_card(title, value):
     import streamlit.components.v1 as components
+
     html_content = f"""
     <div style="
         background: rgba(255,255,255,0.05); 
@@ -216,8 +208,8 @@ def show_mobile_navigation():
                 min-width: unset !important;
             }
             </style>
-            """, 
-            unsafe_allow_html=True
+            """,
+            unsafe_allow_html=True,
         )
 
         col1, col2, col3, col4, col5 = st.columns(5)
@@ -226,7 +218,7 @@ def show_mobile_navigation():
         if col1.button("🏠", key="btn_dash", use_container_width=True):
             st.session_state.mobile_menu = "Dashboard"
             st.session_state.show_more = False
-            st.rerun() # Page ko refresh karke naya content load karne ke liye
+            st.rerun()
 
         if col2.button("👥", key="btn_memb", use_container_width=True):
             st.session_state.mobile_menu = "Members"
@@ -244,16 +236,16 @@ def show_mobile_navigation():
             st.rerun()
 
         if col5.button("☰", key="btn_more", use_container_width=True):
-            st.session_state.show_more = not st.session_state.get("show_more", False)
+            st.session_state.show_more = not st.session_state.get(
+                "show_more", False
+            )
             st.rerun()
 
     # Agar 'More' menu open hai, toh use bottom bar ke thoda upar dikhayenge
     if st.session_state.get("show_more", False):
         more_menu = st.selectbox(
-            "More Options",
-            ["Loans", "Donations", "Expenses"],
-            index=0
+            "More Options", ["Loans", "Donations", "Expenses"], index=0
         )
         st.session_state.mobile_menu = more_menu
 
-    return st.session_state.get("mobile_menu", "Dashboard")bile_menu", "Dashboard")
+    return st.session_state.get("mobile_menu", "Dashboard")
