@@ -1,5 +1,6 @@
 import streamlit as st
-
+import streamlit as st
+from streamlit_option_menu import option_menu
 
 # ================= DEVICE DETECTION =================
 def is_mobile():
@@ -187,28 +188,70 @@ def show_mobile_metric_card(title, value):
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
 
-    col1, col2, col3, col4, col5 = st.columns(5)
+    selected = option_menu(
+        menu_title=None,
 
-    if col1.button("🏠", use_container_width=True):
-        st.session_state.mobile_menu = "Dashboard"
+        options=[
+            "Dashboard",
+            "Members",
+            "Collections",
+            "Reports",
+            "More"
+        ],
 
-    if col2.button("👥", use_container_width=True):
-        st.session_state.mobile_menu = "Members"
+        icons=[
+            "house",
+            "people",
+            "cash-stack",
+            "bar-chart",
+            "list"
+        ],
 
-    if col3.button("💰", use_container_width=True):
-        st.session_state.mobile_menu = "Collections"
+        orientation="horizontal",
 
-    if col4.button("📊", use_container_width=True):
-        st.session_state.mobile_menu = "Reports"
+        default_index=0,
 
-    if col5.button("☰", use_container_width=True):
-        st.session_state.show_more = (
-            not st.session_state.get("show_more", False)
-        )
+        styles={
 
-    if st.session_state.get("show_more", False):
+            "container": {
+                "padding": "5px",
+                "background-color": "#0F172A",
+                "position": "fixed",
+                "bottom": "0",
+                "left": "0",
+                "width": "100%",
+                "z-index": "999999",
+                "border-top": "1px solid rgba(255,255,255,0.1)"
+            },
 
-        more_menu = st.selectbox(
+            "nav-link": {
+                "font-size": "12px",
+                "text-align": "center",
+                "color": "white",
+                "--hover-color": "#1E293B",
+            },
+
+            "nav-link-selected": {
+                "background-color": "#F8D568",
+                "color": "black",
+            }
+        }
+    )
+
+    st.markdown(
+        """
+        <style>
+        .block-container{
+            padding-bottom:90px !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    if selected == "More":
+
+        selected = st.selectbox(
             "More",
             [
                 "Loans",
@@ -217,9 +260,6 @@ def show_mobile_navigation():
             ]
         )
 
-        st.session_state.mobile_menu = more_menu
+    st.session_state.mobile_menu = selected
 
-    return st.session_state.get(
-        "mobile_menu",
-        "Dashboard"
-    )
+    return selected
