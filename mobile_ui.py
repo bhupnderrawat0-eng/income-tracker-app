@@ -184,3 +184,21 @@ def show_mobile_metric_card(title, value):
     
     # Isse Streamlit majboor ho jayega HTML render karne ke liye
     components.html(html_content, height=110, scrolling=False)
+# ================= MOBILE BOTTOM NAV =================
+def show_mobile_navigation():
+
+    menu = st.selectbox(
+        "",
+        [
+            "🏠 Dashboard",
+            "👥 Members",
+            "💰 Collections",
+            "📊 Reports",
+            "💳 Loans",
+            "🎁 Donations",
+            "💸 Expenses"
+        ],
+        label_visibility="collapsed"
+    )
+
+    return menu.split(" ", 1)[1]
