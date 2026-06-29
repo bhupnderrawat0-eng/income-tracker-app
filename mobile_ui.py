@@ -47,39 +47,27 @@ def load_mobile_css():
             margin-bottom:12px;
         }
 
-        /* Pure HTML Custom Navbar Styling */
-        .custom-bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #111424; /* Aapke app ka background color */
-            padding: 12px 0px 25px 0px;
-            z-index: 999999;
-            box-shadow: 0px -5px 15px rgba(0,0,0,0.6);
-            border-top: 1px solid rgba(255,255,255,0.08);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
+        /* --- STABLE BOTTOM FIXED NAVBAR TUNING WITHOUT ST.BOTTOM --- */
+        div[data-testid="stHorizontalBlock"]:has(button[key^="btn_"]) {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            background-color: #111424 !important; /* Aapke app ka dark background */
+            padding: 10px 15px 25px 15px !important;
+            z-index: 999999 !important;
+            box-shadow: 0px -5px 15px rgba(0,0,0,0.6) !important;
+            border-top: 1px solid rgba(255,255,255,0.05) !important;
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
         }
         
-        .nav-btn {
-            width: 18%;
-            height: 50px;
-            font-size: 22px;
-            border-radius: 14px;
-            border: none;
-            background: #5856D6; /* Purple color jo aapko chahiye */
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        
-        .nav-btn:active {
-            background: #403ebd;
+        /* Buttons ko force horizontal line mein rakhne ke liye */
+        div[data-testid="stHorizontalBlock"]:has(button[key^="btn_"]) div[data-testid="column"] {
+            width: 18% !important;
+            flex: unset !important;
+            min-width: unset !important;
         }
         </style>
         """,
@@ -187,61 +175,34 @@ def show_mobile_metric_card(title, value):
 
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
-    # Streamlit ka official container jo elements ko page ke bottom mein bhej deta hai
-    with st.bottom():
-        # Custom spacing ke liye styling injection
-        st.markdown(
-            """
-            <style>
-            /* Sabhi buttons ko ek barabar aur ek hi line (horizontal) mein force karne ke liye */
-            div[data-testid="stBottom"] div[data-testid="stHorizontalBlock"] {
-                display: flex !important;
-                flex-direction: row !important;
-                justify-content: space-between !important;
-                background-color: #111424 !important; /* Aapka background */
-                padding: 10px !important;
-                border-radius: 15px;
-            }
-            div[data-testid="stBottom"] div[data-testid="column"] {
-                width: 19% !important;
-                flex: unset !important;
-                min-width: unset !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
+    # Regular columns jise humne CSS se fixed-bottom kiya hai aur unique keys lagayi hain
+    col1, col2, col3, col4, col5 = st.columns(5)
 
-        col1, col2, col3, col4, col5 = st.columns(5)
+    if col1.button("🏠", key="btn_dash", use_container_width=True):
+        st.session_state.mobile_menu = "Dashboard"
+        st.session_state.show_more = False
+        st.rerun()
 
-        # Ab ye pure native buttons hain, inpar click hote ही Streamlit screen update kar dega
-        if col1.button("🏠", key="btn_dash", use_container_width=True):
-            st.session_state.mobile_menu = "Dashboard"
-            st.session_state.show_more = False
-            st.rerun()
+    if col2.button("👥", key="btn_memb", use_container_width=True):
+        st.session_state.mobile_menu = "Members"
+        st.session_state.show_more = False
+        st.rerun()
 
-        if col2.button("👥", key="btn_memb", use_container_width=True):
-            st.session_state.mobile_menu = "Members"
-            st.session_state.show_more = False
-            st.rerun()
+    if col3.button("💰", key="btn_coll", use_container_width=True):
+        st.session_state.mobile_menu = "Collections"
+        st.session_state.show_more = False
+        st.rerun()
 
-        if col3.button("💰", key="btn_coll", use_container_width=True):
-            st.session_state.mobile_menu = "Collections"
-            st.session_state.show_more = False
-            st.rerun()
+    if col4.button("📊", key="btn_repo", use_container_width=True):
+        st.session_state.mobile_menu = "Reports"
+        st.session_state.show_more = False
+        st.rerun()
 
-        if col4.button("📊", key="btn_repo", use_container_width=True):
-            st.session_state.mobile_menu = "Reports"
-            st.session_state.show_more = False
-            st.rerun()
+    if col5.button("☰", key="btn_more", use_container_width=True):
+        st.session_state.show_more = not st.session_state.get("show_more", False)
+        st.rerun()
 
-        if col5.button("☰", key="btn_more", use_container_width=True):
-            st.session_state.show_more = not st.session_state.get(
-                "show_more", False
-            )
-            st.rerun()
-
-    # Agar 'More' menu open hai, toh use bottom bar ke thoda upar dikhayenge
+    # Agar 'More' menu open hai, toh selectbox dropdown dikhega
     if st.session_state.get("show_more", False):
         more_menu = st.selectbox(
             "More Options", ["Loans", "Donations", "Expenses"], index=0
