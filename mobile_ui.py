@@ -188,70 +188,39 @@ def show_mobile_metric_card(title, value):
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
 
-    selected = option_menu(
-        menu_title=None,
+    col1, col2, col3, col4, col5 = st.columns(5)
 
-        options=[
-            "Dashboard",
-            "Members",
-            "Collections",
-            "Reports",
-            "More"
-        ],
+    if col1.button("🏠", use_container_width=True):
+        st.session_state.mobile_menu = "Dashboard"
 
-        icons=[
-            "house-fill",
-            "people-fill",
-            "cash-stack",
-            "bar-chart-fill",
-            "list"
-        ],
+    if col2.button("👥", use_container_width=True):
+        st.session_state.mobile_menu = "Members"
 
-        menu_icon="cast",
+    if col3.button("💰", use_container_width=True):
+        st.session_state.mobile_menu = "Collections"
 
-        default_index=0,
+    if col4.button("📊", use_container_width=True):
+        st.session_state.mobile_menu = "Reports"
 
-        orientation="horizontal",
+    if col5.button("☰", use_container_width=True):
+        st.session_state.show_more = (
+            not st.session_state.get("show_more", False)
+        )
 
-        styles={
-            "container": {
-                "padding": "0!important",
-                "background-color": "#0F172A",
-                "position": "fixed",
-                "bottom": "0",
-                "left": "0",
-                "right": "0",
-                "width": "100%",
-                "z-index": "999999",
-                "border-top": "1px solid rgba(255,255,255,0.1)"
-            },
+    if st.session_state.get("show_more", False):
 
-            "icon": {
-                "color": "#F8D568",
-                "font-size": "20px"
-            },
+        more_menu = st.selectbox(
+            "More",
+            [
+                "Loans",
+                "Donations",
+                "Expenses"
+            ]
+        )
 
-            "nav-link": {
-                "font-size": "10px",
-                "text-align": "center",
-                "margin": "0px",
-                "padding": "10px 0px",
-                "color": "white",
-            },
+        st.session_state.mobile_menu = more_menu
 
-            "nav-link-selected": {
-                "background-color": "#1E293B",
-                "color": "#F8D568",
-            }
-        }
+    return st.session_state.get(
+        "mobile_menu",
+        "Dashboard"
     )
-
-    st.markdown("""
-    <style>
-    .block-container{
-        padding-bottom:90px !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    return selected
