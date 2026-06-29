@@ -52,31 +52,32 @@ def load_mobile_css():
             margin-bottom:12px;
         }
 
-        /* --- STABLE BOTTOM FIXED NAVBAR TUNING --- */
-        .fixed-bottom-navbar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #111424; /* Background sync code */
-            padding: 12px 10px 24px 10px;
-            z-index: 999999;
-            box-shadow: 0px -5px 15px rgba(0,0,0,0.6);
-            border-top: 1px solid rgba(255,255,255,0.05);
+        /* --- STABLE BOTTOM FIXED NAVBAR TUNING FOR NATIVE BUTTONS --- */
+        div[data-testid="stHorizontalBlock"]:has(button[key^="nav_"]) {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            background-color: #111424 !important; /* Aapke app ka dark background */
+            padding: 10px 15px 25px 15px !important;
+            z-index: 999999 !important;
+            box-shadow: 0px -5px 15px rgba(0,0,0,0.6) !important;
+            border-top: 1px solid rgba(255,255,255,0.05) !important;
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
         }
         
-        .nav-flex-wrapper {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            max-width: 600px;
-            margin: 0 auto;
+        /* Buttons ki width ko handle karne ke liye */
+        div[data-testid="stHorizontalBlock"]:has(button[key^="nav_"]) div[data-testid="column"] {
+            width: 18% !important;
+            flex: unset !important;
+            min-width: unset !important;
         }
         </style>
         """,
         unsafe_allow_html=True
     )
-
 
 # ================= MOBILE HEADER =================
 def show_mobile_header():
@@ -183,35 +184,29 @@ def show_mobile_metric_card(title, value):
 
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
-    # Streamlit buttons vertical alignment todne ke liye hum query arguments ya clean session call use karenge
-    # Flex Layout inject kar rahe hain jo natively buttons ko align karega screen width ke hisab se
-    
-    st.markdown(
-        """
-        <div class="fixed-bottom-navbar">
-            <div class="nav-flex-wrapper">
-                <div style="width: 18%;"><a href="?nav=Dashboard" target="_self" style="text-decoration:none;"><button style="width:100%; height:45px; font-size:20px; border-radius:10px; border:none; background:#5856D6; color:white; cursor:pointer;">🏠</button></a></div>
-                <div style="width: 18%;"><a href="?nav=Members" target="_self" style="text-decoration:none;"><button style="width:100%; height:45px; font-size:20px; border-radius:10px; border:none; background:#5856D6; color:white; cursor:pointer;">👥</button></a></div>
-                <div style="width: 18%;"><a href="?nav=Collections" target="_self" style="text-decoration:none;"><button style="width:100%; height:45px; font-size:20px; border-radius:10px; border:none; background:#5856D6; color:white; cursor:pointer;">💰</button></a></div>
-                <div style="width: 18%;"><a href="?nav=Reports" target="_self" style="text-decoration:none;"><button style="width:100%; height:45px; font-size:20px; border-radius:10px; border:none; background:#5856D6; color:white; cursor:pointer;">📊</button></a></div>
-                <div style="width: 18%;"><a href="?nav=More" target="_self" style="text-decoration:none;"><button style="width:100%; height:45px; font-size:20px; border-radius:10px; border:none; background:#5856D6; color:white; cursor:pointer;">☰</button></a></div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    # Native Streamlit columns lekin unique keys ke saath taaki CSS apply ho sake
+    col1, col2, col3, col4, col5 = st.columns(5)
 
-    # URL trigger arguments capture karna navigation state maintain rakhne ke liye
-    query_params = st.query_params
-    if "nav" in query_params:
-        selected_nav = query_params["nav"]
-        if selected_nav == "More":
-            st.session_state.show_more = True
-        else:
-            st.session_state.mobile_menu = selected_nav
-            st.session_state.show_more = False
+    if col1.button("🏠", key="nav_home", use_container_width=True):
+        st.session_state.mobile_menu = "Dashboard"
+        st.session_state.show_more = False
 
-    # Agar More (☰) press kiya hai toh dropdown metrics ke niche open hoga native style mein
+    if col2.button("👥", key="nav_members", use_container_width=True):
+        st.session_state.mobile_menu = "Members"
+        st.session_state.show_more = False
+
+    if col3.button("💰", key="nav_collections", use_container_width=True):
+        st.session_state.mobile_menu = "Collections"
+        st.session_state.show_more = False
+
+    if col4.button("📊", key="nav_reports", use_container_width=True):
+        st.session_state.mobile_menu = "Reports"
+        st.session_state.show_more = False
+
+    if col5.button("☰", key="nav_more", use_container_width=True):
+        st.session_state.show_more = not st.session_state.get("show_more", False)
+
+    # Agar More (☰) press kiya hai toh dropdown open hoga
     if st.session_state.get("show_more", False):
         more_menu = st.selectbox(
             "More Options",
