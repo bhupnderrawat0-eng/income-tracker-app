@@ -171,7 +171,72 @@ def show_mobile_metric_card(title, value):
 
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
-    # Native horizontal row layout
+    # 1. Custom Fixed Bottom Bar HTML & CSS with Safe Area
+    st.markdown(
+        """
+        <style>
+        /* Main Application padding taaki content bar ke peeche na dabe */
+        @media (max-width: 768px) {
+            .block-container {
+                padding-bottom: 140px !important;
+            }
+        }
+        
+        /* Fixed Container for Buttons */
+        .fixed-nav-bar {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            background-color: #111424 !important;
+            padding: 12px 8px !important;
+            /* Phone navigation buttons ke liye spacing built-in padding */
+            padding-bottom: calc(14px + env(safe-area-inset-bottom, 18px)) !important;
+            border-top: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 20px 20px 0 0 !important;
+            z-index: 999999 !important;
+            display: flex !important;
+            justify-content: space-around !important;
+            align-items: center !important;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.6) !important;
+        }
+        
+        /* Streamlit defaults override to push buttons into fixed bar positioning */
+        @media (max-width: 768px) {
+            div[data-testid="stHorizontalBlock"] {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 1000000 !important;
+                background: #111424 !important;
+                padding: 8px 4px !important;
+                padding-bottom: calc(10px + env(safe-area-inset-bottom, 16px)) !important;
+                border-top: 1px solid rgba(255,255,255,0.08) !important;
+                box-shadow: 0 -5px 20px rgba(0,0,0,0.5) !important;
+            }
+            
+            /* Buttons styling inside the fixed layout */
+            div[data-testid="stHorizontalBlock"] button {
+                background: rgba(255, 255, 255, 0.03) !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 12px !important;
+                min-height: 46px !important;
+            }
+            
+            /* Active/Selected State Highlight */
+            div[data-testid="stHorizontalBlock"] button:focus, 
+            div[data-testid="stHorizontalBlock"] button:active {
+                background: linear-gradient(135deg,#6366f1,#7c3aed) !important;
+                border: none !important;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # 2. Native row setup triggers the styles defined above
     col1, col2, col3, col4, col5 = st.columns(5)
 
     if col1.button("🏠", key="nav_dash", use_container_width=True):
@@ -199,8 +264,7 @@ def show_mobile_navigation():
         st.rerun()
 
     if st.session_state.get("show_more", False):
-        # Is selectbox ko sticky navigation se baahar/upar rakhne ke liye ek space drop kiya hai
-        st.markdown("<div style='margin-bottom:80px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-bottom:85px;'></div>", unsafe_allow_html=True)
         more_menu = st.selectbox(
             "More Options", ["Loans", "Donations", "Expenses"], index=0
         )
