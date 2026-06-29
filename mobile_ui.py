@@ -1,3 +1,7 @@
+import streamlit as st
+from streamlit_option_menu import option_menu
+
+
 # ================= DEVICE DETECTION =================
 def is_mobile():
     user_agent = st.context.headers.get("user-agent", "").lower()
