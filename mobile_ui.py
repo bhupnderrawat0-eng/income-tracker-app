@@ -188,6 +188,7 @@ def show_mobile_metric_card(title, value):
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
 
+    st.success("MOBILE NAV LOADED")
     selected = option_menu(
         menu_title=None,
 
