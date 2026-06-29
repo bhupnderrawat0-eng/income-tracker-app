@@ -47,9 +47,11 @@ def load_mobile_css():
             margin-bottom:12px;
         }
 
-        /* --- BRUTE FORCE BOTTOM ATTACHMENT WITH INLINE SELECTION --- */
-        /* Yeh rule Streamlit ke sabhi internal element blocks ko bypass karke layout bar ko sidhe bottom par lock karega */
-        iframe[title="streamlit_option_menu.option_menu"] {
+        /* --- STAGE-3 COMPLETE FORCE INJECT OVERRIDE --- */
+        /* Streamlit ke standard rendering hierarchy ko clear karne ke liye top body levels ko inject target banaya hai */
+        div[data-testid="stAppViewBlockContainer"] iframe, 
+        iframe[title="streamlit_option_menu.option_menu"],
+        [data-testid="stVerticalBlockBorderWrapper"]:has(.fixed-nav-wrapper) {
             position: fixed !important;
             bottom: 0 !important;
             left: 0 !important;
@@ -57,22 +59,18 @@ def load_mobile_css():
             z-index: 999999 !important;
             background-color: #111424 !important;
             box-shadow: 0px -8px 25px rgba(0,0,0,0.85) !important;
-            border-top: 1px solid rgba(255,255,255,0.08) !important;
-            padding-bottom: env(safe-area-inset-bottom, 12px) !important;
         }
-
-        /* Container helper to double lock positioning override */
+        
         .fixed-nav-wrapper {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
             width: 100% !important;
-            z-index: 999999 !important;
+            position: relative !important;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
+
+
 # ================= MOBILE HEADER =================
 def show_mobile_header():
     st.image("logo.png", width=120)
@@ -173,18 +171,16 @@ def show_mobile_metric_card(title, value):
 
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
-    # Icons aur layout map karne ke liye lists
     menu_options = ["Dashboard", "Members", "Collections", "Reports", "More"]
     
-    # Session state menu value sync set up karna
     default_index = 0
     current_menu = st.session_state.get("mobile_menu", "Dashboard")
     if current_menu in menu_options:
         default_index = menu_options.index(current_menu)
     elif current_menu in ["Loans", "Donations", "Expenses"]:
-        default_index = 4 # "More" option select dikhane ke liye
+        default_index = 4
 
-    # HTML Container ke andar standard option menu render karna
+    # Wrapping component in the tracked element container
     st.markdown('<div class="fixed-nav-wrapper">', unsafe_allow_html=True)
     
     selected = option_menu(
@@ -197,14 +193,13 @@ def show_mobile_navigation():
         styles={
             "container": {"padding": "0!important", "background-color": "#111424", "border-radius": "0px"},
             "icon": {"color": "#FFF", "font-size": "20px"}, 
-            "nav-link": {"font-size": "0px", "text-align": "center", "margin":"0px", "padding":"12px 0px", "--hover-color": "rgba(255,255,255,0.1)"},
+            "nav-link": {"font-size": "0px", "text-align": "center", "margin":"0px", "padding":"14px 0px", "--hover-color": "rgba(255,255,255,0.1)"},
             "nav-link-selected": {"background-color": "#5856D6"},
         }
     )
     
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Selected state updates handle karna
     if selected == "More":
         st.session_state.show_more = True
     else:
@@ -213,7 +208,6 @@ def show_mobile_navigation():
             st.session_state.mobile_menu = selected
             st.rerun()
 
-    # Dropdown selective execution style 
     if st.session_state.get("show_more", False):
         current_more = st.session_state.get("mobile_menu", "Loans")
         if current_more not in ["Loans", "Donations", "Expenses"]:
