@@ -195,31 +195,59 @@ def show_mobile_metric_card(title, value):
 
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
-    # Direct HTML Component inject kar rahe hain jo pure layout container se azad hai
-    st.markdown(
-        """
-        <div class="custom-bottom-nav">
-            <button class="nav-btn" onclick="window.parent.location.search = '?nav=Dashboard'">🏠</button>
-            <button class="nav-btn" onclick="window.parent.location.search = '?nav=Members'">👥</button>
-            <button class="nav-btn" onclick="window.parent.location.search = '?nav=Collections'">💰</button>
-            <button class="nav-btn" onclick="window.parent.location.search = '?nav=Reports'">📊</button>
-            <button class="nav-btn" onclick="window.parent.location.search = '?nav=More'">☰</button>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    # Streamlit ka official container jo elements ko page ke bottom mein bhej deta hai
+    with st.bottom():
+        # Custom spacing ke liye styling injection
+        st.markdown(
+            """
+            <style>
+            /* Sabhi buttons ko ek barabar aur ek hi line (horizontal) mein force karne ke liye */
+            div[data-testid="stBottom"] div[data-testid="stHorizontalBlock"] {
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                background-color: #111424 !important; /* Aapka background */
+                padding: 10px !important;
+                border-radius: 15px;
+            }
+            div[data-testid="stBottom"] div[data-testid="column"] {
+                width: 19% !important;
+                flex: unset !important;
+                min-width: unset !important;
+            }
+            </style>
+            """, 
+            unsafe_allow_html=True
+        )
 
-    # URL query arguments parse karke state maintain rakhna
-    query_params = st.query_params
-    if "nav" in query_params:
-        selected_nav = query_params["nav"]
-        if selected_nav == "More":
-            st.session_state.show_more = True
-        else:
-            st.session_state.mobile_menu = selected_nav
+        col1, col2, col3, col4, col5 = st.columns(5)
+
+        # Ab ye pure native buttons hain, inpar click hote ही Streamlit screen update kar dega
+        if col1.button("🏠", key="btn_dash", use_container_width=True):
+            st.session_state.mobile_menu = "Dashboard"
             st.session_state.show_more = False
+            st.rerun() # Page ko refresh karke naya content load karne ke liye
 
-    # Agar More (☰) press kiya ho toh selective drop-down dikhana
+        if col2.button("👥", key="btn_memb", use_container_width=True):
+            st.session_state.mobile_menu = "Members"
+            st.session_state.show_more = False
+            st.rerun()
+
+        if col3.button("💰", key="btn_coll", use_container_width=True):
+            st.session_state.mobile_menu = "Collections"
+            st.session_state.show_more = False
+            st.rerun()
+
+        if col4.button("📊", key="btn_repo", use_container_width=True):
+            st.session_state.mobile_menu = "Reports"
+            st.session_state.show_more = False
+            st.rerun()
+
+        if col5.button("☰", key="btn_more", use_container_width=True):
+            st.session_state.show_more = not st.session_state.get("show_more", False)
+            st.rerun()
+
+    # Agar 'More' menu open hai, toh use bottom bar ke thoda upar dikhayenge
     if st.session_state.get("show_more", False):
         more_menu = st.selectbox(
             "More Options",
@@ -228,4 +256,4 @@ def show_mobile_navigation():
         )
         st.session_state.mobile_menu = more_menu
 
-    return st.session_state.get("mobile_menu", "Dashboard")
+    return st.session_state.get("mobile_menu", "Dashboard")bile_menu", "Dashboard")
