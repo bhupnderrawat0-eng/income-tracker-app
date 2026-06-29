@@ -93,41 +93,47 @@ def show_mobile_header():
 # ================= MOBILE TOP BAR =================
 def show_mobile_topbar(username):
 
-    import streamlit.components.v1 as components
-
-    html = f"""
+    st.markdown("""
     <div style="
         background: linear-gradient(135deg,#1E293B,#0F172A);
         border:1px solid rgba(255,255,255,0.08);
         border-radius:20px;
-        padding:18px;
-        margin-bottom:15px;
+        padding:20px;
+        margin-bottom:20px;
         text-align:center;
     ">
+    """, unsafe_allow_html=True)
 
-        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-             width="55">
+    st.image(
+        "logo.png",
+        width=90
+    )
 
-        <h3 style="
+    st.markdown(
+        f"""
+        <h2 style="
+            text-align:center;
             color:#F8D568;
             margin-top:10px;
-            margin-bottom:5px;
+            margin-bottom:8px;
+            font-size:30px;
         ">
             बाल युवा मंगलदल समिति
-        </h3>
+        </h2>
 
         <p style="
+            text-align:center;
             color:#CBD5E1;
-            margin:0;
-            font-size:14px;
+            font-size:18px;
+            margin-top:0px;
         ">
             👋 Welcome, {username}
         </p>
 
-    </div>
-    """
-
-    components.html(html, height=180)
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 # ================= MOBILE SECTION TITLE =================
 def show_mobile_section_title(title):
 
