@@ -26,7 +26,15 @@ from mobile_ui import (
     show_mobile_metric_card
 )
 import base64
-
+from mobile_ui import (
+    is_mobile,
+    load_mobile_css,
+    show_mobile_header,
+    show_mobile_topbar,
+    show_mobile_section_title,
+    show_mobile_metric_card,
+    show_mobile_navigation
+)
 def get_base64_image(image_path):
     with open(image_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
@@ -660,11 +668,7 @@ else:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    menu = st.selectbox(
-        "",
-        menu_list,
-        label_visibility="collapsed"
-    )
+    menu = show_mobile_navigation()
         
 # ================= HEADER =================
 if not is_mobile():
