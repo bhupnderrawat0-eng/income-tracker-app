@@ -16,7 +16,7 @@ def load_mobile_css():
         @media (max-width:768px){
             .block-container{
                 padding:12px !important;
-                padding-bottom: 120px !important; /* Content takki navbar ke piche na chupe */
+                padding-bottom: 140px !important; /* Content takki navbar ke piche na chupe */
             }
             h1{
                 font-size:30px !important;
@@ -47,7 +47,16 @@ def load_mobile_css():
             margin-bottom:12px;
         }
 
-        /* Fixed Bottom Container for Option Menu */
+        /* --- FORCE FIXED BOTTOM POSITION WITH ELEMENT WRAPPERS --- */
+        /* Isse hum Streamlit ke internal wrapper ko force karenge bottom par rehne ke liye */
+        .stElementContainer:has(.fixed-nav-wrapper) {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            z-index: 999999 !important;
+        }
+
         .fixed-nav-wrapper {
             position: fixed !important;
             bottom: 0 !important;
@@ -55,15 +64,14 @@ def load_mobile_css():
             width: 100% !important;
             background-color: #111424 !important;
             z-index: 999999 !important;
-            box-shadow: 0px -5px 15px rgba(0,0,0,0.6) !important;
-            padding-bottom: env(safe-area-inset-bottom, 15px) !important;
+            box-shadow: 0px -8px 20px rgba(0,0,0,0.7) !important;
+            padding-bottom: env(safe-area-inset-bottom, 12px) !important;
+            border-top: 1px solid rgba(255,255,255,0.08) !important;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
-
-
 # ================= MOBILE HEADER =================
 def show_mobile_header():
     st.image("logo.png", width=120)
