@@ -188,7 +188,6 @@ def show_mobile_metric_card(title, value):
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
 
-    st.success("MOBILE NAV LOADED")
     selected = option_menu(
         menu_title=None,
 
@@ -201,66 +200,58 @@ def show_mobile_navigation():
         ],
 
         icons=[
-            "house",
-            "people",
+            "house-fill",
+            "people-fill",
             "cash-stack",
-            "bar-chart",
+            "bar-chart-fill",
             "list"
         ],
 
-        orientation="horizontal",
+        menu_icon="cast",
 
         default_index=0,
 
-        styles={
+        orientation="horizontal",
 
+        styles={
             "container": {
-                "padding": "5px",
+                "padding": "0!important",
                 "background-color": "#0F172A",
                 "position": "fixed",
                 "bottom": "0",
                 "left": "0",
+                "right": "0",
                 "width": "100%",
                 "z-index": "999999",
                 "border-top": "1px solid rgba(255,255,255,0.1)"
             },
 
+            "icon": {
+                "color": "#F8D568",
+                "font-size": "20px"
+            },
+
             "nav-link": {
-                "font-size": "12px",
+                "font-size": "10px",
                 "text-align": "center",
+                "margin": "0px",
+                "padding": "10px 0px",
                 "color": "white",
-                "--hover-color": "#1E293B",
             },
 
             "nav-link-selected": {
-                "background-color": "#F8D568",
-                "color": "black",
+                "background-color": "#1E293B",
+                "color": "#F8D568",
             }
         }
     )
 
-    st.markdown(
-        """
-        <style>
-        .block-container{
-            padding-bottom:90px !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-    if selected == "More":
-
-        selected = st.selectbox(
-            "More",
-            [
-                "Loans",
-                "Donations",
-                "Expenses"
-            ]
-        )
-
-    st.session_state.mobile_menu = selected
+    st.markdown("""
+    <style>
+    .block-container{
+        padding-bottom:90px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     return selected
