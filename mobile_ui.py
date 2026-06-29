@@ -47,26 +47,27 @@ def load_mobile_css():
             margin-bottom:12px;
         }
 
-        /* --- FORCE FIXED BOTTOM POSITION WITH ELEMENT WRAPPERS --- */
-        /* Isse hum Streamlit ke internal wrapper ko force karenge bottom par rehne ke liye */
-        .stElementContainer:has(.fixed-nav-wrapper) {
+        /* --- BRUTE FORCE BOTTOM ATTACHMENT WITH INLINE SELECTION --- */
+        /* Yeh rule Streamlit ke sabhi internal element blocks ko bypass karke layout bar ko sidhe bottom par lock karega */
+        iframe[title="streamlit_option_menu.option_menu"] {
             position: fixed !important;
             bottom: 0 !important;
             left: 0 !important;
             width: 100% !important;
             z-index: 999999 !important;
+            background-color: #111424 !important;
+            box-shadow: 0px -8px 25px rgba(0,0,0,0.85) !important;
+            border-top: 1px solid rgba(255,255,255,0.08) !important;
+            padding-bottom: env(safe-area-inset-bottom, 12px) !important;
         }
 
+        /* Container helper to double lock positioning override */
         .fixed-nav-wrapper {
             position: fixed !important;
             bottom: 0 !important;
             left: 0 !important;
             width: 100% !important;
-            background-color: #111424 !important;
             z-index: 999999 !important;
-            box-shadow: 0px -8px 20px rgba(0,0,0,0.7) !important;
-            padding-bottom: env(safe-area-inset-bottom, 12px) !important;
-            border-top: 1px solid rgba(255,255,255,0.08) !important;
         }
         </style>
         """,
