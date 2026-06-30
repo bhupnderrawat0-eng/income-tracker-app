@@ -1,7 +1,6 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 
-
 # ================= DEVICE DETECTION =================
 def is_mobile():
     user_agent = st.context.headers.get("user-agent", "").lower()
@@ -10,16 +9,13 @@ def is_mobile():
 
 # ================= MOBILE CSS =================
 def load_mobile_css():
-
     st.markdown(
         """
         <style>
-
         @media (max-width:768px){
-
             .block-container{
                 padding:12px !important;
-                padding-bottom:100px !important;
+                padding-bottom: 140px !important;
             }
 
             h1{
@@ -57,34 +53,31 @@ def load_mobile_css():
             margin-bottom:12px;
         }
 
-        /* ================= BOTTOM NAV ================= */
-
-        .mobile-bottom-nav{
-            position: fixed !important;
+        /* Fixed Bottom Navigation Setup */
+        .mobile-bottom-nav {
+            position: fixed;
             bottom: 0 !important;
             left: 0 !important;
+            right: 0 !important;
             width: 100% !important;
-
-            z-index: 99999 !important;
-
-            background: #0B1023 !important;
-
-            padding: 8px 12px !important;
-
-            box-shadow: 0px -8px 25px rgba(0,0,0,0.65) !important;
-
-            border-top: 1px solid rgba(255,255,255,0.08) !important;
+            z-index: 999999 !important;
+            background-color: #111424 !important;
+            box-shadow: 0 -6px 20px rgba(0,0,0,0.5);
+            padding: 0px !important;
         }
 
+        /* Streamlit ke andar ki extra spacing/border hatane ke liye */
+        .mobile-bottom-nav div {
+            border: none !important;
+        }
         </style>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
 # ================= MOBILE HEADER =================
 def show_mobile_header():
-
     st.image("logo.png", width=120)
 
     st.markdown(
@@ -96,14 +89,14 @@ def show_mobile_header():
             बाल युवा मंगलदल समिति
         </h3>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
 # ================= MOBILE TOP BAR =================
 def show_mobile_topbar(username):
 
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
         st.image("logo.png", width=120)
@@ -120,7 +113,7 @@ def show_mobile_topbar(username):
             बाल युवा मंगलदल समिति
         </h2>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     st.markdown(
@@ -135,7 +128,7 @@ def show_mobile_topbar(username):
             👋 Welcome, {username}
         </p>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     st.markdown("<hr>", unsafe_allow_html=True)
@@ -150,7 +143,7 @@ def show_mobile_section_title(title):
             {title}
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
 
@@ -162,7 +155,8 @@ def get_metric_columns():
         row2 = st.columns(2)
         return row1, row2
 
-    return st.columns(4)
+    else:
+        return st.columns(4)
 
 
 # ================= MOBILE METRIC CARD =================
@@ -215,12 +209,12 @@ def show_mobile_navigation():
         "More"
     ]
 
+    default_index = 0
+
     current_menu = st.session_state.get(
         "mobile_menu",
         "Dashboard"
     )
-
-    default_index = 0
 
     if current_menu in menu_options:
         default_index = menu_options.index(current_menu)
@@ -232,15 +226,8 @@ def show_mobile_navigation():
     ]:
         default_index = 4
 
-    st.markdown(
-        "<div style='height:80px'></div>",
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '<div class="mobile-bottom-nav">',
-        unsafe_allow_html=True
-    )
+    # Navigation bar ko fixed container ke andar wrap kiya
+    st.markdown('<div class="mobile-bottom-nav">', unsafe_allow_html=True)
 
     selected = option_menu(
         menu_title=None,
@@ -257,74 +244,37 @@ def show_mobile_navigation():
         orientation="horizontal",
         styles={
             "container": {
-                "padding": "0!important",
+                "padding": "0px !important",
                 "background-color": "#111424",
-                "border-radius": "18px"
+                "border-radius": "0px",
+                "margin": "0px !important",
             },
 
             "icon": {
-                "color": "#FFFFFF",
-                "font-size": "22px"
+                "color": "#FFF",
+                "font-size": "20px"
             },
 
             "nav-link": {
                 "font-size": "0px",
                 "text-align": "center",
                 "margin": "0px",
-                "padding": "14px 0px",
-                "--hover-color": "rgba(255,255,255,0.08)"
+                "padding": "18px 0px",
+                "--hover-color": "rgba(255,255,255,0.1)"
             },
 
             "nav-link-selected": {
-                "background-color": "#5856D6"
+                "background-color": "#5856D6",
+                "border-radius": "12px"
             },
         }
     )
 
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True
-    )
+    st.markdown('</div>', unsafe_allow_html=True)
 
     if selected == "More":
-        st.session_state.show_more = True
-
+        st.session_state.mobile_menu = "Loans"
     else:
-        st.session_state.show_more = False
+        st.session_state.mobile_menu = selected
 
-        if selected != current_menu:
-            st.session_state.mobile_menu = selected
-            st.rerun()
-
-    if st.session_state.get("show_more", False):
-
-        current_more = st.session_state.get(
-            "mobile_menu",
-            "Loans"
-        )
-
-        if current_more not in [
-            "Loans",
-            "Donations",
-            "Expenses"
-        ]:
-            current_more = "Loans"
-
-        more_menu = st.selectbox(
-            "More Options",
-            ["Loans", "Donations", "Expenses"],
-            index=[
-                "Loans",
-                "Donations",
-                "Expenses"
-            ].index(current_more)
-        )
-
-        if st.session_state.get("mobile_menu") != more_menu:
-            st.session_state.mobile_menu = more_menu
-            st.rerun()
-
-    return st.session_state.get(
-        "mobile_menu",
-        "Dashboard"
-    )
+    return st.session_state.mobile_menu
