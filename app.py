@@ -668,7 +668,7 @@ else:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # menu = show_mobile_navigation()
+    menu = show_mobile_navigation()
         
 # ================= HEADER =================
 if not is_mobile():
@@ -4933,8 +4933,4 @@ elif menu == "Backup & Restore":
 elif menu == "AI":
     st.subheader("🤖 AI Insights (Coming Soon)")
     st.info("Future AI features yaha add honge")
-# ================= MOBILE BOTTOM NAV =================
 
-if is_mobile():
-    st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
-    menu = show_mobile_navigation()
