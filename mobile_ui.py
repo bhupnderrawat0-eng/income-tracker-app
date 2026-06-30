@@ -190,40 +190,43 @@ def show_mobile_metric_card(title, value):
         scrolling=False
     )
 
-
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
 
     if "mobile_menu" not in st.session_state:
         st.session_state.mobile_menu = "Dashboard"
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    .mobile-nav-space{
+        height:80px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    col1, col2, col3, col4, col5 = st.columns(5)
+    nav_cols = st.columns(5, gap="small")
 
-    with col1:
-        if st.button("🏠", key="nav_dashboard"):
-            st.session_state.mobile_menu = "Dashboard"
-            st.rerun()
+    buttons = [
+        ("🏠", "Dashboard"),
+        ("👥", "Members"),
+        ("💰", "Collections"),
+        ("📊", "Reports"),
+        ("☰", "Loans")
+    ]
 
-    with col2:
-        if st.button("👥", key="nav_members"):
-            st.session_state.mobile_menu = "Members"
-            st.rerun()
+    for col, (icon, page) in zip(nav_cols, buttons):
 
-    with col3:
-        if st.button("💰", key="nav_collections"):
-            st.session_state.mobile_menu = "Collections"
-            st.rerun()
+        with col:
 
-    with col4:
-        if st.button("📊", key="nav_reports"):
-            st.session_state.mobile_menu = "Reports"
-            st.rerun()
+            active = st.session_state.mobile_menu == page
 
-    with col5:
-        if st.button("☰", key="nav_more"):
-            st.session_state.mobile_menu = "Loans"
-            st.rerun()
+            if st.button(
+                icon,
+                key=f"mobile_{page}",
+                use_container_width=True
+            ):
+
+                st.session_state.mobile_menu = page
+                st.rerun()
 
     return st.session_state.mobile_menu
