@@ -1,6 +1,4 @@
 import streamlit as st
-from streamlit_option_menu import option_menu
-
 
 # ================= DEVICE DETECTION =================
 def is_mobile():
@@ -196,119 +194,36 @@ def show_mobile_metric_card(title, value):
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
 
-    menu_options = [
-        "Dashboard",
-        "Members",
-        "Collections",
-        "Reports",
-        "More"
-    ]
+    if "mobile_menu" not in st.session_state:
+        st.session_state.mobile_menu = "Dashboard"
 
-    default_index = 0
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    current_menu = st.session_state.get(
-        "mobile_menu",
-        "Dashboard"
-    )
+    col1, col2, col3, col4, col5 = st.columns(5)
 
-    if current_menu in menu_options:
-        default_index = menu_options.index(current_menu)
-
-    elif current_menu in [
-        "Loans",
-        "Donations",
-        "Expenses"
-    ]:
-        default_index = 4
-
-    st.markdown(
-        '<div class="mobile-bottom-nav">',
-        unsafe_allow_html=True
-    )
-
-    selected = option_menu(
-        menu_title=None,
-        options=menu_options,
-        icons=[
-            "house",
-            "people",
-            "wallet2",
-            "bar-chart-line",
-            "list"
-        ],
-        menu_icon="cast",
-        default_index=default_index,
-        orientation="horizontal",
-        styles={
-            "container": {
-                "padding": "0!important",
-                "background-color": "#111424",
-                "border-radius": "0px"
-            },
-
-            "icon": {
-                "color": "#FFF",
-                "font-size": "20px"
-            },
-
-            "nav-link": {
-                "font-size": "0px",
-                "text-align": "center",
-                "margin": "0px",
-                "padding": "14px 0px",
-                "--hover-color": "rgba(255,255,255,0.1)"
-            },
-
-            "nav-link-selected": {
-                "background-color": "#5856D6"
-            },
-        }
-    )
-
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-    if selected == "More":
-        st.session_state.show_more = True
-
-    else:
-        st.session_state.show_more = False
-
-        if selected != current_menu:
-            st.session_state.mobile_menu = selected
+    with col1:
+        if st.button("🏠", key="nav_dashboard"):
+            st.session_state.mobile_menu = "Dashboard"
             st.rerun()
 
-    if st.session_state.get("show_more", False):
-
-        current_more = st.session_state.get(
-            "mobile_menu",
-            "Loans"
-        )
-
-        if current_more not in [
-            "Loans",
-            "Donations",
-            "Expenses"
-        ]:
-            current_more = "Loans"
-
-        more_menu = st.selectbox(
-            "More Options",
-            ["Loans", "Donations", "Expenses"],
-            index=[
-                "Loans",
-                "Donations",
-                "Expenses"
-            ].index(current_more)
-        )
-
-        if st.session_state.get("mobile_menu") != more_menu:
-            st.session_state.mobile_menu = more_menu
+    with col2:
+        if st.button("👥", key="nav_members"):
+            st.session_state.mobile_menu = "Members"
             st.rerun()
 
-    return st.session_state.get(
-        "mobile_menu",
-        "Dashboard"
-    )
+    with col3:
+        if st.button("💰", key="nav_collections"):
+            st.session_state.mobile_menu = "Collections"
+            st.rerun()
+
+    with col4:
+        if st.button("📊", key="nav_reports"):
+            st.session_state.mobile_menu = "Reports"
+            st.rerun()
+
+    with col5:
+        if st.button("☰", key="nav_more"):
+            st.session_state.mobile_menu = "Loans"
+            st.rerun()
+
+    return st.session_state.mobile_menu
