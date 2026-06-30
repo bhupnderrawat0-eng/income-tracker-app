@@ -1,5 +1,5 @@
 import streamlit as st
-
+from streamlit_option_menu import option_menu
 # ================= DEVICE DETECTION =================
 def is_mobile():
     user_agent = st.context.headers.get("user-agent", "").lower()
@@ -193,40 +193,73 @@ def show_mobile_metric_card(title, value):
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
 
-    if "mobile_menu" not in st.session_state:
-        st.session_state.mobile_menu = "Dashboard"
-
-    st.markdown("""
-    <style>
-    .mobile-nav-space{
-        height:80px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    nav_cols = st.columns(5, gap="small")
-
-    buttons = [
-        ("🏠", "Dashboard"),
-        ("👥", "Members"),
-        ("💰", "Collections"),
-        ("📊", "Reports"),
-        ("☰", "Loans")
+    menu_options = [
+        "Dashboard",
+        "Members",
+        "Collections",
+        "Reports",
+        "More"
     ]
 
-    for col, (icon, page) in zip(nav_cols, buttons):
+    default_index = 0
 
-        with col:
+    current_menu = st.session_state.get(
+        "mobile_menu",
+        "Dashboard"
+    )
 
-            active = st.session_state.mobile_menu == page
+    if current_menu in menu_options:
+        default_index = menu_options.index(current_menu)
 
-            if st.button(
-                icon,
-                key=f"mobile_{page}",
-                use_container_width=True
-            ):
+    elif current_menu in [
+        "Loans",
+        "Donations",
+        "Expenses"
+    ]:
+        default_index = 4
 
-                st.session_state.mobile_menu = page
-                st.rerun()
+    selected = option_menu(
+        menu_title=None,
+        options=menu_options,
+        icons=[
+            "house",
+            "people",
+            "wallet2",
+            "bar-chart-line",
+            "list"
+        ],
+        menu_icon="cast",
+        default_index=default_index,
+        orientation="horizontal",
+        styles={
+            "container": {
+                "padding": "0!important",
+                "background-color": "#111424",
+                "border-radius": "20px"
+            },
+
+            "icon": {
+                "color": "#FFF",
+                "font-size": "20px"
+            },
+
+            "nav-link": {
+                "font-size": "0px",
+                "text-align": "center",
+                "margin": "0px",
+                "padding": "14px 0px",
+                "--hover-color": "rgba(255,255,255,0.1)"
+            },
+
+            "nav-link-selected": {
+                "background-color": "#5856D6"
+            },
+        }
+    )
+
+    if selected == "More":
+        st.session_state.mobile_menu = "Loans"
+    else:
+        st.session_state.mobile_menu = selected
 
     return st.session_state.mobile_menu
