@@ -1,5 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
+
+
 # ================= DEVICE DETECTION =================
 def is_mobile():
     user_agent = st.context.headers.get("user-agent", "").lower()
@@ -8,13 +10,16 @@ def is_mobile():
 
 # ================= MOBILE CSS =================
 def load_mobile_css():
+
     st.markdown(
         """
         <style>
+
         @media (max-width:768px){
+
             .block-container{
                 padding:12px !important;
-                padding-bottom: 140px !important;
+                padding-bottom:100px !important;
             }
 
             h1{
@@ -52,25 +57,34 @@ def load_mobile_css():
             margin-bottom:12px;
         }
 
-        /* Fixed Bottom Navigation */
+        /* ================= BOTTOM NAV ================= */
+
         .mobile-bottom-nav{
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            z-index: 9999;
-            background: #111424;
-            box-shadow: 0 -6px 20px rgba(0,0,0,0.5);
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+
+            z-index: 99999 !important;
+
+            background: #0B1023 !important;
+
+            padding: 8px 12px !important;
+
+            box-shadow: 0px -8px 25px rgba(0,0,0,0.65) !important;
+
+            border-top: 1px solid rgba(255,255,255,0.08) !important;
         }
 
         </style>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 
 # ================= MOBILE HEADER =================
 def show_mobile_header():
+
     st.image("logo.png", width=120)
 
     st.markdown(
@@ -82,14 +96,14 @@ def show_mobile_header():
             बाल युवा मंगलदल समिति
         </h3>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 
 # ================= MOBILE TOP BAR =================
 def show_mobile_topbar(username):
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1,2,1])
 
     with col2:
         st.image("logo.png", width=120)
@@ -106,7 +120,7 @@ def show_mobile_topbar(username):
             बाल युवा मंगलदल समिति
         </h2>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
     st.markdown(
@@ -121,7 +135,7 @@ def show_mobile_topbar(username):
             👋 Welcome, {username}
         </p>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
     st.markdown("<hr>", unsafe_allow_html=True)
@@ -136,7 +150,7 @@ def show_mobile_section_title(title):
             {title}
         </div>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 
@@ -148,8 +162,7 @@ def get_metric_columns():
         row2 = st.columns(2)
         return row1, row2
 
-    else:
-        return st.columns(4)
+    return st.columns(4)
 
 
 # ================= MOBILE METRIC CARD =================
@@ -190,6 +203,7 @@ def show_mobile_metric_card(title, value):
         scrolling=False
     )
 
+
 # ================= MOBILE NAVIGATION =================
 def show_mobile_navigation():
 
@@ -201,12 +215,12 @@ def show_mobile_navigation():
         "More"
     ]
 
-    default_index = 0
-
     current_menu = st.session_state.get(
         "mobile_menu",
         "Dashboard"
     )
+
+    default_index = 0
 
     if current_menu in menu_options:
         default_index = menu_options.index(current_menu)
@@ -217,6 +231,16 @@ def show_mobile_navigation():
         "Expenses"
     ]:
         default_index = 4
+
+    st.markdown(
+        "<div style='height:80px'></div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div class="mobile-bottom-nav">',
+        unsafe_allow_html=True
+    )
 
     selected = option_menu(
         menu_title=None,
@@ -235,12 +259,12 @@ def show_mobile_navigation():
             "container": {
                 "padding": "0!important",
                 "background-color": "#111424",
-                "border-radius": "20px"
+                "border-radius": "18px"
             },
 
             "icon": {
-                "color": "#FFF",
-                "font-size": "20px"
+                "color": "#FFFFFF",
+                "font-size": "22px"
             },
 
             "nav-link": {
@@ -248,7 +272,7 @@ def show_mobile_navigation():
                 "text-align": "center",
                 "margin": "0px",
                 "padding": "14px 0px",
-                "--hover-color": "rgba(255,255,255,0.1)"
+                "--hover-color": "rgba(255,255,255,0.08)"
             },
 
             "nav-link-selected": {
@@ -257,9 +281,50 @@ def show_mobile_navigation():
         }
     )
 
-    if selected == "More":
-        st.session_state.mobile_menu = "Loans"
-    else:
-        st.session_state.mobile_menu = selected
+    st.markdown(
+        "</div>",
+        unsafe_allow_html=True
+    )
 
-    return st.session_state.mobile_menu
+    if selected == "More":
+        st.session_state.show_more = True
+
+    else:
+        st.session_state.show_more = False
+
+        if selected != current_menu:
+            st.session_state.mobile_menu = selected
+            st.rerun()
+
+    if st.session_state.get("show_more", False):
+
+        current_more = st.session_state.get(
+            "mobile_menu",
+            "Loans"
+        )
+
+        if current_more not in [
+            "Loans",
+            "Donations",
+            "Expenses"
+        ]:
+            current_more = "Loans"
+
+        more_menu = st.selectbox(
+            "More Options",
+            ["Loans", "Donations", "Expenses"],
+            index=[
+                "Loans",
+                "Donations",
+                "Expenses"
+            ].index(current_more)
+        )
+
+        if st.session_state.get("mobile_menu") != more_menu:
+            st.session_state.mobile_menu = more_menu
+            st.rerun()
+
+    return st.session_state.get(
+        "mobile_menu",
+        "Dashboard"
+    )
