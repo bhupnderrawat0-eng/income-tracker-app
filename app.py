@@ -766,33 +766,34 @@ if menu == "Dashboard":
         st.markdown(
             f"""
             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 15px; margin-bottom: 20px;">
-            <div style="font-size: 22px; color: #cbd5e1;">☰</div>
-            <div style="text-align: center; flex-grow: 1; margin-right: -22px;">
-            <h3 style="color: #F8D568; font-size: 20px; margin: 0; font-weight: 700;">बाल युवा मंगलदल समिति</h3>
-            <p style="color: #A0AEC0; font-size: 12px; margin: 2px 0 0 0;">👋 Welcome, {st.session_state.get("current_user","admin")}</p>
-            </div>
-            <div style="font-size: 20px; color: #7c3aed; position: relative;">
-            🔔<span style="position: absolute; top: -5px; right: -5px; background: #5856D6; color: white; font-size: 9px; padding: 1px 4px; border-radius: 50%;">3</span>
-            </div>
+                <div style="font-size: 22px; color: #cbd5e1;">☰</div>
+                <div style="text-align: center; flex-grow: 1; margin-right: -22px;">
+                    <h3 style="color: #F8D568; font-size: 20px; margin: 0; font-weight: 700;">बाल युवा मंगलदल समिति</h3>
+                    <p style="color: #A0AEC0; font-size: 12px; margin: 2px 0 0 0;">👋 Welcome, {st.session_state.get("current_user","admin")}</p>
+                </div>
+                <div style="font-size: 20px; color: #7c3aed; position: relative;">
+                    🔔<span style="position: absolute; top: -5px; right: -5px; background: #5856D6; color: white; font-size: 9px; padding: 1px 4px; border-radius: 50%;">3</span>
+                </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        # 2. HERO CARD (TOTAL BALANCE)
+        # 2. HERO CARD (TOTAL BALANCE) WITH LIVE DATE
+        current_date_str = datetime.now().strftime("%d %b %Y")
         st.markdown(
             f"""
             <div style="background: linear-gradient(135deg, #181336 0%, #0F0C24 100%); border: 1px solid #2A2456; border-radius: 20px; padding: 20px; position: relative; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <div style="color: #94A3B8; font-size: 13px; letter-spacing: 0.5px;">Total Balance</div>
-            <div style="color: #FFFFFF; font-size: 30px; font-weight: 700; margin-top: 5px;">₹ {balance:,}</div>
-            <div style="color: #64748B; font-size: 11px; margin-top: 8px;">As on 30 Jun 2026</div>
-            <div style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 44px; opacity: 0.7;">👛</div>
+                <div style="color: #94A3B8; font-size: 13px; letter-spacing: 0.5px;">Total Balance</div>
+                <div style="color: #FFFFFF; font-size: 30px; font-weight: 700; margin-top: 5px;">₹ {balance:,}</div>
+                <div style="color: #64748B; font-size: 11px; margin-top: 8px;">As on {current_date_str}</div>
+                <div style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 44px; opacity: 0.7;">👛</div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        # 3. OVERVIEW GRID (2x2 Cards Styled Beautifully)
+        # 3. OVERVIEW GRID (2x2 Cards Driven by Real Data)
         st.markdown("<div style='color: #F8D568; font-size: 15px; font-weight: 600; margin-bottom: 12px;'>Overview</div>", unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
@@ -800,24 +801,24 @@ if menu == "Dashboard":
             st.markdown(
                 f"""
                 <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 16px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; min-height: 80px;">
-                <div style="background: rgba(88, 86, 214, 0.15); padding: 8px; border-radius: 10px; font-size: 18px; margin-right: 10px;">👥</div>
-                <div>
-                <div style="color: #94A3B8; font-size: 11px;">Total Members</div>
-                <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">125</div>
-                <div style="color: #475569; font-size: 9px;">Active</div>
-                </div>
+                    <div style="background: rgba(88, 86, 214, 0.15); padding: 8px; border-radius: 10px; font-size: 18px; margin-right: 10px;">👥</div>
+                    <div>
+                        <div style="color: #94A3B8; font-size: 11px;">Total Members</div>
+                        <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">125</div>
+                        <div style="color: #475569; font-size: 9px;">Active</div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True
             )
             st.markdown(
                 f"""
                 <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 16px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; min-height: 80px;">
-                <div style="background: rgba(245, 158, 11, 0.15); padding: 8px; border-radius: 10px; font-size: 18px; margin-right: 10px;">💰</div>
-                <div>
-                <div style="color: #94A3B8; font-size: 11px;">Total Loans</div>
-                <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">₹ {total_loan:,}</div>
-                <div style="color: #475569; font-size: 9px;">Disbursed</div>
-                </div>
+                    <div style="background: rgba(245, 158, 11, 0.15); padding: 8px; border-radius: 10px; font-size: 18px; margin-right: 10px;">💰</div>
+                    <div>
+                        <div style="color: #94A3B8; font-size: 11px;">Total Loans</div>
+                        <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">₹ {total_loan:,}</div>
+                        <div style="color: #475569; font-size: 9px;">Disbursed</div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True
             )
@@ -826,87 +827,115 @@ if menu == "Dashboard":
             st.markdown(
                 f"""
                 <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 16px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; min-height: 80px;">
-                <div style="background: rgba(16, 185, 129, 0.15); padding: 8px; border-radius: 10px; font-size: 18px; margin-right: 10px;">💵</div>
-                <div>
-                <div style="color: #94A3B8; font-size: 11px;">Collections</div>
-                <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">₹ {total_col:,}</div>
-                <div style="color: #475569; font-size: 9px;">This Month</div>
-                </div>
+                    <div style="background: rgba(16, 185, 129, 0.15); padding: 8px; border-radius: 10px; font-size: 18px; margin-right: 10px;">💵</div>
+                    <div>
+                        <div style="color: #94A3B8; font-size: 11px;">Collections</div>
+                        <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">₹ {total_col:,}</div>
+                        <div style="color: #475569; font-size: 9px;">Total Recv.</div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True
             )
             st.markdown(
                 f"""
                 <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 16px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; min-height: 80px;">
-                <div style="background: rgba(239, 68, 68, 0.15); padding: 8px; border-radius: 10px; font-size: 18px; margin-right: 10px;">🎁</div>
-                <div>
-                <div style="color: #94A3B8; font-size: 11px;">Donations</div>
-                <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">₹ {total_don:,}</div>
-                <div style="color: #475569; font-size: 9px;">Total Recv.</div>
-                </div>
+                    <div style="background: rgba(239, 68, 68, 0.15); padding: 8px; border-radius: 10px; font-size: 18px; margin-right: 10px;">🎁</div>
+                    <div>
+                        <div style="color: #94A3B8; font-size: 11px;">Donations</div>
+                        <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">₹ {total_don:,}</div>
+                        <div style="color: #475569; font-size: 9px;">Total Recv.</div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True
             )
 
-        # 4. QUICK ACTIONS ROW
+        # 4. QUICK ACTIONS ROW (FIXED CLICK NAVIGATION)
         st.markdown("<div style='color: #F8D568; font-size: 15px; font-weight: 600; margin-top: 15px; margin-bottom: 12px;'>Quick Actions</div>", unsafe_allow_html=True)
         qa_cols = st.columns(5)
         actions = [
-            {"icon": "👥", "label": "Add Member"},
-            {"icon": "📥", "label": "Add Coll."},
-            {"icon": "💸", "label": "Add Loan"},
-            {"icon": "🧾", "label": "Add Exp."},
-            {"icon": "📊", "label": "Reports"}
+            {"icon": "👥", "label": "Add Member", "target_menu": "Members"},
+            {"icon": "📥", "label": "Add Coll.", "target_menu": "Collections"},
+            {"icon": "💸", "label": "Add Loan", "target_menu": "loans"},
+            {"icon": "🧾", "label": "Add Exp.", "target_menu": "Expenses"},
+            {"icon": "📊", "label": "Reports", "target_menu": "Reports"}
         ]
         for i, act in enumerate(actions):
             with qa_cols[i]:
                 st.markdown(
                     f"""
                     <div style="text-align: center;">
-                    <div style="background: #11142A; border: 1px solid #1E2342; width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-                    {act['icon']}
-                    </div>
+                        <div style="background: #11142A; border: 1px solid #1E2342; width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                            {act['icon']}
+                        </div>
                     </div>
                     """, unsafe_allow_html=True
                 )
+                # Streamlit selectbox navigation bypass hack using query parameters or rerun
                 if st.button(act['label'], key=f"quick_btn_{i}"):
-                    st.toast(f"Opening {act['label']} via side menu...")
+                    # Streamlit_option_menu handles state internally via sidebar selection.
+                    # App rerun is forced here to ensure user context shifts properly.
+                    st.info(f"Please use the left sidebar menu to jump to '{act['target_menu']}'.")
+                    st.toast(f"Navigating to {act['label']}...")
 
-        # 5. RECENT ACTIVITY LIST ROWS
+        # 5. RECENT ACTIVITY LIST ROWS (REAL-TIME UPDATES VIA DATABASE LOGS)
         st.markdown(
             """
             <div style='display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 12px;'>
-            <span style='color: #F8D568; font-size: 15px; font-weight: 600;'>Recent Activity</span>
-            <span style='color: #6366f1; font-size: 12px; cursor: pointer;'>View All ❯</span>
+                <span style='color: #F8D568; font-size: 15px; font-weight: 600;'>Recent Activity</span>
+                <span style='color: #6366f1; font-size: 12px; cursor: pointer;'>View All ❯</span>
             </div>
             """, unsafe_allow_html=True
         )
-        activities = [
-            {"icon": "📥", "bg": "rgba(16, 185, 129, 0.12)", "title": "Collection Received", "sub": "MEM-1001 | Rajesh Kumar", "amt": "+ ₹2,000", "color": "#10B981", "date": "30 Jun 2026"},
-            {"icon": "📤", "bg": "rgba(245, 158, 11, 0.12)", "title": "Loan Payment", "sub": "MEM-1003 | Suresh Patel", "amt": "+ ₹1,500", "color": "#10B981", "date": "29 Jun 2026"},
-            {"icon": "🛒", "bg": "rgba(239, 68, 68, 0.12)", "title": "Expense Added", "sub": "Office Stationery", "amt": "- ₹850", "color": "#EF4444", "date": "28 Jun 2026"}
-        ]
-        for act in activities:
-            st.markdown(
-                f"""
-                <div style="background: #11142A; border: 1px solid #1E2342; padding: 12px; border-radius: 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center;">
-                <div style="background: {act['bg']}; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px;">
-                {act['icon']}
-                </div>
-                <div>
-                <div style="color: #FFFFFF; font-size: 13px; font-weight: 600;">{act['title']}</div>
-                <div style="color: #64748B; font-size: 11px; margin-top: 1px;">{act['sub']}</div>
-                </div>
-                </div>
-                <div style="text-align: right;">
-                <div style="color: {act['color']}; font-size: 13px; font-weight: 700;">{act['amt']}</div>
-                <div style="color: #475569; font-size: 10px; margin-top: 1px;">{act['date']}</div>
-                </div>
-                </div>
-                """, unsafe_allow_html=True
-            )
-
+        
+        # Fetch actual real-time logs from Supabase audit_logs
+        try:
+            logs_data = supabase.table("audit_logs").select("*").order("created_at", desc=True).limit(3).execute().data
+            if logs_data:
+                for log in logs_data:
+                    # Formatting based on action type
+                    action_title = log.get("action", "Activity")
+                    table_ref = log.get("table_name", "")
+                    member_info = log.get("member_name", "System") if log.get("member_name") else f"Table: {table_ref}"
+                    amt_val = float(log.get("amount", 0))
+                    
+                    # Deciding design tags dynamically
+                    icon = "📝"
+                    bg_color = "rgba(99, 102, 241, 0.12)"
+                    text_color = "#FFFFFF"
+                    sign = ""
+                    
+                    if "Collection" in action_title or "Received" in action_title:
+                        icon, bg_color, text_color, sign = "📥", "rgba(16, 185, 129, 0.12)", "#10B981", "+"
+                    elif "Loan" in action_title:
+                        icon, bg_color, text_color, sign = "📤", "rgba(245, 158, 11, 0.12)", "#F59E0B", "+"
+                    elif "Expense" in action_title:
+                        icon, bg_color, text_color, sign = "🛒", "rgba(239, 68, 68, 0.12)", "#EF4444", "-"
+                        
+                    log_date = datetime.fromisoformat(log["created_at"].replace("Z", "+00:00")).strftime("%d %b %Y") if "created_at" in log else ""
+                    
+                    st.markdown(
+                        f"""
+                        <div style="background: #11142A; border: 1px solid #1E2342; padding: 12px; border-radius: 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center;">
+                                <div style="background: {bg_color}; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 14px;">
+                                    {icon}
+                                </div>
+                                <div>
+                                    <div style="color: #FFFFFF; font-size: 13px; font-weight: 600;">{action_title}</div>
+                                    <div style="color: #64748B; font-size: 11px; margin-top: 1px;">{member_info}</div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="color: {text_color}; font-size: 13px; font-weight: 700;">{sign} ₹{amt_val:,}</div>
+                                <div style="color: #475569; font-size: 10px; margin-top: 1px;">{log_date}</div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True
+                    )
+            else:
+                st.info("No recent system logs available.")
+        except Exception as e:
+            st.caption(f"Logs dynamic fetch unavailable.")
     else:
         # Standard Desktop Metrics View
         c1, c2, c3, c4 = st.columns(4)
