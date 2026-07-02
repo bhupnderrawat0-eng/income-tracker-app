@@ -37,7 +37,7 @@ def is_mobile():
 def load_mobile_css():
     st.markdown("""
     <style>
-    /* Desktop sidebar structure override & layout stabilization */
+    /* Desktop sidebar box structure override & layout stabilization */
     @media (min-width: 769px) {
         section[data-testid="stSidebar"] {
             min-width: 260px !important;
@@ -46,14 +46,19 @@ def load_mobile_css():
             border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
             box-shadow: none !important;
         }
+        
         div[data-testid="stSidebarNav"], section[data-testid="stSidebar"] > div {
             background: transparent !important;
             border: none !important;
             box-shadow: none !important;
         }
-        /* Hides the Streamlit white scroll indicators/arrows permanently */
-        section[data-testid="stSidebar"] button {
+        
+        /* Hides the white arrow buttons and specific corner brackets inside sidebar */
+        section[data-testid="stSidebar"] button, 
+        section[data-testid="stSidebar"] [role="img"],
+        div[data-testid="stSidebarCollapseButton"] {
             display: none !important;
+            visibility: hidden !important;
         }
     }
     
