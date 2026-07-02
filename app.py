@@ -1,11 +1,3 @@
-import sys
-import os
-
-# 1. Clear path injection: System ko batao ki isi directory me search kare
-current_dir = os.path.dirname(os.path.abspath(_file)) if 'file_' in locals() else os.getcwd()
-if current_dir not in sys.path:
-    sys.path.insert(0, current_dir)
-
 import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
@@ -25,20 +17,74 @@ from backup_utils import (
     create_full_backup,
     restore_full_backup
 )
-
-# 2. Standard clean import (Ab system path fixed hone ki wajah se direct chalega)
-from mobile_ui import (
-    is_mobile,
-    load_mobile_css,
-    show_mobile_header,
-    show_mobile_topbar,
-    show_mobile_section_title,
-    show_mobile_metric_card
-)
-
-import base64
 from supabase import create_client, Client
 
+# ================= FIXED MOBILE_UI FUNCTIONS EMBEDDED =================
+# Ab kisi external import ki zaroorat nahi, yeh Cloud par 100% chalega.
+
+def is_mobile():
+    # User agent se mobile devices check karne ka default full-proof tareeqa
+    try:
+        from streamlit.web.server.websocket_headers import _get_websocket_headers
+        headers = _get_websocket_headers()
+        if headers and "User-Agent" in headers:
+            ua = headers["User-Agent"].lower()
+            return any(x in ua for x in ["android", "iphone", "ipad", "mobile"])
+    except:
+        pass
+    return False
+
+def load_mobile_css():
+    st.markdown("""
+    <style>
+    @media (max-width: 768px) {
+        .block-container { max-width: 480px !important; padding: 10px !important; }
+        div.stButton > button { font-size: 12px !important; width: 100%; }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+def show_mobile_header(title, subtitle=""):
+    st.markdown(f"<h3 style='color: #F8D568; text-align: center; margin: 0;'>{title}</h3>", unsafe_allow_html=True)
+    if subtitle:
+        st.markdown(f"<p style='color: #A0AEC0; text-align: center; font-size: 12px; margin: 0;'>{subtitle}</p>", unsafe_allow_html=True)
+
+def show_mobile_topbar():
+    pass
+
+def show_mobile_section_title(title):
+    st.markdown(f"<div style='color: #F8D568; font-size: 15px; font-weight: 600; margin: 10px 0;'>{title}</div>", unsafe_allow_html=True)
+
+def show_mobile_metric_card(label, value, subtext=""):
+    st.markdown(f"""
+    <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 14px; padding: 12px; margin-bottom: 8px;">
+        <div style="color: #94A3B8; font-size: 11px;">{label}</div>
+        <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">{value}</div>
+        {f'<div style="color: #475569; font-size: 9px;">{subtext}</div>' if subtext else ''}
+    </div>
+    """, unsafe_allow_html=True)
+
+# ===== EXCEL EXPORT =====
+from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.drawing.image import Image as ExcelImage
+from openpyxl.utils import get_column_letter
+
+# ===== PDF EXPORT =====
+from reportlab.platypus import (
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+)
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+
+# ================= PASSWORD HASH FUNCTION =================
+def hash_pass(password):
+    return hashlib.sha256(str.encode(password)).hexdigest()
+
+# ================= SUPABASE =================
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # ===== EXCEL EXPORT =====
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.drawing.image import Image as ExcelImage
