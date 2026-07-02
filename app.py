@@ -818,7 +818,7 @@ if not is_mobile():
 
 st.markdown("---")
 # ================= DASHBOARD =================
-if menu == "Dashboard":
+elif menu == "Dashboard":
 
     import plotly.express as px
 
@@ -849,8 +849,18 @@ if menu == "Dashboard":
     # ===== METRICS =====
     balance = total_col + total_don - total_exp
 
+    # ================= 🔄 FULL-PROOF VIEW SELECTION TOGGLE =================
+    # Yeh har phone aur computer par layout sahi karne ki guaranteed dawa hai
+    view_type = st.radio(
+        "🖥️ Select View Mode / व्यू मोड चुनें:",
+        ["📱 Mobile App View", "💻 Desktop Full View"],
+        horizontal=True,
+        key="global_view_toggle"
+    )
+    st.markdown("---")
+
     # ================= PREMIUM MOBILE DASHBOARD VIEW =================
-    if is_mobile():
+    if view_type == "📱 Mobile App View":
         # 1. PREMIUM HEADER WITH DYNAMIC WELCOME
         st.markdown(
             f"""
@@ -949,7 +959,7 @@ if menu == "Dashboard":
                     st.toast(f"Opening {act['label']}...")
                     st.info(f"Please use left sidebar menu to jump to '{act['target']}' directly.")
 
-        # 5. RECENT ACTIVITY LIST ROWS (REAL DATABASE UPDATES FROM SUPABASE LOGS)
+        # 5. RECENT ACTIVITY LIST ROWS
         st.markdown(
             """
             <div style='display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 10px;'>
@@ -1000,20 +1010,18 @@ if menu == "Dashboard":
             else:
                 st.info("No recent activities.")
         except:
-            st.caption("Logs dynamic fetch unavailable.")    
+            st.caption("Logs dynamic fetch unavailable.")
+
+    # ================= STANDARD DESKTOP VIEW =================
     else:
-        # Standard Desktop Metrics View
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Collections", f"₹ {total_col}")
-        c2.metric("Loans", f"₹ {total_loan}")
-        c3.metric("Donations", f"₹ {total_don}")
-        c4.metric("Expenses", f"₹ {total_exp}")
-        st.metric("Balance", f"₹ {balance}")
+        c1.metric("Collections", f"₹ {total_col:,}")
+        c2.metric("Loans", f"₹ {total_loan:,}")
+        c3.metric("Donations", f"₹ {total_don:,}")
+        c4.metric("Expenses", f"₹ {total_exp:,}")
+        st.metric("Balance", f"₹ {balance:,}")
 
-    st.markdown("---")
-
-    if not is_mobile():
-        # ===== COLLECTION TREND CHART =====
+        st.markdown("---")
         st.markdown("### 📊 Collection Trend")
         try:
             data = get_collection_data()
