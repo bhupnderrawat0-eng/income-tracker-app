@@ -817,7 +817,6 @@ if not is_mobile():
         pass
 
 st.markdown("---")
-# ================= DASHBOARD =================
 elif menu == "Dashboard":
 
     import plotly.express as px
