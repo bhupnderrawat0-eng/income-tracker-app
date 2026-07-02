@@ -37,9 +37,27 @@ def is_mobile():
 def load_mobile_css():
     st.markdown("""
     <style>
+    /* Desktop sidebar layout styling fix */
+    @media (min-width: 769px) {
+        section[data-testid="stSidebar"] {
+            min-width: 240px !important;
+            max-width: 280px !important;
+        }
+        div[data-testid="stSidebarNav"] {
+            max-height: none !important;
+        }
+    }
+    
+    /* Pure Mobile layout overrides */
     @media (max-width: 768px) {
-        .block-container { max-width: 480px !important; padding: 10px !important; }
-        div.stButton > button { font-size: 12px !important; width: 100%; }
+        .block-container { 
+            max-width: 480px !important; 
+            padding: 10px !important; 
+        }
+        div.stButton > button { 
+            font-size: 12px !important; 
+            width: 100%; 
+        }
     }
     </style>
     """, unsafe_allow_html=True)
