@@ -862,24 +862,24 @@ if menu == "Dashboard":
 
     # ================= PREMIUM MOBILE DASHBOARD VIEW =================
     if view_type == "📱 Mobile App View":
-        # 1. PREMIUM HEADER WITH DYNAMIC WELCOME
+        # 1. FIXED PREMIUM RESPONSIVE HEADER
         st.markdown(
             f"""
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 5px; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 4px; margin-bottom: 15px;">
                 <div style="font-size: 20px; color: #cbd5e1;">☰</div>
-                <div style="text-align: center; flex-grow: 1; margin-right: -20px;">
-                    <h3 style="color: #F8D568; font-size: 18px; margin: 0; font-weight: 700;">बाल युवा मंगलदल समिति</h3>
-                    <p style="color: #A0AEC0; font-size: 11px; margin: 1px 0 0 0;">👋 Welcome, {st.session_state.get("current_user","admin")}</p>
+                <div style="text-align: center; flex-grow: 1;">
+                    <h3 style="color: #F8D568; font-size: 18px; margin: 0; font-weight: 700; letter-spacing: 0.5px;">बाल युवा मंगलदल समिति</h3>
+                    <p style="color: #A0AEC0; font-size: 11px; margin: 2px 0 0 0;">👋 Welcome, {st.session_state.get("current_user","admin")}</p>
                 </div>
                 <div style="font-size: 18px; color: #7c3aed; position: relative;">
-                    🔔<span style="position: absolute; top: -5px; right: -5px; background: #5856D6; color: white; font-size: 8px; padding: 1px 3px; border-radius: 50%;">3</span>
+                    🔔<span style="position: absolute; top: -4px; right: -4px; background: #5856D6; color: white; font-size: 8px; padding: 1px 4px; border-radius: 50%;">3</span>
                 </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        # 2. HERO CARD (TOTAL BALANCE) WITH LIVE DATE
+        # 2. HERO CARD (TOTAL BALANCE) WITH CORRECT FORMATTING
         current_date_str = datetime.now().strftime("%d %b %Y")
         st.markdown(
             f"""
@@ -893,50 +893,58 @@ if menu == "Dashboard":
             unsafe_allow_html=True
         )
 
-        # 3. OVERVIEW GRID (2x2 Cards Forced Into Horizontal Rows using HTML Flex)
-        st.markdown("<div style='color: #F8D568; font-size: 14px; font-weight: 600; margin-bottom: 10px;'>Overview</div>", unsafe_allow_html=True)
-
+        # 3. OVERVIEW GRID (Forced Native Grid Layout to prevent continuous stretching)
+        st.markdown("<div style='color: #F8D568; font-size: 14px; font-weight: 600; margin-bottom: 10px; padding-left: 2px;'>Overview</div>", unsafe_allow_html=True)
+        
+        # Grid Row 1
         st.markdown(
             f"""
-            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 12px; padding: 12px; flex: 1; display: flex; align-items: center;">
-                    <div style="background: rgba(88, 86, 214, 0.15); padding: 6px; border-radius: 8px; font-size: 16px; margin-right: 8px;">👥</div>
+            <div style="display: flex; gap: 8px; margin-bottom: 8px; width: 100%;">
+                <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 12px; padding: 12px; flex: 1; display: flex; align-items: center; box-sizing: border-box;">
+                    <div style="background: rgba(88, 86, 214, 0.12); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 10px; flex-shrink: 0;">👥</div>
                     <div>
-                        <div style="color: #94A3B8; font-size: 10px; line-height: 1;">Total Members</div>
-                        <div style="color: #FFFFFF; font-size: 14px; font-weight: 700; margin-top: 2px;">125</div>
+                        <div style="color: #94A3B8; font-size: 10px; white-space: nowrap;">Total Members</div>
+                        <div style="color: #FFFFFF; font-size: 15px; font-weight: 700; margin-top: 1px;">125</div>
                     </div>
                 </div>
-                <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 12px; padding: 12px; flex: 1; display: flex; align-items: center;">
-                    <div style="background: rgba(16, 185, 129, 0.15); padding: 6px; border-radius: 8px; font-size: 16px; margin-right: 8px;">💵</div>
+                <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 12px; padding: 12px; flex: 1; display: flex; align-items: center; box-sizing: border-box;">
+                    <div style="background: rgba(16, 185, 129, 0.12); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 10px; flex-shrink: 0;">💵</div>
                     <div>
-                        <div style="color: #94A3B8; font-size: 10px; line-height: 1;">Collections</div>
-                        <div style="color: #FFFFFF; font-size: 14px; font-weight: 700; margin-top: 2px;">₹ {total_col:,}</div>
+                        <div style="color: #94A3B8; font-size: 10px; white-space: nowrap;">Collections</div>
+                        <div style="color: #FFFFFF; font-size: 15px; font-weight: 700; margin-top: 1px;">₹ {total_col:,}</div>
                     </div>
                 </div>
             </div>
-            <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 12px; padding: 12px; flex: 1; display: flex; align-items: center;">
-                    <div style="background: rgba(245, 158, 11, 0.15); padding: 6px; border-radius: 8px; font-size: 16px; margin-right: 8px;">💰</div>
+            """, unsafe_allow_html=True
+        )
+        
+        # Grid Row 2
+        st.markdown(
+            f"""
+            <div style="display: flex; gap: 8px; margin-bottom: 20px; width: 100%;">
+                <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 12px; padding: 12px; flex: 1; display: flex; align-items: center; box-sizing: border-box;">
+                    <div style="background: rgba(245, 158, 11, 0.12); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 10px; flex-shrink: 0;">💰</div>
                     <div>
-                        <div style="color: #94A3B8; font-size: 10px; line-height: 1;">Total Loans</div>
-                        <div style="color: #FFFFFF; font-size: 14px; font-weight: 700; margin-top: 2px;">₹ {total_loan:,}</div>
+                        <div style="color: #94A3B8; font-size: 10px; white-space: nowrap;">Total Loans</div>
+                        <div style="color: #FFFFFF; font-size: 15px; font-weight: 700; margin-top: 1px;">₹ {total_loan:,}</div>
                     </div>
                 </div>
-                <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 12px; padding: 12px; flex: 1; display: flex; align-items: center;">
-                    <div style="background: rgba(239, 68, 68, 0.15); padding: 6px; border-radius: 8px; font-size: 16px; margin-right: 8px;">🎁</div>
+                <div style="background: #11142A; border: 1px solid #1E2342; border-radius: 12px; padding: 12px; flex: 1; display: flex; align-items: center; box-sizing: border-box;">
+                    <div style="background: rgba(239, 68, 68, 0.12); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-right: 10px; flex-shrink: 0;">🎁</div>
                     <div>
-                        <div style="color: #94A3B8; font-size: 10px; line-height: 1;">Donations</div>
-                        <div style="color: #FFFFFF; font-size: 14px; font-weight: 700; margin-top: 2px;">₹ {total_don:,}</div>
+                        <div style="color: #94A3B8; font-size: 10px; white-space: nowrap;">Donations</div>
+                        <div style="color: #FFFFFF; font-size: 15px; font-weight: 700; margin-top: 1px;">₹ {total_don:,}</div>
                     </div>
                 </div>
             </div>
             """, unsafe_allow_html=True
         )
 
-        # 4. QUICK ACTIONS ROW (GRID WITH FUNCTIONAL CLICKS)
-        st.markdown("<div style='color: #F8D568; font-size: 14px; font-weight: 600; margin-bottom: 10px;'>Quick Actions</div>", unsafe_allow_html=True)
+        # 4. QUICK ACTIONS BLOCK WITH WORKING ROW SELECTION BUTTONS
+        st.markdown("<div style='color: #F8D568; font-size: 14px; font-weight: 600; margin-bottom: 12px; padding-left: 2px;'>Quick Actions</div>", unsafe_allow_html=True)
         
-        actions = [
+        # Native layout columns inside mobile container frame
+        m_actions = [
             {"icon": "👥", "label": "Add Member", "target": "Members"},
             {"icon": "📥", "label": "Add Coll.", "target": "Collections"},
             {"icon": "💸", "label": "Add Loan", "target": "loans"},
@@ -944,26 +952,27 @@ if menu == "Dashboard":
             {"icon": "📊", "label": "Reports", "target": "Reports"}
         ]
         
-        qa_cols = st.columns(5)
-        for i, act in enumerate(actions):
-            with qa_cols[i]:
+        cols = st.columns(5)
+        for idx, act in enumerate(m_actions):
+            with cols[idx]:
                 st.markdown(
                     f"""
-                    <div style="text-align: center; margin-bottom: -5px;">
-                        <div style="background: #11142A; border: 1px solid #1E2342; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 16px;">
+                    <div style="text-align: center; margin-bottom: 2px;">
+                        <div style="background: #11142A; border: 1px solid #1E2342; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
                             {act['icon']}
                         </div>
                     </div>
                     """, unsafe_allow_html=True
                 )
-                if st.button(act['label'], key=f"m_btn_{i}"):
+                # Fixed native action button trigger link
+                if st.button(act['label'], key=f"quick_mob_act_{idx}", use_container_width=True):
                     st.toast(f"Opening {act['label']}...")
-                    st.info(f"Please use left sidebar menu to jump to '{act['target']}' directly.")
+                    st.info(f"Navigate to side menu ➔ '{act['target']}'.")
 
-        # 5. RECENT ACTIVITY LIST ROWS
+        # 5. RECENT ACTIVITY FETCH LOGS
         st.markdown(
             """
-            <div style='display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 10px;'>
+            <div style='display: flex; justify-content: space-between; align-items: center; margin-top: 25px; margin-bottom: 12px; padding: 0 2px;'>
                 <span style='color: #F8D568; font-size: 14px; font-weight: 600;'>Recent Activity</span>
                 <span style='color: #6366f1; font-size: 11px; cursor: pointer;'>View All ❯</span>
             </div>
@@ -991,27 +1000,27 @@ if menu == "Dashboard":
                     
                     st.markdown(
                         f"""
-                        <div style="background: #11142A; border: 1px solid #1E2342; padding: 10px; border-radius: 12px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="background: #11142A; border: 1px solid #1E2342; padding: 10px; border-radius: 12px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box;">
                             <div style="display: flex; align-items: center;">
-                                <div style="background: {bg_color}; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 12px;">
+                                <div style="background: {bg_color}; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 12px; flex-shrink: 0;">
                                     {icon}
                                 </div>
                                 <div>
-                                    <div style="color: #FFFFFF; font-size: 12px; font-weight: 600;">{action_title}</div>
-                                    <div style="color: #64748B; font-size: 10px;">{member_info}</div>
+                                    <div style="color: #FFFFFF; font-size: 12px; font-weight: 600; line-height: 1.2;">{action_title}</div>
+                                    <div style="color: #64748B; font-size: 10px; margin-top: 1px;">{member_info}</div>
                                 </div>
                             </div>
-                            <div style="text-align: right;">
+                            <div style="text-align: right; flex-shrink: 0;">
                                 <div style="color: {text_color}; font-size: 12px; font-weight: 700;">{sign} ₹{amt_val:,}</div>
-                                <div style="color: #475569; font-size: 9px;">{log_date}</div>
+                                <div style="color: #475569; font-size: 9px; margin-top: 1px;">{log_date}</div>
                             </div>
                         </div>
                         """, unsafe_allow_html=True
                     )
             else:
-                st.info("No recent activities.")
+                st.info("No recent system activities.")
         except:
-            st.caption("Logs dynamic fetch unavailable.")
+            st.caption("Logs live data refresh offline.")
 
     # ================= STANDARD DESKTOP VIEW =================
     else:
