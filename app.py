@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(_file_)))
 import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
