@@ -1,3 +1,11 @@
+import sys
+import os
+
+# 1. Clear path injection: System ko batao ki isi directory me search kare
+current_dir = os.path.dirname(os.path.abspath(_file)) if 'file_' in locals() else os.getcwd()
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
 import streamlit as st
 import pandas as pd
 from streamlit_option_menu import option_menu
@@ -18,33 +26,15 @@ from backup_utils import (
     restore_full_backup
 )
 
-# ================= FIXED MOBILE_UI POWER IMPORT =================
-import os
-import importlib.util
-
-# Absolute path trigger for Streamlit Cloud
-module_path = os.path.join(os.path.dirname(os.path.abspath(_file)) if 'file_' in locals() else os.getcwd(), "mobile_ui.py")
-
-if os.path.exists(module_path):
-    spec = importlib.util.spec_from_file_location("mobile_ui", module_path)
-    mobile_ui = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mobile_ui)
-    
-    # Extracting functions safely
-    is_mobile = mobile_ui.is_mobile
-    load_mobile_css = mobile_ui.load_mobile_css
-    show_mobile_header = mobile_ui.show_mobile_header
-    show_mobile_topbar = mobile_ui.show_mobile_topbar
-    show_mobile_section_title = mobile_ui.show_mobile_section_title
-    show_mobile_metric_card = mobile_ui.show_mobile_metric_card
-else:
-    # Safe fallback wrapper if file vanishes
-    def is_mobile(): return False
-    def load_mobile_css(): pass
-    def show_mobile_header(): pass
-    def show_mobile_topbar(): pass
-    def show_mobile_section_title(): pass
-    def show_mobile_metric_card(): pass
+# 2. Standard clean import (Ab system path fixed hone ki wajah se direct chalega)
+from mobile_ui import (
+    is_mobile,
+    load_mobile_css,
+    show_mobile_header,
+    show_mobile_topbar,
+    show_mobile_section_title,
+    show_mobile_metric_card
+)
 
 import base64
 from supabase import create_client, Client
