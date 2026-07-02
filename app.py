@@ -37,14 +37,20 @@ def is_mobile():
 def load_mobile_css():
     st.markdown("""
     <style>
-    /* Desktop sidebar layout styling fix */
+    /* Desktop sidebar box structure override & layout stabilization */
     @media (min-width: 769px) {
         section[data-testid="stSidebar"] {
-            min-width: 240px !important;
-            max-width: 280px !important;
+            min-width: 250px !important;
+            max-width: 290px !important;
+            background-color: #0B0E1F !important; /* Matches option menu baseline */
+            border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+            box-shadow: none !important;
         }
-        div[data-testid="stSidebarNav"] {
-            max-height: none !important;
+        /* Removes any shadow boxes around the internal menu block */
+        div[data-testid="stSidebarNav"], section[data-testid="stSidebar"] > div {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
         }
     }
     
@@ -61,7 +67,6 @@ def load_mobile_css():
     }
     </style>
     """, unsafe_allow_html=True)
-
 def show_mobile_header(title, subtitle=""):
     st.markdown(f"<h3 style='color: #F8D568; text-align: center; margin: 0;'>{title}</h3>", unsafe_allow_html=True)
     if subtitle:
